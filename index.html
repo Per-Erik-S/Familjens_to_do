@@ -1,0 +1,248 @@
+HTML
+<!DOCTYPE html>
+<html lang="sv" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Vardagsflyt</title>
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0f1115;
+      color: #e4e6eb;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-24">
+
+  <!-- Top Header -->
+  <header class="px-5 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-[#0f1115]/90 backdrop-blur-md z-20">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#81c784] animate-pulse"></span>
+        <span class="text-xs font-medium text-[#9ca3af] tracking-wide uppercase">Sluten grupp</span>
+      </div>
+      <h1 id="group-title" class="text-xl font-bold text-white tracking-tight mt-0.5">Familjen</h1>
+    </div>
+    <button onclick="switchTab('group')" class="px-3.5 py-2 rounded-full bg-[#181b21] border border-white/5 text-xs font-medium text-[#a5b4fc] hover:bg-[#22262f] transition">
+      Bjud in
+    </button>
+  </header>
+
+  <!-- Main Content: Listor -->
+  <main id="view-lists" class="px-5 flex-1 space-y-5">
+    
+    <!-- List Selector Pills -->
+    <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
+
+    <!-- Add Item Input -->
+    <form onsubmit="addItem(event)" class="flex gap-2">
+      <input 
+        id="new-item-input"
+        type="text" 
+        placeholder="Lägg till i listan..." 
+        class="flex-1 bg-[#181b21] text-white placeholder-[#6b7280] px-5 py-3.5 rounded-full border border-white/5 focus:outline-none focus:border-[#81c784]/50 text-sm"
+      />
+      <button type="submit" class="bg-[#81c784] text-[#0f1115] font-semibold px-5 py-3.5 rounded-full hover:opacity-90 active:scale-95 transition text-sm">
+        Lägg till
+      </button>
+    </form>
+
+    <!-- Active List Card -->
+    <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-1.5 shadow-xl">
+      <div class="flex justify-between items-center px-2 pb-2">
+        <span id="active-list-name" class="text-sm font-semibold text-white">Inköpslista</span>
+        <button onclick="clearCompleted()" class="text-xs text-[#9ca3af] hover:text-white transition">Rensa klara</button>
+      </div>
+      <div id="items-container" class="space-y-1.5"></div>
+    </div>
+
+  </main>
+
+  <!-- Main Content: Grupp & Delning -->
+  <main id="view-group" class="px-5 flex-1 space-y-5 hidden">
+    <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
+      <h2 class="text-lg font-bold text-white">Dela din grupp</h2>
+      <p class="text-sm text-[#9ca3af] leading-relaxed">
+        Skicka inbjudningskoden till familjemedlemmar så får de direkt tillgång till alla era listor i realtid.
+      </p>
+      <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
+          <span id="invite-code" class="text-lg font-bold text-[#81c784] tracking-widest">FAMILJ-482</span>
+        </div>
+        <button onclick="copyInvite()" id="copy-btn" class="px-4 py-2 rounded-full bg-[#22262f] text-xs font-semibold text-white hover:bg-[#2c313d] transition">
+          Kopiera
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+      <h3 class="text-sm font-semibold text-white">Skapa ny lista i gruppen</h3>
+      <form onsubmit="createNewList(event)" class="flex gap-2">
+        <input id="new-list-name" type="text" placeholder="T.ex. Packlista stugan..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-full border border-white/5 text-sm focus:outline-none" />
+        <button type="submit" class="px-5 py-3 rounded-full bg-[#a5b4fc] text-[#0f1115] font-semibold text-sm">Skapa</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-around shadow-2xl z-30">
+    <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition">
+      Listor
+    </button>
+    <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition">
+      Grupp & Inställningar
+    </button>
+  </nav>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    let state = JSON.parse(localStorage.getItem('vardagsflyt_v1')) || {
+      activeListId: 'inkop',
+      lists: [
+        {
+          id: 'inkop',
+          name: 'Inköpslista',
+          items: [
+            { id: 1, text: 'Mjölk & fil', done: false },
+            { id: 2, text: 'Kaffe', done: false },
+            { id: 3, text: 'Bananer', done: true }
+          ]
+        },
+        {
+          id: 'middag',
+          name: 'Veckans middagar',
+          items: [
+            { id: 4, text: 'Måndag: Pasta pesto', done: false },
+            { id: 5, text: 'Tisdag: Ugnsbakad lax', done: false }
+          ]
+        },
+        {
+          id: 'attgora',
+          name: 'Att göra hemma',
+          items: [
+            { id: 6, text: 'Vattna blommorna', done: false }
+          ]
+        }
+      ]
+    };
+
+    function save() {
+      localStorage.setItem('vardagsflyt_v1', JSON.stringify(state));
+      render();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-lists').classList.toggle('hidden', tab !== 'lists');
+      document.getElementById('view-group').classList.toggle('hidden', tab !== 'group');
+      
+      const navLists = document.getElementById('nav-lists');
+      const navGroup = document.getElementById('nav-group');
+      if (tab === 'lists') {
+        navLists.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition';
+        navGroup.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
+      } else {
+        navGroup.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition';
+        navLists.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
+      }
+    }
+
+    function selectList(id) {
+      state.activeListId = id;
+      save();
+    }
+
+    function addItem(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-item-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const list = state.lists.find(l => l.id === state.activeListId);
+      list.items.unshift({ id: Date.now(), text, done: false });
+      input.value = '';
+      save();
+    }
+
+    function toggleItem(id) {
+      const list = state.lists.find(l => l.id === state.activeListId);
+      const item = list.items.find(i => i.id === id);
+      if (item) item.done = !item.done;
+      save();
+    }
+
+    function clearCompleted() {
+      const list = state.lists.find(l => l.id === state.activeListId);
+      list.items = list.items.filter(i => !i.done);
+      save();
+    }
+
+    function createNewList(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-list-name');
+      const name = input.value.trim();
+      if (!name) return;
+      const id = 'list_' + Date.now();
+      state.lists.push({ id, name, items: [] });
+      state.activeListId = id;
+      input.value = '';
+      save();
+      switchTab('lists');
+    }
+
+    function copyInvite() {
+      navigator.clipboard.writeText('FAMILJ-482');
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Kopierad!';
+      setTimeout(() => btn.textContent = 'Kopiera', 2000);
+    }
+
+    function render() {
+      const tabsEl = document.getElementById('list-tabs');
+      tabsEl.innerHTML = state.lists.map(l => `
+        <button onclick="selectList('${l.id}')" class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+          l.id === state.activeListId 
+            ? 'bg-[#a5b4fc] text-[#0f1115]' 
+            : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
+        }">
+          ${l.name}
+        </button>
+      `).join('');
+
+      const activeList = state.lists.find(l => l.id === state.activeListId) || state.lists[0];
+      document.getElementById('active-list-name').textContent = activeList.name;
+
+      const itemsEl = document.getElementById('items-container');
+      if (activeList.items.length === 0) {
+        itemsEl.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Listan är tom – lägg till något ovan.</p>`;
+        return;
+      }
+
+      const sorted = [...activeList.items].sort((a, b) => a.done - b.done);
+      itemsEl.innerHTML = sorted.map(item => `
+        <div onclick="toggleItem(${item.id})" class="flex items-center gap-3.5 p-3 rounded-2xl bg-[#0f1115]/60 hover:bg-[#0f1115] cursor-pointer transition active:scale-[0.99]">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center border transition ${
+            item.done ? 'bg-[#81c784] border-[#81c784]' : 'border-[#4b5563]'
+          }">
+            ${item.done ? '<svg class="w-3 h-3 text-[#0f1115]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+          </div>
+          <span class="text-sm flex-1 transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${item.text}</span>
+        </div>
+      `).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
