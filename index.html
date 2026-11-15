@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f1115" />
-  <title>Vardagsflyt</title>
+  <title>Familjens Todo</title>
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,8 +26,8 @@
   <header class="px-5 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-[#0f1115]/90 backdrop-blur-md z-20">
     <div>
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#81c784] animate-pulse"></span>
-        <span class="text-xs font-medium text-[#9ca3af] tracking-wide uppercase">Sluten grupp</span>
+        <span id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-[#f59e0b] animate-pulse"></span>
+        <span id="sync-status" class="text-xs font-medium text-[#9ca3af] tracking-wide uppercase">Ansluter till molnet...</span>
       </div>
       <h1 id="group-title" class="text-xl font-bold text-white tracking-tight mt-0.5">Familjen</h1>
     </div>
@@ -61,22 +61,26 @@
         <span id="active-list-name" class="text-sm font-semibold text-white">Inköpslista</span>
         <button onclick="clearCompleted()" class="text-xs text-[#9ca3af] hover:text-white transition">Rensa klara</button>
       </div>
-      <div id="items-container" class="space-y-1.5"></div>
+      <div id="items-container" class="space-y-1.5">
+        <p class="text-center text-xs text-[#6b7280] py-6">Laddar gruppens listor...</p>
+      </div>
     </div>
 
   </main>
 
   <!-- Main Content: Grupp & Delning -->
   <main id="view-group" class="px-5 flex-1 space-y-5 hidden">
+    
+    <!-- Dela din grupp -->
     <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-      <h2 class="text-lg font-bold text-white">Dela din grupp</h2>
+      <h2 class="text-lg font-bold text-white">Dela din slutna grupp</h2>
       <p class="text-sm text-[#9ca3af] leading-relaxed">
         Skicka inbjudningskoden till familjemedlemmar så får de direkt tillgång till alla era listor i realtid.
       </p>
       <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
         <div>
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
-          <span id="invite-code" class="text-lg font-bold text-[#81c784] tracking-widest">FAMILJ-482</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Er inbjudningskod</span>
+          <span id="invite-code" class="text-lg font-bold text-[#81c784] tracking-widest">...</span>
         </div>
         <button onclick="copyInvite()" id="copy-btn" class="px-4 py-2 rounded-full bg-[#22262f] text-xs font-semibold text-white hover:bg-[#2c313d] transition">
           Kopiera
@@ -84,6 +88,27 @@
       </div>
     </div>
 
+    <!-- Gå med i en annan grupp -->
+    <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+      <h3 class="text-sm font-semibold text-white">Gå med i en befintlig grupp</h3>
+      <p class="text-xs text-[#9ca3af]">Har du fått en kod från någon annan? Skriv in den här för att ansluta till deras listor.</p>
+      <form onsubmit="joinGroup(event)" class="flex gap-2">
+        <input id="join-code-input" type="text" placeholder="T.ex. FAM-4829" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-full border border-white/5 text-sm uppercase focus:outline-none focus:border-[#81c784]/50" />
+        <button type="submit" class="px-5 py-3 rounded-full bg-[#81c784] text-[#0f1115] font-semibold text-sm">Anslut</button>
+      </form>
+      <p id="join-feedback" class="text-xs hidden"></p>
+    </div>
+
+    <!-- Byt namn på gruppen -->
+    <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+      <h3 class="text-sm font-semibold text-white">Ändra gruppnamn</h3>
+      <form onsubmit="renameGroup(event)" class="flex gap-2">
+        <input id="rename-group-input" type="text" placeholder="T.ex. Familjen Andersson" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-full border border-white/5 text-sm focus:outline-none" />
+        <button type="submit" class="px-5 py-3 rounded-full bg-[#22262f] text-white font-semibold text-sm hover:bg-[#2c313d]">Spara</button>
+      </form>
+    </div>
+
+    <!-- Skapa ny lista -->
     <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
       <h3 class="text-sm font-semibold text-white">Skapa ny lista i gruppen</h3>
       <form onsubmit="createNewList(event)" class="flex gap-2">
@@ -91,6 +116,7 @@
         <button type="submit" class="px-5 py-3 rounded-full bg-[#a5b4fc] text-[#0f1115] font-semibold text-sm">Skapa</button>
       </form>
     </div>
+
   </main>
 
   <!-- Bottom Navigation -->
@@ -103,47 +129,120 @@
     </button>
   </nav>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
 
-    let state = JSON.parse(localStorage.getItem('vardagsflyt_v1')) || {
-      activeListId: 'inkop',
-      lists: [
-        {
-          id: 'inkop',
-          name: 'Inköpslista',
-          items: [
-            { id: 1, text: 'Mjölk & fil', done: false },
-            { id: 2, text: 'Kaffe', done: false },
-            { id: 3, text: 'Bananer', done: true }
-          ]
-        },
-        {
-          id: 'middag',
-          name: 'Veckans middagar',
-          items: [
-            { id: 4, text: 'Måndag: Pasta pesto', done: false },
-            { id: 5, text: 'Tisdag: Ugnsbakad lax', done: false }
-          ]
-        },
-        {
-          id: 'attgora',
-          name: 'Att göra hemma',
-          items: [
-            { id: 6, text: 'Vattna blommorna', done: false }
-          ]
-        }
-      ]
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1goFY5qPdwOppR-UNME600BAEJLGdUWE",
+      authDomain: "familjens-todo.firebaseapp.com",
+      databaseURL: "https://familjens-todo-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "familjens-todo",
+      storageBucket: "familjens-todo.firebasestorage.app",
+      messagingSenderId: "538061289881",
+      appId: "1:538061289881:web:1a4f5d7951eedec7e6bb08"
     };
 
-    function save() {
-      localStorage.setItem('vardagsflyt_v1', JSON.stringify(state));
-      render();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentGroupId = localStorage.getItem('familjens_todo_group_id');
+    let activeListId = localStorage.getItem('familjens_todo_active_list') || 'inkop';
+    let groupData = null;
+    let unsubscribeGroup = null;
+
+    function generateGroupCode() {
+      const num = Math.floor(1000 + Math.random() * 9000);
+      return 'FAM-' + num;
     }
 
-    function switchTab(tab) {
+    async function createDefaultGroup(code) {
+      const initialData = {
+        name: 'Familjen',
+        createdAt: Date.now(),
+        lists: [
+          {
+            id: 'inkop',
+            name: 'Inköpslista',
+            items: [
+              { id: 1, text: 'Mjölk & fil', done: false },
+              { id: 2, text: 'Kaffe', done: false }
+            ]
+          },
+          {
+            id: 'middag',
+            name: 'Veckans middagar',
+            items: [
+              { id: 3, text: 'Måndag: Pasta pesto', done: false }
+            ]
+          },
+          {
+            id: 'attgora',
+            name: 'Att göra hemma',
+            items: [
+              { id: 4, text: 'Vattna blommorna', done: false }
+            ]
+          }
+        ]
+      };
+      await setDoc(doc(db, 'groups', code), initialData);
+    }
+
+    function listenToGroup(code) {
+      if (unsubscribeGroup) unsubscribeGroup();
+      currentGroupId = code;
+      localStorage.setItem('familjens_todo_group_id', code);
+      document.getElementById('invite-code').textContent = code;
+
+      unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
+        if (snapshot.exists()) {
+          groupData = snapshot.data();
+          document.getElementById('sync-dot').className = 'w-2.5 h-2.5 rounded-full bg-[#81c784]';
+          document.getElementById('sync-status').textContent = 'Synkad i realtid';
+          render();
+        }
+      }, (error) => {
+        console.error(error);
+        document.getElementById('sync-dot').className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+        document.getElementById('sync-status').textContent = 'Anslutningsfel';
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (!currentGroupId) {
+          const newCode = generateGroupCode();
+          await createDefaultGroup(newCode);
+          listenToGroup(newCode);
+        } else {
+          const snap = await getDoc(doc(db, 'groups', currentGroupId));
+          if (!snap.exists()) {
+            await createDefaultGroup(currentGroupId);
+          }
+          listenToGroup(currentGroupId);
+        }
+      }
+    });
+
+    signInAnonymously(auth).catch((err) => {
+      console.error("Inloggningsfel:", err);
+      document.getElementById('sync-status').textContent = 'Kunde inte logga in';
+    });
+
+    async function saveListsToCloud(updatedLists) {
+      if (!currentGroupId) return;
+      await updateDoc(doc(db, 'groups', currentGroupId), {
+        lists: updatedLists
+      });
+    }
+
+    window.switchTab = function(tab) {
       document.getElementById('view-lists').classList.toggle('hidden', tab !== 'lists');
       document.getElementById('view-group').classList.toggle('hidden', tab !== 'group');
       
@@ -156,62 +255,135 @@
         navGroup.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition';
         navLists.className = 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
       }
-    }
+    };
 
-    function selectList(id) {
-      state.activeListId = id;
-      save();
-    }
+    window.selectList = function(id) {
+      activeListId = id;
+      localStorage.setItem('familjens_todo_active_list', id);
+      render();
+    };
 
-    function addItem(e) {
+    window.addItem = async function(e) {
       e.preventDefault();
+      if (!groupData) return;
       const input = document.getElementById('new-item-input');
       const text = input.value.trim();
       if (!text) return;
-      const list = state.lists.find(l => l.id === state.activeListId);
-      list.items.unshift({ id: Date.now(), text, done: false });
       input.value = '';
-      save();
-    }
 
-    function toggleItem(id) {
-      const list = state.lists.find(l => l.id === state.activeListId);
-      const item = list.items.find(i => i.id === id);
-      if (item) item.done = !item.done;
-      save();
-    }
+      const updatedLists = groupData.lists.map(list => {
+        if (list.id === activeListId) {
+          return {
+            ...list,
+            items: [{ id: Date.now(), text, done: false }, ...list.items]
+          };
+        }
+        return list;
+      });
+      await saveListsToCloud(updatedLists);
+    };
 
-    function clearCompleted() {
-      const list = state.lists.find(l => l.id === state.activeListId);
-      list.items = list.items.filter(i => !i.done);
-      save();
-    }
+    window.toggleItem = async function(itemId) {
+      if (!groupData) return;
+      const updatedLists = groupData.lists.map(list => {
+        if (list.id === activeListId) {
+          return {
+            ...list,
+            items: list.items.map(i => i.id === itemId ? { ...i, done: !i.done } : i)
+          };
+        }
+        return list;
+      });
+      await saveListsToCloud(updatedLists);
+    };
 
-    function createNewList(e) {
+    window.clearCompleted = async function() {
+      if (!groupData) return;
+      const updatedLists = groupData.lists.map(list => {
+        if (list.id === activeListId) {
+          return {
+            ...list,
+            items: list.items.filter(i => !i.done)
+          };
+        }
+        return list;
+      });
+      await saveListsToCloud(updatedLists);
+    };
+
+    window.createNewList = async function(e) {
       e.preventDefault();
+      if (!groupData) return;
       const input = document.getElementById('new-list-name');
       const name = input.value.trim();
       if (!name) return;
       const id = 'list_' + Date.now();
-      state.lists.push({ id, name, items: [] });
-      state.activeListId = id;
+      const updatedLists = [...groupData.lists, { id, name, items: [] }];
       input.value = '';
-      save();
-      switchTab('lists');
-    }
+      activeListId = id;
+      localStorage.setItem('familjens_todo_active_list', id);
+      await saveListsToCloud(updatedLists);
+      window.switchTab('lists');
+    };
 
-    function copyInvite() {
-      navigator.clipboard.writeText('FAMILJ-482');
+    window.joinGroup = async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('join-code-input');
+      const feedback = document.getElementById('join-feedback');
+      const code = input.value.trim().toUpperCase();
+      if (!code) return;
+
+      feedback.classList.remove('hidden');
+      feedback.className = 'text-xs text-[#9ca3af]';
+      feedback.textContent = 'Söker efter grupp...';
+
+      const snap = await getDoc(doc(db, 'groups', code));
+      if (snap.exists()) {
+        input.value = '';
+        feedback.className = 'text-xs text-[#81c784]';
+        feedback.textContent = 'Ansluten till ' + code + '!';
+        listenToGroup(code);
+        setTimeout(() => {
+          feedback.classList.add('hidden');
+          window.switchTab('lists');
+        }, 1000);
+      } else {
+        feedback.className = 'text-xs text-red-400';
+        feedback.textContent = 'Hittade ingen grupp med koden ' + code + '. Kontrollera stavningen.';
+      }
+    };
+
+    window.renameGroup = async function(e) {
+      e.preventDefault();
+      if (!currentGroupId) return;
+      const input = document.getElementById('rename-group-input');
+      const newName = input.value.trim();
+      if (!newName) return;
+      input.value = '';
+      await updateDoc(doc(db, 'groups', currentGroupId), { name: newName });
+    };
+
+    window.copyInvite = function() {
+      if (!currentGroupId) return;
+      navigator.clipboard.writeText(currentGroupId);
       const btn = document.getElementById('copy-btn');
       btn.textContent = 'Kopierad!';
       setTimeout(() => btn.textContent = 'Kopiera', 2000);
-    }
+    };
 
     function render() {
+      if (!groupData) return;
+      document.getElementById('group-title').textContent = groupData.name || 'Familjen';
+
+      const lists = groupData.lists || [];
+      if (!lists.find(l => l.id === activeListId) && lists.length > 0) {
+        activeListId = lists[0].id;
+      }
+
       const tabsEl = document.getElementById('list-tabs');
-      tabsEl.innerHTML = state.lists.map(l => `
+      tabsEl.innerHTML = lists.map(l => `
         <button onclick="selectList('${l.id}')" class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-          l.id === state.activeListId 
+          l.id === activeListId 
             ? 'bg-[#a5b4fc] text-[#0f1115]' 
             : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
         }">
@@ -219,11 +391,12 @@
         </button>
       `).join('');
 
-      const activeList = state.lists.find(l => l.id === state.activeListId) || state.lists[0];
+      const activeList = lists.find(l => l.id === activeListId);
+      if (!activeList) return;
       document.getElementById('active-list-name').textContent = activeList.name;
 
       const itemsEl = document.getElementById('items-container');
-      if (activeList.items.length === 0) {
+      if (!activeList.items || activeList.items.length === 0) {
         itemsEl.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Listan är tom – lägg till något ovan.</p>`;
         return;
       }
@@ -240,8 +413,6 @@
         </div>
       `).join('');
     }
-
-    render();
   </script>
 </body>
 </html>
