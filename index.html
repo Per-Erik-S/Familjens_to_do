@@ -62,6 +62,10 @@
         <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Lösenord (minst 6 tecken)</label>
         <input id="reg-password" type="password" required minlength="6" placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
       </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Bekräfta lösenord</label>
+        <input id="reg-password-confirm" type="password" required minlength="6" placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+      </div>
       <div class="pt-1">
         <label class="text-xs text-[#a5b4fc] font-medium block mb-1.5 ml-1">Inbjudningskod (valfritt)</label>
         <input id="reg-invite" type="text" placeholder="T.ex. FAM-4829 (lämna tom för ny grupp)" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm uppercase focus:outline-none focus:border-[#a5b4fc]/50" />
@@ -393,9 +397,16 @@
       const name = document.getElementById('reg-name').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const password = document.getElementById('reg-password').value;
+      const passwordConfirm = document.getElementById('reg-password-confirm').value;
       const inviteCode = document.getElementById('reg-invite').value.trim().toUpperCase();
       const errEl = document.getElementById('reg-error');
       errEl.classList.add('hidden');
+
+      if (password !== passwordConfirm) {
+        errEl.textContent = 'Lösenorden stämmer inte överens. Kontrollera att du skrivit likadant i båda rutorna.';
+        errEl.classList.remove('hidden');
+        return;
+      }
 
       try {
         if (inviteCode) {
@@ -408,7 +419,6 @@
         }
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await setupUserInGroup(cred.user, name, inviteCode);
-        // Clean URL parameter after registration
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
         errEl.textContent = err.code === 'auth/email-already-in-use' 
@@ -573,7 +583,6 @@
       if (!groupData) return;
       const updatedLists = groupData.lists.map(l => {
         if (l.id === activeListId) {
-          // Keep non-done items, AND reset done recurring items back to unchecked
           const nextItems = l.items
             .filter(i => !i.done || i.recurring)
             .map(i => (i.done && i.recurring) ? { ...i, done: false } : i);
@@ -804,7 +813,6 @@
       }
 
       if (isShopping) {
-        // Group active items by store category order, completed at bottom
         const activeItems = items.filter(i => !i.done);
         const doneItems = items.filter(i => i.done);
         let html = '';
@@ -817,7 +825,6 @@
           }
         });
 
-        // Catch any items with custom/unlisted categories
         const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
         if (unlisted.length > 0) {
           html += unlisted.map(i => renderItemRow(i, members, true)).join('');
