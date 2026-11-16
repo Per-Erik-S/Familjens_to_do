@@ -24,21 +24,27 @@
 
   <!-- AUTH / ONBOARDING VIEW -->
   <div id="view-auth" class="min-h-screen flex flex-col justify-center px-6 py-10 hidden">
-    <div class="text-center mb-8">
+    <div class="text-center mb-7">
       <div class="w-14 h-14 rounded-3xl bg-[#181b21] border border-white/10 flex items-center justify-center mx-auto mb-4 shadow-lg">
         <span class="w-6 h-6 rounded-full bg-[#81c784]"></span>
       </div>
       <h1 class="text-2xl font-bold text-white tracking-tight">Familjens Todo</h1>
-      <p class="text-sm text-[#9ca3af] mt-1">Delade listor och vardagsflyt i realtid</p>
+      <p class="text-sm text-[#9ca3af] mt-1">Delade listor & scheman för familj och förening</p>
+    </div>
+
+    <!-- Saved Accounts Quick-Switch -->
+    <div id="recent-accounts-box" class="hidden mb-6 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-1">Snabbval – tidigare konton på enheten</span>
+      <div id="recent-accounts-list" class="space-y-1.5"></div>
     </div>
 
     <!-- Auth Tabs -->
     <div class="bg-[#181b21] p-1.5 rounded-full flex mb-6 border border-white/5">
-      <button id="tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition">
-        Skapa användare
-      </button>
-      <button id="tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition">
+      <button id="tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition">
         Logga in
+      </button>
+      <button id="tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition">
+        Skapa användare
       </button>
     </div>
 
@@ -48,11 +54,27 @@
       <span>Inbjudningskod har fyllts i automatiskt nedan!</span>
     </div>
 
-    <!-- Register Form -->
-    <form id="form-register" onsubmit="handleRegister(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl">
+    <!-- Login Form -->
+    <form id="form-login" onsubmit="handleLogin(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl">
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Ditt namn (visas i listorna)</label>
-        <input id="reg-name" type="text" required placeholder="T.ex. Johan" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">E-postadress</label>
+        <input id="login-email" type="email" required placeholder="namn@exempel.se" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Lösenord</label>
+        <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+      </div>
+      <p id="login-error" class="text-xs text-red-400 hidden"></p>
+      <button type="submit" class="w-full bg-[#81c784] text-[#0f1115] font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2">
+        Logga in
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="form-register" onsubmit="handleRegister(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl hidden">
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Ditt namn eller roll (visas i listorna)</label>
+        <input id="reg-name" type="text" required placeholder="T.ex. Johan eller Styrelsen" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
       </div>
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">E-postadress</label>
@@ -75,44 +97,36 @@
         Skapa konto & starta
       </button>
     </form>
-
-    <!-- Login Form -->
-    <form id="form-login" onsubmit="handleLogin(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl hidden">
-      <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">E-postadress</label>
-        <input id="login-email" type="email" required placeholder="namn@exempel.se" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
-      </div>
-      <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Lösenord</label>
-        <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
-      </div>
-      <p id="login-error" class="text-xs text-red-400 hidden"></p>
-      <button type="submit" class="w-full bg-[#81c784] text-[#0f1115] font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2">
-        Logga in
-      </button>
-    </form>
   </div>
 
   <!-- MAIN APP SHELL -->
   <div id="app-shell" class="hidden flex-1 flex flex-col">
     
     <!-- Top Header -->
-    <header class="px-5 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-[#0f1115]/90 backdrop-blur-md z-20">
-      <div>
+    <header class="px-5 pt-5 pb-3.5 flex items-center justify-between sticky top-0 bg-[#0f1115]/90 backdrop-blur-md z-20 border-b border-white/5">
+      <div class="min-w-0 pr-2">
         <div class="flex items-center gap-2">
-          <span id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-[#f59e0b] animate-pulse"></span>
-          <span id="sync-status" class="text-xs font-medium text-[#9ca3af] tracking-wide uppercase">Ansluter...</span>
+          <span id="sync-dot" class="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse flex-shrink-0"></span>
+          <span id="header-user-badge" class="text-[11px] font-medium text-[#9ca3af] truncate">Ansluter...</span>
         </div>
-        <h1 id="group-title" class="text-xl font-bold text-white tracking-tight mt-0.5">Familjen</h1>
+        <h1 id="group-title" class="text-lg font-bold text-white tracking-tight mt-0.5 truncate">Familjen</h1>
       </div>
-      <button onclick="shareInviteLink()" class="px-4 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-[#81c784] hover:bg-[#22262f] transition flex items-center gap-1.5">
-        <span>Bjud in</span>
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-      </button>
+
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="shareInviteLink()" class="px-3.5 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-[#81c784] hover:bg-[#22262f] transition flex items-center gap-1">
+          <span>Bjud in</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+        </button>
+
+        <button onclick="handleLogout()" title="Logga ut eller byt konto" class="px-3.5 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-[#e4e6eb] hover:bg-red-500/15 hover:text-red-300 hover:border-red-500/30 transition flex items-center gap-1.5">
+          <span>Logga ut</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </div>
     </header>
 
     <!-- VIEW: LISTOR -->
-    <main id="view-lists" class="px-5 flex-1 space-y-4">
+    <main id="view-lists" class="px-5 pt-4 flex-1 space-y-4">
       
       <!-- List Selector Pills -->
       <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
@@ -126,7 +140,6 @@
             placeholder="Vad ska läggas till?" 
             class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-[#81c784]/50 text-sm"
           />
-          <!-- Quantity input (shown only on shopping lists) -->
           <input 
             id="new-item-qty"
             type="text" 
@@ -136,13 +149,10 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- Category selector (shopping lists) -->
           <select id="new-item-category" class="flex-1 bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
 
-          <!-- Assignee selector (todo/chore lists) -->
           <select id="new-item-assignee" class="flex-1 bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
 
-          <!-- Recurring toggle button -->
           <button type="button" id="btn-recurring" onclick="toggleRecurringInput()" title="Återkommande" class="px-3 py-2.5 rounded-2xl bg-[#0f1115] border border-white/5 text-xs font-medium text-[#9ca3af] flex items-center gap-1 transition">
             <span>↻</span>
             <span class="hidden sm:inline">Återkommande</span>
@@ -185,13 +195,32 @@
     </main>
 
     <!-- VIEW: GRUPP & INSTÄLLNINGAR -->
-    <main id="view-group" class="px-5 flex-1 space-y-5 hidden">
+    <main id="view-group" class="px-5 pt-4 flex-1 space-y-5 hidden">
       
+      <!-- Konto & Snabbbyte -->
+      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inloggat konto</span>
+            <span id="logged-in-email" class="text-sm font-semibold text-white block mt-0.5">...</span>
+          </div>
+          <button onclick="handleLogout()" class="px-4 py-2 rounded-full bg-red-500/15 border border-red-500/30 text-xs font-semibold text-red-300 hover:bg-red-500/25 transition">
+            Logga ut / Byt konto
+          </button>
+        </div>
+
+        <!-- Mina grupper under samma konto -->
+        <div id="my-groups-section" class="pt-3 border-t border-white/5 space-y-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block">Dina grupper på detta konto</span>
+          <div id="my-groups-list" class="space-y-1.5"></div>
+        </div>
+      </div>
+
       <!-- Bjud in & Dela länk -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h2 class="text-lg font-bold text-white">Bjud in till gruppen</h2>
+        <h2 class="text-lg font-bold text-white">Bjud in till aktiv grupp</h2>
         <p class="text-xs text-[#9ca3af] leading-relaxed">
-          Skicka en inbjudningslänk via SMS, mejl eller chatt. När mottagaren klickar på länken fylls er kod i automatiskt vid registrering.
+          Skicka en inbjudningslänk via SMS, mejl eller chatt. När mottagaren klickar på länken fylls koden i automatiskt vid registrering.
         </p>
         <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
           <div>
@@ -216,10 +245,10 @@
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
         <h3 class="text-sm font-semibold text-white">Skapa ny lista</h3>
         <form onsubmit="createNewList(event)" class="space-y-2.5">
-          <input id="new-list-name" type="text" required placeholder="T.ex. Helgstädning eller Bauhaus..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
+          <input id="new-list-name" type="text" required placeholder="T.ex. Helgstädning eller Styrelsepunkter..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
           <div class="flex gap-2">
             <select id="new-list-type" class="flex-1 bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-xs focus:outline-none">
-              <option value="todo">Sysslor / Att göra (med tilldelning & färg)</option>
+              <option value="todo">Sysslor / Punkter & Schema (med tilldelning & färg)</option>
               <option value="shopping">Inköpslista (med antal & butiksordning)</option>
             </select>
             <button type="submit" class="px-5 py-3 rounded-2xl bg-[#a5b4fc] text-[#0f1115] font-semibold text-xs">Skapa</button>
@@ -229,26 +258,28 @@
 
       <!-- Byt gruppnamn -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Ändra gruppnamn</h3>
+        <h3 class="text-sm font-semibold text-white">Ändra namn på aktiv grupp</h3>
         <form onsubmit="renameGroup(event)" class="flex gap-2">
-          <input id="rename-group-input" type="text" placeholder="Nytt namn på gruppen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
+          <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
           <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
         </form>
       </div>
 
-      <!-- Gå med i annan grupp & Logga ut -->
+      <!-- Lägg till / Gå med i en till grupp -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h3 class="text-sm font-semibold text-white">Byt grupp eller logga ut</h3>
+        <h3 class="text-sm font-semibold text-white">Anslut till eller skapa en ny grupp</h3>
+        <p class="text-xs text-[#9ca3af]">Skriv in en gruppkod för att ansluta, eller skapa en helt ny fristående grupp (t.ex. för föreningen).</p>
         <form onsubmit="joinGroup(event)" class="flex gap-2">
-          <input id="join-code-input" type="text" placeholder="Annan gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
-          <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Byt</button>
+          <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
+          <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Anslut</button>
         </form>
+        <button type="button" onclick="createBrandNewGroup()" class="w-full py-2.5 rounded-2xl bg-[#0f1115] border border-white/10 text-xs font-semibold text-[#a5b4fc] hover:bg-[#22262f] transition">
+          + Skapa en helt ny grupp (t.ex. Förening)
+        </button>
         <p id="join-feedback" class="text-xs hidden"></p>
-        <div class="pt-2 border-t border-white/5 flex justify-between items-center">
-          <span id="logged-in-email" class="text-xs text-[#6b7280]"></span>
-          <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline">Logga ut</button>
-        </div>
       </div>
+
+      <p class="text-center text-[11px] text-[#6b7280] pb-2">Familjens Todo • Version 1.0</p>
 
     </main>
 
@@ -299,27 +330,76 @@
     ];
 
     const MEMBER_COLORS = [
-      "#81c784", // Salviagrön
-      "#a5b4fc", // Indigo
-      "#f472b6", // Rosa
-      "#fbbf24", // Bärnsten
-      "#38bdf8", // Himmelblå
-      "#fb923c"  // Korall
+      "#81c784",
+      "#a5b4fc",
+      "#f472b6",
+      "#fbbf24",
+      "#38bdf8",
+      "#fb923c"
     ];
 
     let currentUser = null;
+    let currentUserProfile = null;
     let currentGroupId = null;
     let activeListId = localStorage.getItem('familjens_todo_active_list') || 'inkop';
     let groupData = null;
     let unsubscribeGroup = null;
     let isRecurringDraft = false;
 
-    // Check URL for ?kod= parameter on load
+    function saveRecentAccount(email, name) {
+      if (!email) return;
+      let list = JSON.parse(localStorage.getItem('familjens_todo_recent_accounts') || '[]');
+      list = list.filter(a => a.email.toLowerCase() !== email.toLowerCase());
+      list.unshift({ email, name: name || email.split('@')[0] });
+      localStorage.setItem('familjens_todo_recent_accounts', JSON.stringify(list.slice(0, 5)));
+      renderRecentAccounts();
+    }
+
+    window.selectRecentAccount = function(email) {
+      window.switchAuthMode('login');
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-password').focus();
+    };
+
+    window.removeRecentAccount = function(e, email) {
+      e.stopPropagation();
+      let list = JSON.parse(localStorage.getItem('familjens_todo_recent_accounts') || '[]');
+      list = list.filter(a => a.email.toLowerCase() !== email.toLowerCase());
+      localStorage.setItem('familjens_todo_recent_accounts', JSON.stringify(list));
+      renderRecentAccounts();
+    };
+
+    function renderRecentAccounts() {
+      const list = JSON.parse(localStorage.getItem('familjens_todo_recent_accounts') || '[]');
+      const box = document.getElementById('recent-accounts-box');
+      const container = document.getElementById('recent-accounts-list');
+      if (list.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+      box.classList.remove('hidden');
+      container.innerHTML = list.map(acc => `
+        <div onclick="selectRecentAccount('${acc.email}')" class="flex items-center justify-between bg-[#0f1115] hover:bg-[#22262f] px-3.5 py-2.5 rounded-2xl border border-white/5 cursor-pointer transition">
+          <div class="min-w-0">
+            <span class="text-xs font-semibold text-white block truncate">${acc.name}</span>
+            <span class="text-[11px] text-[#9ca3af] block truncate">${acc.email}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[11px] font-semibold text-[#81c784]">Välj →</span>
+            <button type="button" onclick="removeRecentAccount(event, '${acc.email}')" title="Ta bort snabbval" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    renderRecentAccounts();
+
     const urlParams = new URLSearchParams(window.location.search);
     const inviteParam = urlParams.get('kod');
     if (inviteParam) {
       document.getElementById('reg-invite').value = inviteParam.toUpperCase();
       document.getElementById('invite-detected-banner').classList.remove('hidden');
+      setTimeout(() => window.switchAuthMode('register'), 0);
     }
 
     window.switchAuthMode = function(mode) {
@@ -338,14 +418,14 @@
       return 'FAM-' + Math.floor(1000 + Math.random() * 9000);
     }
 
-    async function setupUserInGroup(user, displayName, inviteCode) {
+    async function setupUserInGroup(user, displayName, inviteCode, customGroupName = 'Familjen') {
       let code = inviteCode ? inviteCode.trim().toUpperCase() : null;
       let groupSnap = code ? await getDoc(doc(db, 'groups', code)) : null;
 
       if (!code || !groupSnap || !groupSnap.exists()) {
         code = code || generateGroupCode();
         const initialData = {
-          name: 'Familjen',
+          name: customGroupName,
           createdAt: Date.now(),
           categoryOrder: [...DEFAULT_CATEGORIES],
           members: {
@@ -363,10 +443,10 @@
             },
             {
               id: 'attgora',
-              name: 'Veckans sysslor',
+              name: 'Att göra & Schema',
               type: 'todo',
               items: [
-                { id: 3, text: 'Vattna blommorna', assignee: user.uid, recurring: true, done: false }
+                { id: 3, text: 'Planera veckan', assignee: user.uid, recurring: true, done: false }
               ]
             }
           ]
@@ -383,11 +463,20 @@
         }
       }
 
-      await setDoc(doc(db, 'users', user.uid), {
+      const userRef = doc(db, 'users', user.uid);
+      const existingUserSnap = await getDoc(userRef);
+      const prevGroups = existingUserSnap.exists() ? (existingUserSnap.data().groups || [existingUserSnap.data().groupId].filter(Boolean)) : [];
+      const updatedGroups = Array.from(new Set([...prevGroups, code]));
+
+      const profile = {
         name: displayName,
         email: user.email,
-        groupId: code
-      });
+        groupId: code,
+        groups: updatedGroups
+      };
+      await setDoc(userRef, profile);
+      currentUserProfile = profile;
+      saveRecentAccount(user.email, displayName);
 
       return code;
     }
@@ -445,6 +534,11 @@
 
     window.handleLogout = async function() {
       if (unsubscribeGroup) unsubscribeGroup();
+      unsubscribeGroup = null;
+      groupData = null;
+      currentGroupId = null;
+      document.getElementById('login-password').value = '';
+      renderRecentAccounts();
       await signOut(auth);
     };
 
@@ -457,7 +551,12 @@
 
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists() && userSnap.data().groupId) {
-          listenToGroup(userSnap.data().groupId);
+          currentUserProfile = userSnap.data();
+          if (!currentUserProfile.groups) {
+            currentUserProfile.groups = [currentUserProfile.groupId];
+          }
+          saveRecentAccount(user.email, currentUserProfile.name);
+          listenToGroup(currentUserProfile.groupId);
         } else {
           const fallbackName = user.email.split('@')[0];
           const code = await setupUserInGroup(user, fallbackName, inviteParam);
@@ -465,6 +564,7 @@
         }
       } else {
         currentUser = null;
+        currentUserProfile = null;
         document.getElementById('app-shell').classList.add('hidden');
         document.getElementById('view-auth').classList.remove('hidden');
       }
@@ -478,12 +578,55 @@
       unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
         if (snapshot.exists()) {
           groupData = snapshot.data();
-          document.getElementById('sync-dot').className = 'w-2.5 h-2.5 rounded-full bg-[#81c784]';
-          document.getElementById('sync-status').textContent = 'Synkad i realtid';
+          document.getElementById('sync-dot').className = 'w-2 h-2 rounded-full bg-[#81c784] flex-shrink-0';
+          const userName = currentUserProfile ? currentUserProfile.name : '';
+          document.getElementById('header-user-badge').textContent = userName ? `Inloggad som ${userName}` : 'Synkad i realtid';
           render();
+          renderMyGroupsList();
         }
       });
     }
+
+    async function renderMyGroupsList() {
+      const container = document.getElementById('my-groups-list');
+      if (!currentUserProfile || !currentUserProfile.groups) return;
+      const codes = currentUserProfile.groups;
+      const itemsHtml = await Promise.all(codes.map(async (c) => {
+        const snap = await getDoc(doc(db, 'groups', c));
+        const gName = snap.exists() ? snap.data().name : c;
+        const isActive = c === currentGroupId;
+        return `
+          <div onclick="switchActiveGroup('${c}')" class="flex items-center justify-between px-4 py-2.5 rounded-2xl cursor-pointer transition ${
+            isActive ? 'bg-[#81c784]/15 border border-[#81c784]/40' : 'bg-[#0f1115] border border-white/5 hover:bg-[#22262f]'
+          }">
+            <div>
+              <span class="text-xs font-semibold text-white block">${gName}</span>
+              <span class="text-[10px] text-[#9ca3af] tracking-wider">${c}</span>
+            </div>
+            <span class="text-[11px] font-semibold ${isActive ? 'text-[#81c784]' : 'text-[#9ca3af]'}">${isActive ? 'Aktiv' : 'Öppna →'}</span>
+          </div>
+        `;
+      }));
+      container.innerHTML = itemsHtml.join('');
+    }
+
+    window.switchActiveGroup = async function(code) {
+      if (!currentUser || code === currentGroupId) return;
+      await updateDoc(doc(db, 'users', currentUser.uid), { groupId: code });
+      currentUserProfile.groupId = code;
+      listenToGroup(code);
+      window.switchTab('lists');
+    };
+
+    window.createBrandNewGroup = async function() {
+      if (!currentUser) return;
+      const groupName = prompt('Vad ska den nya gruppen heta? (t.ex. Fritidsföreningen)');
+      if (!groupName || !groupName.trim()) return;
+      const userName = currentUserProfile ? currentUserProfile.name : currentUser.email.split('@')[0];
+      const newCode = await setupUserInGroup(currentUser, userName, null, groupName.trim());
+      listenToGroup(newCode);
+      window.switchTab('lists');
+    };
 
     async function saveListsToCloud(updatedLists) {
       if (!currentGroupId) return;
@@ -652,11 +795,12 @@
     window.shareInviteLink = async function() {
       if (!currentGroupId) return;
       const inviteUrl = `${window.location.origin}/?kod=${currentGroupId}`;
-      const shareText = `Gå med i vår familjegrupp i Familjens Todo! Klicka på länken så fylls koden (${currentGroupId}) i automatiskt:`;
+      const gName = groupData ? groupData.name : 'vår grupp';
+      const shareText = `Gå med i ${gName} i Familjens Todo! Klicka på länken så fylls koden (${currentGroupId}) i automatiskt:`;
 
       if (navigator.share) {
         try {
-          await navigator.share({ title: 'Inbjudan till Familjens Todo', text: shareText, url: inviteUrl });
+          await navigator.share({ title: `Inbjudan till ${gName}`, text: shareText, url: inviteUrl });
           return;
         } catch (err) {}
       }
@@ -678,10 +822,10 @@
 
       const snap = await getDoc(doc(db, 'groups', code));
       if (snap.exists()) {
-        const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
-        const name = userSnap.exists() ? userSnap.data().name : currentUser.email.split('@')[0];
+        const name = currentUserProfile ? currentUserProfile.name : currentUser.email.split('@')[0];
         await setupUserInGroup(currentUser, name, code);
         input.value = '';
+        feedback.classList.add('hidden');
         listenToGroup(code);
         window.switchTab('lists');
       } else {
@@ -699,6 +843,7 @@
       if (!newName) return;
       input.value = '';
       await updateDoc(doc(db, 'groups', currentGroupId), { name: newName });
+      renderMyGroupsList();
     };
 
     function renderItemRow(item, members, isShopping) {
@@ -742,7 +887,6 @@
         activeListId = lists[0].id;
       }
 
-      // Render List Tabs
       document.getElementById('list-tabs').innerHTML = lists.map(l => `
         <button onclick="selectList('${l.id}')" class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
           l.id === activeListId 
@@ -761,13 +905,11 @@
       const categoryOrder = groupData.categoryOrder || DEFAULT_CATEGORIES;
       const members = groupData.members || {};
 
-      // Toggle inputs based on list type
       document.getElementById('new-item-qty').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-category').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-assignee').classList.toggle('hidden', isShopping);
       document.getElementById('store-order-wrapper').classList.toggle('hidden', !isShopping);
 
-      // Populate Category Dropdown & Store Order List
       const catSelect = document.getElementById('new-item-category');
       const prevCat = catSelect.value;
       catSelect.innerHTML = categoryOrder.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -783,14 +925,12 @@
         </div>
       `).join('');
 
-      // Populate Assignee Dropdown
       const assigneeSelect = document.getElementById('new-item-assignee');
       const prevAssignee = assigneeSelect.value;
       assigneeSelect.innerHTML = `<option value="">Vem gör det? (Alla)</option>` + 
         Object.entries(members).map(([uid, m]) => `<option value="${uid}">${m.name}</option>`).join('');
       if (prevAssignee) assigneeSelect.value = prevAssignee;
 
-      // Render Members & Color Picker in Group Tab
       document.getElementById('members-list').innerHTML = Object.entries(members).map(([uid, m]) => `
         <div class="flex items-center justify-between bg-[#0f1115] px-4 py-2.5 rounded-2xl">
           <div class="flex items-center gap-2.5">
@@ -804,7 +944,6 @@
         <button type="button" onclick="changeMyColor('${c}')" class="w-7 h-7 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${c}"></button>
       `).join('');
 
-      // Render Items
       const itemsEl = document.getElementById('items-container');
       const items = activeList.items || [];
       if (items.length === 0) {
