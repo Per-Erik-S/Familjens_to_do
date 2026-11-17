@@ -533,6 +533,20 @@
     </form>
   </div>
 
+  <!-- MODAL: ASSIGN CALENDAR EVENT TO MEMBER -->
+  <div id="assign-cal-modal" onclick="if(event.target === this) closeAssignCalModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <div class="min-w-0 pr-2">
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Gäller vem?</span>
+          <h3 id="assign-cal-modal-title" class="text-sm font-bold text-white truncate mt-0.5">Händelse</h3>
+        </div>
+        <button type="button" onclick="closeAssignCalModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div id="assign-cal-members-options" class="space-y-2"></div>
+    </div>
+  </div>
+
   <!-- MODAL: CREATE NEW GROUP -->
   <div id="new-group-modal" onclick="if(event.target === this) closeNewGroupModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <form onsubmit="submitNewGroup(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
@@ -1036,6 +1050,7 @@
     let pendingMealIngredientLines = [];
     let currentMealSuggestions = [];
     let assigningTarget = null;
+    let assigningCalTarget = null;
     let recurrenceTarget = null;
     let categoryTarget = null;
     let editingItemTarget = null;
@@ -1399,6 +1414,69 @@
           showToast('Händelse borttagen');
         }
       );
+    };
+
+    // Assign / Re-assign Calendar Event Modal Controls
+    window.openAssignCalModal = function(eventId) {
+      if (!groupData) return;
+      const event = (groupData.calendarEvents || []).find(ev => ev.id === eventId);
+      if (!event) return;
+
+      assigningCalTarget = eventId;
+      document.getElementById('assign-cal-modal-title').textContent = event.text;
+
+      const members = groupData.members || {};
+      const optionsEl = document.getElementById('assign-cal-members-options');
+      const currentAssignee = event.assignee || '';
+
+      let html = `
+        <button type="button" onclick="selectCalendarEventAssignee('')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+          currentAssignee === '' ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#9ca3af] hover:text-white'
+        }">
+          <span>Alla i gruppen (Ingen specifik)</span>
+          ${currentAssignee === '' ? '<span class="text-accent">✓</span>' : ''}
+        </button>
+      `;
+
+      html += Object.entries(members).map(([uid, m]) => {
+        const isSelected = currentAssignee === uid;
+        return `
+          <button type="button" onclick="selectCalendarEventAssignee('${escAttr(uid)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+            isSelected ? 'bg-white/10 border-white/25 text-white' : 'bg-[#0f1115] border-white/5 text-white hover:bg-[#22262f]'
+          }">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
+              <span>${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+            </div>
+            ${isSelected ? '<span class="text-accent">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      optionsEl.innerHTML = html;
+      document.getElementById('assign-cal-modal').classList.remove('hidden');
+    };
+
+    window.closeAssignCalModal = function() {
+      document.getElementById('assign-cal-modal').classList.add('hidden');
+      assigningCalTarget = null;
+    };
+
+    window.selectCalendarEventAssignee = async function(uid) {
+      if (!groupData || !assigningCalTarget || !currentGroupId) return;
+      window.closeAssignCalModal();
+
+      const events = (groupData.calendarEvents || []).map(ev => {
+        if (ev.id !== assigningCalTarget) return ev;
+        const copy = { ...ev };
+        if (uid) copy.assignee = uid;
+        else delete copy.assignee;
+        return copy;
+      });
+
+      await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
+      const assignedName = uid && groupData.members[uid] ? groupData.members[uid].name : 'Alla';
+      showToast(`Händelse tilldelad: ${assignedName}`);
     };
 
     // Edit Existing Item Modal Controls
@@ -3008,19 +3086,29 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-xs font-bold text-accent">${escHtml(ev.date)}</span>
                   ${ev.time ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(ev.time)}</span>` : ''}
+                  
                   ${evAssignee ? `
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1" style="background-color: ${escAttr(evAssignee.color)}20; color: ${escAttr(evAssignee.color)}">
+                    <button type="button" onclick="openAssignCalModal(${ev.id})" title="Byt vem händelsen gäller" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition" style="background-color: ${escAttr(evAssignee.color)}20; color: ${escAttr(evAssignee.color)}">
                       <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(evAssignee.color)}"></span>
                       <span>${escHtml(evAssignee.name)}</span>
-                    </span>
-                  ` : ''}
+                    </button>
+                  ` : `
+                    <button type="button" onclick="openAssignCalModal(${ev.id})" title="Tilldela vem händelsen gäller" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition">
+                      + Tilldela
+                    </button>
+                  `}
                 </div>
                 <p class="text-xs text-white font-medium mt-1 leading-relaxed">${escHtml(ev.text)}</p>
                 <span class="text-[10px] text-[#6b7280] block mt-1">Skapad av: ${escHtml(ev.author || 'Familjen')}</span>
               </div>
-              <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition flex-shrink-0">
-                ✕
-              </button>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button type="button" onclick="openAssignCalModal(${ev.id})" title="Ändra tilldelning" class="p-2 rounded-full text-[#9ca3af] hover:text-white hover:bg-white/5 transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition">
+                  ✕
+                </button>
+              </div>
             </div>
           `;
         }).join('');
