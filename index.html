@@ -379,6 +379,20 @@
     </nav>
   </div>
 
+  <!-- MODAL: ASSIGN TASK TO MEMBER -->
+  <div id="assign-modal" onclick="if(event.target === this) closeAssignModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <div class="min-w-0 pr-2">
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Tilldela uppgift</span>
+          <h3 id="assign-modal-task-title" class="text-sm font-bold text-white truncate mt-0.5">Uppgift</h3>
+        </div>
+        <button type="button" onclick="closeAssignModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div id="assign-members-options" class="space-y-2"></div>
+    </div>
+  </div>
+
   <!-- MODAL: CONFIRM DELETE (JA / NEJ) -->
   <div id="confirm-delete-modal" onclick="if(event.target === this) closeConfirmDeleteModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl text-center">
@@ -510,6 +524,7 @@
     let filterOnlyMine = false;
     let editingMealDay = null;
     let pendingDeleteCallback = null;
+    let assigningTarget = null;
 
     function showToast(msg) {
       const el = document.getElementById('toast-banner');
@@ -518,6 +533,78 @@
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
+
+    // Assign / Re-assign Task Modal
+    window.openAssignModal = function(e, listId, itemId) {
+      e.stopPropagation();
+      if (!groupData) return;
+      const targetList = groupData.lists.find(l => l.id === listId);
+      const item = targetList?.items?.find(i => i.id === itemId);
+      if (!item) return;
+
+      assigningTarget = { listId, itemId };
+      document.getElementById('assign-modal-task-title').textContent = item.text;
+
+      const members = groupData.members || {};
+      const optionsEl = document.getElementById('assign-members-options');
+      const currentAssignee = item.assignee || '';
+
+      let html = `
+        <button type="button" onclick="selectTaskAssignee('')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+          currentAssignee === '' ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#9ca3af] hover:text-white'
+        }">
+          <span>Alla i gruppen (Ingen specifik)</span>
+          ${currentAssignee === '' ? '<span class="text-accent">✓</span>' : ''}
+        </button>
+      `;
+
+      html += Object.entries(members).map(([uid, m]) => {
+        const isSelected = currentAssignee === uid;
+        return `
+          <button type="button" onclick="selectTaskAssignee('${uid}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+            isSelected ? 'bg-white/10 border-white/25 text-white' : 'bg-[#0f1115] border-white/5 text-white hover:bg-[#22262f]'
+          }">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${m.color}"></span>
+              <span>${m.name} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+            </div>
+            ${isSelected ? '<span class="text-accent">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      optionsEl.innerHTML = html;
+      document.getElementById('assign-modal').classList.remove('hidden');
+    };
+
+    window.closeAssignModal = function() {
+      document.getElementById('assign-modal').classList.add('hidden');
+      assigningTarget = null;
+    };
+
+    window.selectTaskAssignee = async function(uid) {
+      if (!groupData || !assigningTarget) return;
+      const { listId, itemId } = assigningTarget;
+      window.closeAssignModal();
+
+      const updatedLists = groupData.lists.map(l => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map(i => {
+            if (i.id !== itemId) return i;
+            const copy = { ...i };
+            if (uid) copy.assignee = uid;
+            else delete copy.assignee;
+            return copy;
+          })
+        };
+      });
+
+      await saveListsToCloud(updatedLists);
+      const assignedName = uid && groupData.members[uid] ? groupData.members[uid].name : 'Alla';
+      showToast(`Tilldelad: ${assignedName}`);
+    };
 
     // Custom Ja / Nej Confirmation Dialog
     function openConfirmDeleteModal(title, message, onConfirm) {
@@ -1209,9 +1296,9 @@
       return '';
     }
 
-    function renderItemRow(item, members, isShopping, listIdForToggle = null) {
+    function renderItemRow(item, members, isShopping, targetListId, isDashboard = false) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
-      const toggleCall = listIdForToggle ? `toggleItemInList('${listIdForToggle}', ${item.id})` : `toggleItem(${item.id})`;
+      const toggleCall = isDashboard ? `toggleItemInList('${targetListId}', ${item.id})` : `toggleItem(${item.id})`;
       return `
         <div onclick="${toggleCall}" class="flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition">
           <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
@@ -1228,14 +1315,18 @@
             </div>
           </div>
 
-          ${assignee ? `
-            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 flex-shrink-0" style="background-color: ${assignee.color}20; color: ${assignee.color}">
+          ${!isShopping ? (assignee ? `
+            <button type="button" onclick="openAssignModal(event, '${targetListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition" style="background-color: ${assignee.color}20; color: ${assignee.color}">
               <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${assignee.color}"></span>
-              ${assignee.name}
-            </span>
-          ` : ''}
+              <span>${assignee.name}</span>
+            </button>
+          ` : `
+            <button type="button" onclick="openAssignModal(event, '${targetListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition flex-shrink-0">
+              + Tilldela
+            </button>
+          `) : ''}
 
-          ${!listIdForToggle ? `
+          ${!isDashboard ? `
             <button onclick="requestDeleteItem(event, ${item.id})" title="Ta bort" class="p-1.5 text-[#6b7280] hover:text-red-400 transition flex-shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -1287,7 +1378,7 @@
         }
         if (openItems.length > 0) {
           todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${l.name}</span></div>`;
-          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id)).join('');
+          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id, true)).join('');
         }
       });
       document.getElementById('today-tasks-container').innerHTML = todayTasksHtml || 
@@ -1368,19 +1459,19 @@
           const catItems = activeItems.filter(i => (i.category || 'Övrigt') === cat);
           if (catItems.length > 0) {
             html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-accent px-2">${cat}</span></div>`;
-            html += catItems.map(i => renderItemRow(i, members, true)).join('');
+            html += catItems.map(i => renderItemRow(i, members, true, activeList.id, false)).join('');
           }
         });
         const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
-        if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true)).join('');
+        if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true, activeList.id, false)).join('');
         if (doneItems.length > 0) {
           html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#6b7280] px-2">Avbockade</span></div>`;
-          html += doneItems.map(i => renderItemRow(i, members, true)).join('');
+          html += doneItems.map(i => renderItemRow(i, members, true, activeList.id, false)).join('');
         }
         itemsEl.innerHTML = html;
       } else {
         const sorted = [...items].sort((a, b) => a.done - b.done);
-        itemsEl.innerHTML = sorted.map(i => renderItemRow(i, members, false)).join('');
+        itemsEl.innerHTML = sorted.map(i => renderItemRow(i, members, false, activeList.id, false)).join('');
       }
 
       document.getElementById('group-theme-picker').innerHTML = GROUP_ACCENTS.map(t => `
