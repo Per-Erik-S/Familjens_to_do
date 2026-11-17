@@ -637,7 +637,7 @@
     </form>
   </div>
 
-  <!-- MODAL: EDIT MEAL WITH HORIZONTAL SWIPEABLE FAVORITES -->
+  <!-- MODAL: EDIT MEAL WITH HORIZONTAL SWIPEABLE FAVORITES & INGREDIENT SUGGESTIONS -->
   <div id="meal-modal" onclick="if(event.target === this) closeMealModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
     <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center">
@@ -661,11 +661,38 @@
 
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1">Maträtt</label>
-        <input id="meal-dish-input" type="text" placeholder="T.ex. Tacos eller Lax i ugn" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50" />
+        <input
+          id="meal-dish-input"
+          type="text"
+          oninput="handleMealDishTyping(this.value)"
+          placeholder="T.ex. Halloumi och strips eller Tacos"
+          class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"
+        />
       </div>
+
+      <!-- Smart Ingredient Suggestions Box -->
+      <div id="meal-ingredient-suggestions-box" class="hidden bg-[#0f1115]/90 border border-accent/25 rounded-2xl p-3 space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1">
+            <span>✨</span>
+            <span>Förslag på ingredienser</span>
+          </span>
+          <button type="button" onclick="applyAllSuggestedIngredients()" class="px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[10px] font-bold hover:bg-accent/25 transition">
+            + Lägg till alla
+          </button>
+        </div>
+        <div id="meal-ingredient-suggestions-chips" class="flex gap-1.5 flex-wrap"></div>
+      </div>
+
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1">Ingredienser (en per rad, t.ex. "500g Köttfärs")</label>
-        <textarea id="meal-ingredients-input" rows="4" placeholder="Köttfärs&#10;Tortillabröd&#10;Gräddfil&#10;Gurka" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"></textarea>
+        <textarea
+          id="meal-ingredients-input"
+          rows="4"
+          oninput="refreshMealIngredientSuggestions()"
+          placeholder="Halloumi&#10;Strips&#10;Dressing"
+          class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"
+        ></textarea>
       </div>
       <div class="flex gap-2 pt-1">
         <button type="button" onclick="saveMeal()" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs">Spara middag</button>
@@ -802,7 +829,7 @@
       ],
       "Frys": [
         "fryst", "frysta", "glass", "piggelin", "gb glass", "pyttipanna", "pommes", "pommes frites",
-        "klyftpotatis", "frysta bär", "frysta hallon", "frysta blåbär", "frysta ärtor", "ärtor",
+        "strips", "klyftpotatis", "frysta bär", "frysta hallon", "frysta blåbär", "frysta ärtor", "ärtor",
         "fryst broccoli", "fryst spenat", "fryst pizza", "fryspizza", "våfflor",
         "pannkakor", "fryst lax", "fryst kyckling", "frysta räkor", "kroketter", "langos"
       ],
@@ -826,6 +853,39 @@
         "hundmat", "kattsand", "hundbajspåsar"
       ]
     };
+
+    // Smart Swedish Meal -> Ingredients Knowledge Base
+    const SWEDISH_MEAL_SUGGESTIONS = [
+      { keywords: ["halloumi", "strips"], items: ["Halloumi", "Strips", "Dressing", "Sallad", "Tomat"] },
+      { keywords: ["halloumi"], items: ["Halloumi", "Sallad", "Tomat", "Gurka", "Dressing"] },
+      { keywords: ["strips"], items: ["Strips", "Dressing", "Ketchup"] },
+      { keywords: ["pommes"], items: ["Pommes frites", "Bearnaisesås", "Ketchup"] },
+      { keywords: ["tacos", "taco"], items: ["Köttfärs", "Tortillabröd", "Tacokrydda", "Tacosås", "Gräddfil", "Riven ost", "Gurka", "Tomat", "Majs", "Sallad"] },
+      { keywords: ["korv stroganoff", "stroganoff"], items: ["Falukorv", "Ris", "Lök", "Tomatpuré", "Grädde", "Soja"] },
+      { keywords: ["köttfärssås", "spagetti", "spaghetti"], items: ["Köttfärs", "Spaghetti", "Krossade tomater", "Lök", "Vitlök", "Tomatpuré", "Riven ost"] },
+      { keywords: ["pannkakor", "pannkaka"], items: ["Ägg", "Mjölk", "Vetemjöl", "Smör", "Sylt", "Vispgrädde"] },
+      { keywords: ["ugnspannkaka"], items: ["Ägg", "Mjölk", "Vetemjöl", "Bacon", "Lingonsylt"] },
+      { keywords: ["lax"], items: ["Laxfilé", "Potatis", "Crème fraiche", "Citron", "Dill", "Broccoli"] },
+      { keywords: ["hamburgare", "burgare"], items: ["Hamburgare", "Hamburgerbröd", "Cheddarost", "Hamburgerdressing", "Sallad", "Tomat", "Rödlök"] },
+      { keywords: ["köttbullar"], items: ["Köttbullar", "Potatis", "Grädde", "Lingonsylt", "Gurka"] },
+      { keywords: ["lasagne"], items: ["Köttfärs", "Lasagneplattor", "Krossade tomater", "Lök", "Vitlök", "Mjölk", "Riven ost"] },
+      { keywords: ["kycklinggryta", "kyckling"], items: ["Kycklingfilé", "Ris", "Grädde", "Lök", "Paprika", "Hönsbuljong"] },
+      { keywords: ["fiskpinnar"], items: ["Fiskpinnar", "Potatis", "Remouladsås", "Gröna ärtor", "Citron"] },
+      { keywords: ["pyttipanna", "pytt"], items: ["Pyttipanna", "Ägg", "Rödbetor"] },
+      { keywords: ["chili con carne"], items: ["Köttfärs", "Ris", "Krossade tomater", "Kidneybönor", "Lök", "Vitlök", "Crème fraiche"] },
+      { keywords: ["carbonara"], items: ["Spaghetti", "Bacon", "Ägg", "Parmesan", "Svartpeppar"] },
+      { keywords: ["torsk"], items: ["Torskfilé", "Potatis", "Smör", "Ägg", "Persilja", "Gröna ärtor"] },
+      { keywords: ["falukorv"], items: ["Falukorv", "Potatis", "Ketchup", "Senap", "Ost"] },
+      { keywords: ["pizza", "hemmagjord pizza"], items: ["Pizzadeg", "Tomatsås", "Riven ost", "Skinka", "Champinjoner", "Pizzasallad"] },
+      { keywords: ["wok"], items: ["Kycklingfilé", "Nudlar", "Wokgrönsaker", "Soja", "Sweet chili"] },
+      { keywords: ["nuggets", "chicken nuggets"], items: ["Chicken nuggets", "Strips", "Dressing", "Sweet chili"] },
+      { keywords: ["tortellini"], items: ["Tortellini", "Grädde", "Skinka", "Riven ost", "Spenat"] },
+      { keywords: ["ärttsoppa", "ärtsoppa"], items: ["Ärtsoppa", "Senap", "Knäckebröd", "Ost"] },
+      { keywords: ["bakad potatis"], items: ["Bakpotatis", "Gräddfil", "Räkor", "Rödlök", "Dill", "Smör"] },
+      { keywords: ["schnitzel"], items: ["Schnitzel", "Klyftpotatis", "Bearnaisesås", "Gröna ärtor", "Citron"] },
+      { keywords: ["kebab"], items: ["Kebabkött", "Strips", "Kebabsås", "Isbergssallad", "Tomat", "Feferoni"] },
+      { keywords: ["paj", "tacopaj", "ost och skinkpaj"], items: ["Pajdeg", "Ägg", "Grädde", "Riven ost", "Sallad"] }
+    ];
 
     const SORTED_KEYWORD_ENTRIES = Object.entries(SWEDISH_GROCERY_MAP)
       .flatMap(([category, words]) => words.map(word => ({ word: word.toLowerCase(), category })))
@@ -921,6 +981,7 @@
     let editingMealDay = null;
     let pendingDeleteCallback = null;
     let pendingMealIngredientLines = [];
+    let currentMealSuggestions = [];
     let assigningTarget = null;
     let recurrenceTarget = null;
     let categoryTarget = null;
@@ -2257,6 +2318,128 @@
       await saveListsToCloud(updatedLists);
     };
 
+    // Smart Ingredient Suggestions Engine for Meal Planner
+    function capitalizeFirst(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function computeMealIngredientSuggestions(dishRaw) {
+      const dish = (dishRaw || '').trim();
+      if (dish.length < 2) return [];
+      const dishLower = dish.toLowerCase();
+
+      const suggestions = [];
+      const seenKeys = new Set();
+
+      function pushSuggestion(rawItem) {
+        const clean = (rawItem || '').trim();
+        if (!clean) return;
+        const key = normalizeItemKey(clean) || clean.toLowerCase();
+        if (!key || seenKeys.has(key)) return;
+        seenKeys.add(key);
+        suggestions.push(capitalizeFirst(clean));
+      }
+
+      // 1. Check group's own saved favorite dishes for matching recipes
+      const saved = Array.isArray(groupData?.savedMeals) ? groupData.savedMeals : [];
+      for (const sm of saved) {
+        if (!sm.dish || !sm.ingredients) continue;
+        const smLower = sm.dish.toLowerCase();
+        if (smLower === dishLower || (dishLower.length >= 4 && (smLower.includes(dishLower) || dishLower.includes(smLower)))) {
+          sm.ingredients.split('\n').forEach(line => pushSuggestion(line));
+        }
+      }
+
+      // 2. Match against built-in Swedish meal knowledge base
+      for (const entry of SWEDISH_MEAL_SUGGESTIONS) {
+        const allMatch = entry.keywords.every(kw => containsWholeWord(dishLower, kw) || dishLower.includes(kw));
+        if (allMatch) {
+          entry.items.forEach(item => pushSuggestion(item));
+        }
+      }
+
+      // 3. Extract explicit ingredients mentioned in the dish title (e.g. "Halloumi och strips")
+      const splitParts = dish
+        .split(/\s+(?:och|med|samt|&)\s+|,\s*/i)
+        .map(p => p.trim())
+        .filter(p => p.length >= 2 && p.length <= 28);
+
+      if (splitParts.length >= 2) {
+        splitParts.forEach(part => pushSuggestion(part));
+      }
+
+      return suggestions.slice(0, 10);
+    }
+
+    function getExistingMealIngredientKeys() {
+      const text = document.getElementById('meal-ingredients-input')?.value || '';
+      const keys = new Set();
+      text.split('\n').forEach(line => {
+        const clean = line.trim();
+        if (!clean) return;
+        const k = normalizeItemKey(clean) || clean.toLowerCase();
+        if (k) keys.add(k);
+      });
+      return keys;
+    }
+
+    window.refreshMealIngredientSuggestions = function() {
+      const dishVal = document.getElementById('meal-dish-input')?.value || '';
+      const box = document.getElementById('meal-ingredient-suggestions-box');
+      const chipsEl = document.getElementById('meal-ingredient-suggestions-chips');
+      if (!box || !chipsEl) return;
+
+      const allSuggestions = computeMealIngredientSuggestions(dishVal);
+      const existingKeys = getExistingMealIngredientKeys();
+
+      currentMealSuggestions = allSuggestions.filter(item => {
+        const key = normalizeItemKey(item) || item.toLowerCase();
+        return !existingKeys.has(key);
+      });
+
+      if (currentMealSuggestions.length === 0) {
+        box.classList.add('hidden');
+        chipsEl.innerHTML = '';
+        return;
+      }
+
+      box.classList.remove('hidden');
+      chipsEl.innerHTML = currentMealSuggestions.map((item, idx) => `
+        <button
+          type="button"
+          onclick="applySuggestedIngredient(${idx})"
+          class="px-3 py-1.5 rounded-full bg-[#181b21] border border-white/10 hover:border-accent/50 text-xs font-medium text-white hover:text-accent transition flex items-center gap-1"
+        >
+          <span class="text-accent font-bold">+</span>
+          <span>${escHtml(item)}</span>
+        </button>
+      `).join('');
+    };
+
+    window.handleMealDishTyping = function() {
+      window.refreshMealIngredientSuggestions();
+    };
+
+    window.applySuggestedIngredient = function(idx) {
+      const item = currentMealSuggestions[idx];
+      if (!item) return;
+      const textarea = document.getElementById('meal-ingredients-input');
+      const current = textarea.value.trim();
+      textarea.value = current ? `${current}\n${item}` : item;
+      window.refreshMealIngredientSuggestions();
+    };
+
+    window.applyAllSuggestedIngredients = function() {
+      if (!currentMealSuggestions.length) return;
+      const textarea = document.getElementById('meal-ingredients-input');
+      const current = textarea.value.trim();
+      const addedBlock = currentMealSuggestions.join('\n');
+      textarea.value = current ? `${current}\n${addedBlock}` : addedBlock;
+      window.refreshMealIngredientSuggestions();
+      showToast('Lade till föreslagna ingredienser');
+    };
+
     // Meal Modal & Horizontal Swipeable Favorite Dishes
     window.toggleSavedMealsSort = function() {
       savedMealsSortMode = savedMealsSortMode === 'popular' ? 'alpha' : 'popular';
@@ -2306,6 +2489,7 @@
       if (!found) return;
       document.getElementById('meal-dish-input').value = found.dish || '';
       document.getElementById('meal-ingredients-input').value = found.ingredients || '';
+      window.refreshMealIngredientSuggestions();
       showToast(`Valde "${found.dish}"`);
     };
 
@@ -2327,6 +2511,7 @@
       document.getElementById('meal-dish-input').value = existing.dish || '';
       document.getElementById('meal-ingredients-input').value = existing.ingredients || '';
       renderSavedMealsChips();
+      window.refreshMealIngredientSuggestions();
       document.getElementById('meal-modal').classList.remove('hidden');
     };
 
