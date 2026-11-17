@@ -342,7 +342,7 @@
               <span>📅</span>
               <span>Familjens kalender</span>
             </h2>
-            <p class="text-xs text-[#9ca3af]">Lägg till händelser, möten eller aktiviteter som synkas direkt i gruppen.</p>
+            <p class="text-xs text-[#9ca3af]">Lägg till händelser och välj vem eller vilka i familjen de gäller.</p>
           </div>
 
           <!-- Add Event Form -->
@@ -361,6 +361,10 @@
             <div>
               <label class="text-[11px] text-[#9ca3af] block mb-1">Händelse / Beskrivning</label>
               <textarea id="cal-event-text" rows="2" required placeholder="T.ex. Utvecklingssamtal, Tandläkare kl 10..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none focus:border-accent/50"></textarea>
+            </div>
+            <div>
+              <label class="text-[11px] text-[#9ca3af] block mb-1.5">Gäller vem? (Lämna tom för alla)</label>
+              <select id="cal-event-assignee" class="w-full bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
             </div>
             <button type="submit" class="w-full bg-accent text-[#0f1115] font-semibold py-3 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs">
               + Lägg till i kalendern
@@ -1296,7 +1300,6 @@
 
         const paneWidthPct = 100 / TAB_ORDER.length;
         const baseOffsetPx = -currentIdx * (pagerState.width);
-        // Translate accounting for percentage track
         const currentTranslatePx = (baseOffsetPx / 100) * (pagerState.width * TAB_ORDER.length) + adjustedDx;
         tabsTrack.style.transform = `translate3d(${currentTranslatePx}px, 0, 0)`;
       }
@@ -1358,6 +1361,7 @@
       const dateVal = document.getElementById('cal-event-date').value;
       const timeVal = document.getElementById('cal-event-time').value.trim();
       const textVal = document.getElementById('cal-event-text').value.trim();
+      const assigneeVal = document.getElementById('cal-event-assignee').value;
       if (!dateVal || !textVal) return;
 
       const newEvent = {
@@ -1365,11 +1369,11 @@
         date: dateVal,
         time: timeVal || '',
         text: textVal,
+        assignee: assigneeVal || '',
         author: currentUserProfile ? currentUserProfile.name : 'Familjen'
       };
 
       const events = Array.isArray(groupData.calendarEvents) ? [...groupData.calendarEvents, newEvent] : [newEvent];
-      // Sort chronologically by date & time
       events.sort((a, b) => {
         const da = `${a.date} ${a.time || '00:00'}`;
         const db = `${b.date} ${b.time || '00:00'}`;
@@ -1378,6 +1382,7 @@
 
       document.getElementById('cal-event-text').value = '';
       document.getElementById('cal-event-time').value = '';
+      document.getElementById('cal-event-assignee').value = '';
 
       await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
       showToast('Lade till händelse i kalendern!');
@@ -2088,7 +2093,6 @@
         if (snapshot.exists()) {
           groupData = snapshot.data();
 
-          // Automatic Weekly Reset of Recurring Done Tasks on New ISO Week
           const weekInfo = getISOWeekInfo(new Date());
           if (groupData.lastResetWeek !== weekInfo.weekKey) {
             let anyReset = false;
@@ -2113,7 +2117,6 @@
             updateDoc(doc(db, 'groups', code), patch);
           }
 
-          // Notify device if another family member just activated "Jag handlar nu"
           const shopper = groupData.activeShopper;
           if (
             shopper &&
@@ -2425,12 +2428,6 @@
       await saveListsToCloud(updatedLists);
     };
 
-    // Smart Ingredient Suggestions Engine for Meal Planner
-    function capitalizeFirst(str) {
-      if (!str) return '';
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     function computeMealIngredientSuggestions(dishRaw) {
       const dish = (dishRaw || '').trim();
       if (dish.length < 2) return [];
@@ -2544,7 +2541,6 @@
       showToast('Lade till föreslagna ingredienser');
     };
 
-    // Meal Modal & Horizontal Swipeable Favorite Dishes
     window.toggleSavedMealsSort = function() {
       savedMealsSortMode = savedMealsSortMode === 'popular' ? 'alpha' : 'popular';
       localStorage.setItem('familjens_todo_saved_meals_sort', savedMealsSortMode);
@@ -2973,18 +2969,29 @@
           heroContentEl.innerHTML = `
             <div class="space-y-1 mt-1 pr-1">
               <span class="text-[10px] uppercase tracking-wider text-accent font-bold block">Kommande händelser:</span>
-              ${previewEvents.map(ev => `
-                <div class="text-xs text-white truncate flex items-center gap-1.5">
-                  <span class="text-[10px] text-[#9ca3af]">${escHtml(ev.date)}${ev.time ? ' ' + escHtml(ev.time) : ''}:</span>
-                  <span class="font-medium truncate">${escHtml(ev.text)}</span>
-                </div>
-              `).join('')}
+              ${previewEvents.map(ev => {
+                const evAssignee = ev.assignee && members[ev.assignee] ? members[ev.assignee] : null;
+                return `
+                  <div class="text-xs text-white truncate flex items-center gap-1.5">
+                    <span class="text-[10px] text-[#9ca3af]">${escHtml(ev.date)}${ev.time ? ' ' + escHtml(ev.time) : ''}:</span>
+                    <span class="font-medium truncate">${escHtml(ev.text)}</span>
+                    ${evAssignee ? `<span class="text-[9px] px-1.5 py-0.2 rounded-full" style="background-color: ${escAttr(evAssignee.color)}25; color: ${escAttr(evAssignee.color)}">${escHtml(evAssignee.name)}</span>` : ''}
+                  </div>
+                `;
+              }).join('')}
               ${eventsList.length > 2 ? `<span class="text-[10px] text-[#9ca3af] block">+ ${eventsList.length - 2} till (se Kalender)</span>` : ''}
             </div>
           `;
         }
         document.getElementById('today-hero-toggle-hint').textContent = 'Visa hälsning';
       }
+
+      // Render Calendar Assignee Select dropdown in form
+      const calAssigneeSelect = document.getElementById('cal-event-assignee');
+      const prevCalAssignee = calAssigneeSelect.value;
+      calAssigneeSelect.innerHTML = `<option value="">Alla i gruppen (Ingen specifik)</option>` +
+        Object.entries(members).map(([uid, m]) => `<option value="${escAttr(uid)}">${escHtml(m.name)}</option>`).join('');
+      if (prevCalAssignee) calAssigneeSelect.value = prevCalAssignee;
 
       // Render Calendar View & Events
       const calContainer = document.getElementById('calendar-events-container');
@@ -2993,21 +3000,30 @@
       if (eventsList.length === 0) {
         calContainer.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Inga kommande händelser inlagda.</p>`;
       } else {
-        calContainer.innerHTML = eventsList.map(ev => `
-          <div class="bg-[#0f1115] p-3.5 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-accent">${escHtml(ev.date)}</span>
-                ${ev.time ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(ev.time)}</span>` : ''}
+        calContainer.innerHTML = eventsList.map(ev => {
+          const evAssignee = ev.assignee && members[ev.assignee] ? members[ev.assignee] : null;
+          return `
+            <div class="bg-[#0f1115] p-3.5 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-bold text-accent">${escHtml(ev.date)}</span>
+                  ${ev.time ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(ev.time)}</span>` : ''}
+                  ${evAssignee ? `
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1" style="background-color: ${escAttr(evAssignee.color)}20; color: ${escAttr(evAssignee.color)}">
+                      <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(evAssignee.color)}"></span>
+                      <span>${escHtml(evAssignee.name)}</span>
+                    </span>
+                  ` : ''}
+                </div>
+                <p class="text-xs text-white font-medium mt-1 leading-relaxed">${escHtml(ev.text)}</p>
+                <span class="text-[10px] text-[#6b7280] block mt-1">Skapad av: ${escHtml(ev.author || 'Familjen')}</span>
               </div>
-              <p class="text-xs text-white font-medium mt-1 leading-relaxed">${escHtml(ev.text)}</p>
-              <span class="text-[10px] text-[#6b7280] block mt-1">Skapad av: ${escHtml(ev.author || 'Familjen')}</span>
+              <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition flex-shrink-0">
+                ✕
+              </button>
             </div>
-            <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition flex-shrink-0">
-              ✕
-            </button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
 
       const todayMeal = groupData.meals && groupData.meals[weekInfo.dayKey];
