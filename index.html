@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0f1115" />
-  <title>Familjens Todo</title>
+  <title>Familjens Todo v1.5</title>
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --accent: #81c784;
+    }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #0f1115;
@@ -18,9 +21,18 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     select { appearance: none; }
+    .bg-accent { background-color: var(--accent); }
+    .text-accent { color: var(--accent); }
+    .border-accent { border-color: var(--accent); }
   </style>
 </head>
-<body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-24">
+<body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-28">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-full bg-[#181b21] border border-white/15 shadow-2xl text-xs font-semibold text-white flex items-center gap-2 transition-all">
+    <span class="w-2 h-2 rounded-full bg-accent"></span>
+    <span id="toast-text">Sparat</span>
+  </div>
 
   <!-- AUTH / ONBOARDING VIEW -->
   <div id="view-auth" class="min-h-screen flex flex-col justify-center px-6 py-10 hidden">
@@ -29,12 +41,12 @@
         <span class="w-6 h-6 rounded-full bg-[#81c784]"></span>
       </div>
       <h1 class="text-2xl font-bold text-white tracking-tight">Familjens Todo</h1>
-      <p class="text-sm text-[#9ca3af] mt-1">Delade listor & scheman för familj och förening</p>
+      <p class="text-sm text-[#9ca3af] mt-1">Vardagsflyt, matsedel & delade listor</p>
     </div>
 
     <!-- Saved Accounts Quick-Switch -->
     <div id="recent-accounts-box" class="hidden mb-6 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5">
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-1">Snabbval – tidigare konton på enheten</span>
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-1">Snabbval – tidigare konton</span>
       <div id="recent-accounts-list" class="space-y-1.5"></div>
     </div>
 
@@ -48,7 +60,7 @@
       </button>
     </div>
 
-    <!-- Invite Banner if ?kod= is present -->
+    <!-- Invite Banner -->
     <div id="invite-detected-banner" class="hidden mb-4 p-3.5 rounded-2xl bg-[#81c784]/10 border border-[#81c784]/30 text-xs text-[#81c784] flex items-center gap-2.5">
       <span class="text-base">📩</span>
       <span>Inbjudningskod har fyllts i automatiskt nedan!</span>
@@ -73,7 +85,7 @@
     <!-- Register Form -->
     <form id="form-register" onsubmit="handleRegister(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl hidden">
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Ditt namn eller roll (visas i listorna)</label>
+        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Ditt namn eller roll</label>
         <input id="reg-name" type="text" required placeholder="T.ex. Johan eller Styrelsen" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
       </div>
       <div>
@@ -102,31 +114,92 @@
   <!-- MAIN APP SHELL -->
   <div id="app-shell" class="hidden flex-1 flex flex-col">
     
-    <!-- Top Header -->
-    <header class="px-5 pt-5 pb-3.5 flex items-center justify-between sticky top-0 bg-[#0f1115]/90 backdrop-blur-md z-20 border-b border-white/5">
-      <div class="min-w-0 pr-2">
+    <!-- Top Header with Instant Group Switcher -->
+    <header class="px-5 pt-5 pb-3.5 flex items-center justify-between sticky top-0 bg-[#0f1115]/95 backdrop-blur-md z-30 border-b border-white/5">
+      <div class="relative min-w-0 pr-2">
         <div class="flex items-center gap-2">
-          <span id="sync-dot" class="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse flex-shrink-0"></span>
+          <span id="sync-dot" class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span>
           <span id="header-user-badge" class="text-[11px] font-medium text-[#9ca3af] truncate">Ansluter...</span>
         </div>
-        <h1 id="group-title" class="text-lg font-bold text-white tracking-tight mt-0.5 truncate">Familjen</h1>
+        <button onclick="toggleHeaderGroupDropdown()" class="flex items-center gap-1.5 mt-0.5 text-left group">
+          <h1 id="group-title" class="text-lg font-bold text-white tracking-tight truncate">Familjen</h1>
+          <span class="text-xs text-accent px-1.5 py-0.5 rounded-lg bg-[#181b21] border border-white/10">▾</span>
+        </button>
+
+        <!-- Dropdown for instant group switching -->
+        <div id="header-group-dropdown" class="hidden absolute left-0 mt-2 w-64 bg-[#181b21] border border-white/10 rounded-3xl p-2 shadow-2xl z-40 space-y-1">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-3 pt-1.5 pb-1">Växla grupp</span>
+          <div id="header-groups-list" class="space-y-1"></div>
+          <div class="border-t border-white/5 pt-1 mt-1">
+            <button onclick="createBrandNewGroup()" class="w-full text-left px-3 py-2 rounded-2xl text-xs font-semibold text-accent hover:bg-white/5 transition">
+              + Ny grupp (t.ex. Förening)
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="flex items-center gap-2 flex-shrink-0">
-        <button onclick="shareInviteLink()" class="px-3.5 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-[#81c784] hover:bg-[#22262f] transition flex items-center gap-1">
+        <button onclick="shareInviteLink()" class="px-3 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-accent hover:bg-[#22262f] transition flex items-center gap-1">
           <span>Bjud in</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
         </button>
-
-        <button onclick="handleLogout()" title="Logga ut eller byt konto" class="px-3.5 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-[#e4e6eb] hover:bg-red-500/15 hover:text-red-300 hover:border-red-500/30 transition flex items-center gap-1.5">
-          <span>Logga ut</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <button onclick="handleLogout()" title="Logga ut" class="p-2 rounded-full bg-[#181b21] border border-white/10 text-[#9ca3af] hover:text-red-300 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </header>
 
-    <!-- VIEW: LISTOR -->
-    <main id="view-lists" class="px-5 pt-4 flex-1 space-y-4">
+    <!-- Live Shopping Status Banner (Visible if someone is shopping) -->
+    <div id="shopping-live-banner" class="hidden mx-5 mt-3 px-4 py-2.5 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-xs font-semibold text-accent">
+        <span class="animate-bounce">🛒</span>
+        <span id="shopping-live-text">Någon handlar just nu!</span>
+      </div>
+      <button onclick="openShoppingList()" class="text-[11px] underline text-white">Öppna listan</button>
+    </div>
+
+    <!-- VIEW 1: IDAG (DASHBOARD) -->
+    <main id="view-today" class="px-5 pt-4 flex-1 space-y-4">
+      <!-- Date & Week Card -->
+      <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg">
+        <div>
+          <span id="today-date-label" class="text-xs font-medium text-[#9ca3af] capitalize">Måndag</span>
+          <h2 id="today-greeting" class="text-xl font-bold text-white mt-0.5">Hej!</h2>
+        </div>
+        <div class="text-right">
+          <span id="today-week-badge" class="inline-block px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold">Vecka --</span>
+          <span id="today-week-parity" class="block text-[11px] text-[#9ca3af] mt-1">Jämn/Udda</span>
+        </div>
+      </div>
+
+      <!-- Quick Action: Handlar nu toggle -->
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="toggleShoppingLive()" id="btn-shopping-live" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
+          <span class="text-lg block">🛒</span>
+          <span id="shopping-btn-title" class="text-xs font-bold text-white block">Jag handlar nu</span>
+          <span id="shopping-btn-sub" class="text-[11px] text-[#9ca3af] block">Meddela familjen</span>
+        </button>
+
+        <button onclick="switchTab('meals')" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
+          <span class="text-lg block">🍽️</span>
+          <span class="text-xs font-bold text-white block">Dagens middag</span>
+          <span id="today-dinner-preview" class="text-[11px] text-accent font-medium block truncate">Ej planerad</span>
+        </button>
+      </div>
+
+      <!-- Today's Chores & Tasks -->
+      <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
+        <div class="flex items-center justify-between px-2">
+          <h3 class="text-sm font-bold text-white">Att göra i gruppen</h3>
+          <button onclick="toggleOnlyMine()" id="today-filter-mine" class="px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
+            Bara mina
+          </button>
+        </div>
+        <div id="today-tasks-container" class="space-y-2"></div>
+      </div>
+    </main>
+
+    <!-- VIEW 2: LISTOR -->
+    <main id="view-lists" class="px-5 pt-4 flex-1 space-y-4 hidden">
       
       <!-- List Selector Pills -->
       <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
@@ -138,33 +211,36 @@
             id="new-item-input"
             type="text" 
             placeholder="Vad ska läggas till?" 
-            class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-[#81c784]/50 text-sm"
+            class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
           />
           <input 
             id="new-item-qty"
             type="text" 
             placeholder="Antal" 
-            class="w-20 bg-[#0f1115] text-white placeholder-[#6b7280] px-3 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-[#81c784]/50 text-sm text-center"
+            class="w-20 bg-[#0f1115] text-white placeholder-[#6b7280] px-3 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm text-center"
           />
         </div>
 
-        <div class="flex items-center gap-2">
-          <select id="new-item-category" class="flex-1 bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
+        <div class="flex items-center gap-2 flex-wrap">
+          <select id="new-item-category" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
 
-          <select id="new-item-assignee" class="flex-1 bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
+          <select id="new-item-assignee" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
 
-          <button type="button" id="btn-recurring" onclick="toggleRecurringInput()" title="Återkommande" class="px-3 py-2.5 rounded-2xl bg-[#0f1115] border border-white/5 text-xs font-medium text-[#9ca3af] flex items-center gap-1 transition">
-            <span>↻</span>
-            <span class="hidden sm:inline">Återkommande</span>
-          </button>
+          <select id="new-item-recurrence" class="bg-[#0f1115] text-[#e4e6eb] px-3 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none">
+            <option value="none">Engångs</option>
+            <option value="weekly">↻ Återkommande</option>
+            <option value="odd">↻ Udda veckor</option>
+            <option value="even">↻ Jämna veckor</option>
+            <option value="rotating">↻👤 Rullande ansvar</option>
+          </select>
 
-          <button type="submit" class="bg-[#81c784] text-[#0f1115] font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs">
+          <button type="submit" class="bg-accent text-[#0f1115] font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs ml-auto">
             Lägg till
           </button>
         </div>
       </form>
 
-      <!-- Store Category Order Panel (Collapsible for shopping lists) -->
+      <!-- Store Category Order Panel -->
       <div id="store-order-wrapper" class="hidden">
         <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-[#181b21]/70 border border-white/5 text-xs text-[#9ca3af] hover:text-white transition">
           <span>Anpassa butikens avdelningsordning</span>
@@ -185,49 +261,85 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </div>
-          <button onclick="clearCompleted()" class="text-xs text-[#9ca3af] hover:text-white transition">Rensa klara</button>
+          <div class="flex items-center gap-2">
+            <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
+              Bara mina
+            </button>
+            <button onclick="clearCompleted()" class="text-xs text-[#9ca3af] hover:text-white transition">Rensa klara</button>
+          </div>
         </div>
         <div id="items-container" class="space-y-2">
           <p class="text-center text-xs text-[#6b7280] py-6">Laddar listor...</p>
         </div>
       </div>
-
     </main>
 
-    <!-- VIEW: GRUPP & INSTÄLLNINGAR -->
+    <!-- VIEW 3: MATSEDEL -->
+    <main id="view-meals" class="px-5 pt-4 flex-1 space-y-4 hidden">
+      <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
+        <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
+        <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så kan du skicka hela middagen rakt till inköpslistan.</p>
+      </div>
+
+      <div id="meals-days-container" class="space-y-3"></div>
+    </main>
+
+    <!-- VIEW 4: GRUPP & MALLAR -->
     <main id="view-group" class="px-5 pt-4 flex-1 space-y-5 hidden">
       
-      <!-- Konto & Snabbbyte -->
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
+      <!-- Mallbibliotek -->
+      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
         <div class="flex items-center justify-between">
-          <div>
-            <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inloggat konto</span>
-            <span id="logged-in-email" class="text-sm font-semibold text-white block mt-0.5">...</span>
-          </div>
-          <button onclick="handleLogout()" class="px-4 py-2 rounded-full bg-red-500/15 border border-red-500/30 text-xs font-semibold text-red-300 hover:bg-red-500/25 transition">
-            Logga ut / Byt konto
-          </button>
+          <h2 class="text-base font-bold text-white">Färdiga mallpaket</h2>
+          <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">1-klick</span>
         </div>
-
-        <!-- Mina grupper under samma konto -->
-        <div id="my-groups-section" class="pt-3 border-t border-white/5 space-y-2">
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block">Dina grupper på detta konto</span>
-          <div id="my-groups-list" class="space-y-1.5"></div>
+        <p class="text-xs text-[#9ca3af]">Fyll på med färdiga listor för vardag, resa eller förening:</p>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+            <span class="text-base block mb-1">🧹</span>
+            <span class="text-xs font-semibold text-white block">Veckostädning</span>
+            <span class="text-[10px] text-[#9ca3af]">Rum för rum</span>
+          </button>
+          <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+            <span class="text-base block mb-1">🥛</span>
+            <span class="text-xs font-semibold text-white block">Basvaror</span>
+            <span class="text-[10px] text-[#9ca3af]">Storhandling</span>
+          </button>
+          <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+            <span class="text-base block mb-1">🎒</span>
+            <span class="text-xs font-semibold text-white block">Packlista resa</span>
+            <span class="text-[10px] text-[#9ca3af]">Stugan & helg</span>
+          </button>
+          <button onclick="applyTemplate('club')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+            <span class="text-base block mb-1">🏆</span>
+            <span class="text-xs font-semibold text-white block">Förening & Kiosk</span>
+            <span class="text-[10px] text-[#9ca3af]">Match & städdag</span>
+          </button>
         </div>
       </div>
 
-      <!-- Bjud in & Dela länk -->
+      <!-- Gruppens Färgtema & Namn -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h2 class="text-lg font-bold text-white">Bjud in till aktiv grupp</h2>
-        <p class="text-xs text-[#9ca3af] leading-relaxed">
-          Skicka en inbjudningslänk via SMS, mejl eller chatt. När mottagaren klickar på länken fylls koden i automatiskt vid registrering.
-        </p>
+        <h3 class="text-sm font-semibold text-white">Gruppens namn & färgprofil</h3>
+        <form onsubmit="renameGroup(event)" class="flex gap-2">
+          <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
+          <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
+        </form>
+        <div>
+          <span class="text-xs text-[#9ca3af] block mb-2">Välj accentfärg för denna grupp (så du ser skillnad på familj & förening):</span>
+          <div id="group-theme-picker" class="flex gap-3"></div>
+        </div>
+      </div>
+
+      <!-- Bjud in -->
+      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+        <h3 class="text-sm font-semibold text-white">Bjud in till aktiv grupp</h3>
         <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
           <div>
             <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
-            <span id="invite-code" class="text-lg font-bold text-[#81c784] tracking-widest">...</span>
+            <span id="invite-code" class="text-lg font-bold text-accent tracking-widest">...</span>
           </div>
-          <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full bg-[#81c784] text-xs font-semibold text-[#0f1115] hover:opacity-90 transition">
+          <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full bg-accent text-xs font-semibold text-[#0f1115] hover:opacity-90 transition">
             Skicka länk
           </button>
         </div>
@@ -235,20 +347,19 @@
 
       <!-- Medlemmar & Färger -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Medlemmar & Färgmarkering</h3>
-        <p class="text-xs text-[#9ca3af]">Tryck på en färg för att byta din egen markering i syssellistorna.</p>
+        <h3 class="text-sm font-semibold text-white">Medlemmar & Personlig färg</h3>
         <div id="members-list" class="space-y-2 pt-1"></div>
         <div id="color-picker" class="flex gap-2.5 pt-2"></div>
       </div>
 
       <!-- Skapa ny lista -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Skapa ny lista</h3>
+        <h3 class="text-sm font-semibold text-white">Skapa egen lista</h3>
         <form onsubmit="createNewList(event)" class="space-y-2.5">
-          <input id="new-list-name" type="text" required placeholder="T.ex. Helgstädning eller Styrelsepunkter..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
+          <input id="new-list-name" type="text" required placeholder="T.ex. Trädgård eller Styrelsepunkter..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
           <div class="flex gap-2">
             <select id="new-list-type" class="flex-1 bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-xs focus:outline-none">
-              <option value="todo">Sysslor / Punkter & Schema (med tilldelning & färg)</option>
+              <option value="todo">Sysslor / Punkter (med tilldelning & rullande)</option>
               <option value="shopping">Inköpslista (med antal & butiksordning)</option>
             </select>
             <button type="submit" class="px-5 py-3 rounded-2xl bg-[#a5b4fc] text-[#0f1115] font-semibold text-xs">Skapa</button>
@@ -256,42 +367,60 @@
         </form>
       </div>
 
-      <!-- Byt gruppnamn -->
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Ändra namn på aktiv grupp</h3>
-        <form onsubmit="renameGroup(event)" class="flex gap-2">
-          <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
-          <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
-        </form>
-      </div>
-
-      <!-- Lägg till / Gå med i en till grupp -->
+      <!-- Anslut till grupp & Konto -->
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h3 class="text-sm font-semibold text-white">Anslut till eller skapa en ny grupp</h3>
-        <p class="text-xs text-[#9ca3af]">Skriv in en gruppkod för att ansluta, eller skapa en helt ny fristående grupp (t.ex. för föreningen).</p>
+        <h3 class="text-sm font-semibold text-white">Anslut till befintlig grupp</h3>
         <form onsubmit="joinGroup(event)" class="flex gap-2">
           <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
           <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Anslut</button>
         </form>
-        <button type="button" onclick="createBrandNewGroup()" class="w-full py-2.5 rounded-2xl bg-[#0f1115] border border-white/10 text-xs font-semibold text-[#a5b4fc] hover:bg-[#22262f] transition">
-          + Skapa en helt ny grupp (t.ex. Förening)
-        </button>
         <p id="join-feedback" class="text-xs hidden"></p>
+        <div class="pt-3 border-t border-white/5 flex justify-between items-center">
+          <span id="logged-in-email" class="text-xs text-[#6b7280] truncate pr-2"></span>
+          <button onclick="handleLogout()" class="text-xs text-red-400 font-semibold hover:underline flex-shrink-0">Logga ut</button>
+        </div>
       </div>
 
-      <p class="text-center text-[11px] text-[#6b7280] pb-2">Familjens Todo • Version 1.0</p>
-
+      <p class="text-center text-[11px] text-[#6b7280] pb-2">Familjens Todo • Version 1.5 Beta</p>
     </main>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-around shadow-2xl z-30">
-      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition">
+    <!-- Bottom 4-Tab Navigation -->
+    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-between shadow-2xl z-30">
+      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition">
+        Idag
+      </button>
+      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
         Listor
       </button>
-      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition">
-        Grupp & Inställningar
+      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
+        Matsedel
+      </button>
+      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
+        Grupp
       </button>
     </nav>
+  </div>
+
+  <!-- MODAL: EDIT MEAL -->
+  <div id="meal-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 id="meal-modal-title" class="text-base font-bold text-white">Planera middag</h3>
+        <button onclick="closeMealModal()" class="text-[#9ca3af] hover:text-white text-sm">✕</button>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1">Maträtt</label>
+        <input id="meal-dish-input" type="text" placeholder="T.ex. Tacos eller Lax i ugn" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50" />
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1">Ingredienser (en per rad, t.ex. "500g Köttfärs")</label>
+        <textarea id="meal-ingredients-input" rows="4" placeholder="Köttfärs&#10;Tortillabröd&#10;Gräddfil&#10;Gurka" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"></textarea>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="saveMeal()" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs">Spara middag</button>
+        <button type="button" onclick="saveMealAndPushToShopping()" class="flex-1 py-3 rounded-full bg-[#a5b4fc] text-[#0f1115] font-semibold text-xs">Spara & lägg i inköp</button>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -329,13 +458,23 @@
       "Övrigt"
     ];
 
-    const MEMBER_COLORS = [
-      "#81c784",
-      "#a5b4fc",
-      "#f472b6",
-      "#fbbf24",
-      "#38bdf8",
-      "#fb923c"
+    const MEMBER_COLORS = ["#81c784", "#a5b4fc", "#f472b6", "#fbbf24", "#38bdf8", "#fb923c"];
+    const GROUP_ACCENTS = [
+      { name: "Salvia (Familj)", hex: "#81c784" },
+      { name: "Bärnsten (Förening)", hex: "#fbbf24" },
+      { name: "Himmelblå", hex: "#38bdf8" },
+      { name: "Indigo", hex: "#a5b4fc" },
+      { name: "Korall", hex: "#fb923c" }
+    ];
+
+    const WEEKDAYS = [
+      { key: "mon", label: "Måndag" },
+      { key: "tue", label: "Tisdag" },
+      { key: "wed", label: "Onsdag" },
+      { key: "thu", label: "Torsdag" },
+      { key: "fri", label: "Fredag" },
+      { key: "sat", label: "Lördag" },
+      { key: "sun", label: "Söndag" }
     ];
 
     let currentUser = null;
@@ -344,8 +483,29 @@
     let activeListId = localStorage.getItem('familjens_todo_active_list') || 'inkop';
     let groupData = null;
     let unsubscribeGroup = null;
-    let isRecurringDraft = false;
+    let filterOnlyMine = false;
+    let editingMealDay = null;
 
+    function showToast(msg) {
+      const el = document.getElementById('toast-banner');
+      document.getElementById('toast-text').textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
+    }
+
+    function getISOWeekInfo(date = new Date()) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      const isOdd = weekNo % 2 !== 0;
+      const dayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+      return { weekNo, isOdd, parityLabel: isOdd ? "Udda vecka" : "Jämn vecka", dayKey: dayKeys[date.getDay()] };
+    }
+
+    // Recent accounts
     function saveRecentAccount(email, name) {
       if (!email) return;
       let list = JSON.parse(localStorage.getItem('familjens_todo_recent_accounts') || '[]');
@@ -358,7 +518,6 @@
     window.selectRecentAccount = function(email) {
       window.switchAuthMode('login');
       document.getElementById('login-email').value = email;
-      document.getElementById('login-password').value = '';
       document.getElementById('login-password').focus();
     };
 
@@ -374,10 +533,7 @@
       const list = JSON.parse(localStorage.getItem('familjens_todo_recent_accounts') || '[]');
       const box = document.getElementById('recent-accounts-box');
       const container = document.getElementById('recent-accounts-list');
-      if (list.length === 0) {
-        box.classList.add('hidden');
-        return;
-      }
+      if (list.length === 0) { box.classList.add('hidden'); return; }
       box.classList.remove('hidden');
       container.innerHTML = list.map(acc => `
         <div onclick="selectRecentAccount('${acc.email}')" class="flex items-center justify-between bg-[#0f1115] hover:bg-[#22262f] px-3.5 py-2.5 rounded-2xl border border-white/5 cursor-pointer transition">
@@ -387,7 +543,7 @@
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="text-[11px] font-semibold text-[#81c784]">Välj →</span>
-            <button type="button" onclick="removeRecentAccount(event, '${acc.email}')" title="Ta bort snabbval" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
+            <button type="button" onclick="removeRecentAccount(event, '${acc.email}')" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
           </div>
         </div>
       `).join('');
@@ -426,19 +582,18 @@
         code = code || generateGroupCode();
         const initialData = {
           name: customGroupName,
+          themeAccent: '#81c784',
           createdAt: Date.now(),
           categoryOrder: [...DEFAULT_CATEGORIES],
-          members: {
-            [user.uid]: { name: displayName, color: MEMBER_COLORS[0] }
-          },
+          members: { [user.uid]: { name: displayName, color: MEMBER_COLORS[0] } },
+          meals: {},
           lists: [
             {
               id: 'inkop',
               name: 'Inköpslista',
               type: 'shopping',
               items: [
-                { id: 1, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurring: true, done: false },
-                { id: 2, text: 'Bananer', qty: '1 klase', category: 'Frukt & Grönt', recurring: false, done: false }
+                { id: 1, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurring: true, done: false }
               ]
             },
             {
@@ -446,7 +601,7 @@
               name: 'Att göra & Schema',
               type: 'todo',
               items: [
-                { id: 3, text: 'Planera veckan', assignee: user.uid, recurring: true, done: false }
+                { id: 2, text: 'Tömma diskmaskinen', assignee: user.uid, recurrence: 'rotating', recurring: true, done: false }
               ]
             }
           ]
@@ -468,16 +623,10 @@
       const prevGroups = existingUserSnap.exists() ? (existingUserSnap.data().groups || [existingUserSnap.data().groupId].filter(Boolean)) : [];
       const updatedGroups = Array.from(new Set([...prevGroups, code]));
 
-      const profile = {
-        name: displayName,
-        email: user.email,
-        groupId: code,
-        groups: updatedGroups
-      };
+      const profile = { name: displayName, email: user.email, groupId: code, groups: updatedGroups };
       await setDoc(userRef, profile);
       currentUserProfile = profile;
       saveRecentAccount(user.email, displayName);
-
       return code;
     }
 
@@ -492,7 +641,7 @@
       errEl.classList.add('hidden');
 
       if (password !== passwordConfirm) {
-        errEl.textContent = 'Lösenorden stämmer inte överens. Kontrollera att du skrivit likadant i båda rutorna.';
+        errEl.textContent = 'Lösenorden stämmer inte överens.';
         errEl.classList.remove('hidden');
         return;
       }
@@ -501,7 +650,7 @@
         if (inviteCode) {
           const checkSnap = await getDoc(doc(db, 'groups', inviteCode));
           if (!checkSnap.exists()) {
-            errEl.textContent = 'Hittade ingen grupp med koden ' + inviteCode + '. Kontrollera koden eller lämna fältet tomt.';
+            errEl.textContent = 'Hittade ingen grupp med koden ' + inviteCode;
             errEl.classList.remove('hidden');
             return;
           }
@@ -510,9 +659,7 @@
         await setupUserInGroup(cred.user, name, inviteCode);
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
-        errEl.textContent = err.code === 'auth/email-already-in-use' 
-          ? 'E-postadressen används redan. Prova att logga in istället.' 
-          : 'Kunde inte skapa konto: ' + err.message;
+        errEl.textContent = err.code === 'auth/email-already-in-use' ? 'E-postadressen används redan.' : err.message;
         errEl.classList.remove('hidden');
       }
     };
@@ -523,7 +670,6 @@
       const password = document.getElementById('login-password').value;
       const errEl = document.getElementById('login-error');
       errEl.classList.add('hidden');
-
       try {
         await signInWithEmailAndPassword(auth, email, password);
       } catch (err) {
@@ -552,9 +698,7 @@
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists() && userSnap.data().groupId) {
           currentUserProfile = userSnap.data();
-          if (!currentUserProfile.groups) {
-            currentUserProfile.groups = [currentUserProfile.groupId];
-          }
+          if (!currentUserProfile.groups) currentUserProfile.groups = [currentUserProfile.groupId];
           saveRecentAccount(user.email, currentUserProfile.name);
           listenToGroup(currentUserProfile.groupId);
         } else {
@@ -578,84 +722,114 @@
       unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
         if (snapshot.exists()) {
           groupData = snapshot.data();
-          document.getElementById('sync-dot').className = 'w-2 h-2 rounded-full bg-[#81c784] flex-shrink-0';
+          const accent = groupData.themeAccent || '#81c784';
+          document.documentElement.style.setProperty('--accent', accent);
           const userName = currentUserProfile ? currentUserProfile.name : '';
-          document.getElementById('header-user-badge').textContent = userName ? `Inloggad som ${userName}` : 'Synkad i realtid';
+          document.getElementById('header-user-badge').textContent = userName ? `${userName} • Synkad` : 'Synkad';
           render();
-          renderMyGroupsList();
+          renderHeaderGroupsList();
         }
       });
     }
 
-    async function renderMyGroupsList() {
-      const container = document.getElementById('my-groups-list');
+    // Header Group Switcher
+    window.toggleHeaderGroupDropdown = function() {
+      document.getElementById('header-group-dropdown').classList.toggle('hidden');
+    };
+
+    async function renderHeaderGroupsList() {
+      const container = document.getElementById('header-groups-list');
       if (!currentUserProfile || !currentUserProfile.groups) return;
-      const codes = currentUserProfile.groups;
-      const itemsHtml = await Promise.all(codes.map(async (c) => {
+      const html = await Promise.all(currentUserProfile.groups.map(async (c) => {
         const snap = await getDoc(doc(db, 'groups', c));
         const gName = snap.exists() ? snap.data().name : c;
+        const gColor = (snap.exists() && snap.data().themeAccent) ? snap.data().themeAccent : '#81c784';
         const isActive = c === currentGroupId;
         return `
-          <div onclick="switchActiveGroup('${c}')" class="flex items-center justify-between px-4 py-2.5 rounded-2xl cursor-pointer transition ${
-            isActive ? 'bg-[#81c784]/15 border border-[#81c784]/40' : 'bg-[#0f1115] border border-white/5 hover:bg-[#22262f]'
-          }">
-            <div>
-              <span class="text-xs font-semibold text-white block">${gName}</span>
-              <span class="text-[10px] text-[#9ca3af] tracking-wider">${c}</span>
+          <button onclick="switchActiveGroup('${c}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${gColor}"></span>
+              <span class="text-xs font-semibold text-white truncate">${gName}</span>
             </div>
-            <span class="text-[11px] font-semibold ${isActive ? 'text-[#81c784]' : 'text-[#9ca3af]'}">${isActive ? 'Aktiv' : 'Öppna →'}</span>
-          </div>
+            <span class="text-[10px] text-[#9ca3af]">${isActive ? '✓' : c}</span>
+          </button>
         `;
       }));
-      container.innerHTML = itemsHtml.join('');
+      container.innerHTML = html.join('');
     }
 
     window.switchActiveGroup = async function(code) {
+      document.getElementById('header-group-dropdown').classList.add('hidden');
       if (!currentUser || code === currentGroupId) return;
       await updateDoc(doc(db, 'users', currentUser.uid), { groupId: code });
       currentUserProfile.groupId = code;
       listenToGroup(code);
-      window.switchTab('lists');
+      showToast('Bytte grupp');
     };
 
     window.createBrandNewGroup = async function() {
+      document.getElementById('header-group-dropdown').classList.add('hidden');
       if (!currentUser) return;
       const groupName = prompt('Vad ska den nya gruppen heta? (t.ex. Fritidsföreningen)');
       if (!groupName || !groupName.trim()) return;
       const userName = currentUserProfile ? currentUserProfile.name : currentUser.email.split('@')[0];
       const newCode = await setupUserInGroup(currentUser, userName, null, groupName.trim());
       listenToGroup(newCode);
-      window.switchTab('lists');
+      showToast(`Skapade ${groupName.trim()}`);
     };
 
+    window.setGroupAccent = async function(hex) {
+      if (!currentGroupId) return;
+      await updateDoc(doc(db, 'groups', currentGroupId), { themeAccent: hex });
+      showToast('Färgprofil uppdaterad');
+    };
+
+    // Navigation
+    window.switchTab = function(tab) {
+      ['today', 'lists', 'meals', 'group'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
+        const navBtn = document.getElementById(`nav-${t}`);
+        navBtn.className = t === tab
+          ? 'flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition'
+          : 'flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition';
+      });
+    };
+
+    window.openShoppingList = function() {
+      if (!groupData) return;
+      const shopList = groupData.lists.find(l => l.type === 'shopping' || l.id === 'inkop') || groupData.lists[0];
+      if (shopList) activeListId = shopList.id;
+      window.switchTab('lists');
+      render();
+    };
+
+    window.toggleOnlyMine = function() {
+      filterOnlyMine = !filterOnlyMine;
+      render();
+    };
+
+    // Live Shopping Status
+    window.toggleShoppingLive = async function() {
+      if (!groupData || !currentUser) return;
+      const currentShopper = groupData.activeShopper;
+      const myName = currentUserProfile ? currentUserProfile.name : 'Någon';
+      const nextShopper = (currentShopper && currentShopper.uid === currentUser.uid)
+        ? null
+        : { uid: currentUser.uid, name: myName, at: Date.now() };
+      await updateDoc(doc(db, 'groups', currentGroupId), { activeShopper: nextShopper });
+      showToast(nextShopper ? 'Familjen ser att du handlar nu!' : 'Avslutade handlingsläge');
+    };
+
+    // Lists & Items
     async function saveListsToCloud(updatedLists) {
       if (!currentGroupId) return;
       await updateDoc(doc(db, 'groups', currentGroupId), { lists: updatedLists });
     }
 
-    window.switchTab = function(tab) {
-      document.getElementById('view-lists').classList.toggle('hidden', tab !== 'lists');
-      document.getElementById('view-group').classList.toggle('hidden', tab !== 'group');
-      document.getElementById('nav-lists').className = tab === 'lists'
-        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition'
-        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
-      document.getElementById('nav-group').className = tab === 'group'
-        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition'
-        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
-    };
-
     window.selectList = function(id) {
       activeListId = id;
       localStorage.setItem('familjens_todo_active_list', id);
       render();
-    };
-
-    window.toggleRecurringInput = function() {
-      isRecurringDraft = !isRecurringDraft;
-      const btn = document.getElementById('btn-recurring');
-      btn.className = isRecurringDraft
-        ? 'px-3 py-2.5 rounded-2xl bg-[#a5b4fc]/20 border border-[#a5b4fc]/50 text-xs font-semibold text-[#a5b4fc] flex items-center gap-1 transition'
-        : 'px-3 py-2.5 rounded-2xl bg-[#0f1115] border border-white/5 text-xs font-medium text-[#9ca3af] flex items-center gap-1 transition';
     };
 
     window.addItem = async function(e) {
@@ -667,11 +841,13 @@
 
       const activeList = groupData.lists.find(l => l.id === activeListId);
       const isShopping = activeList.type === 'shopping' || activeList.id === 'inkop';
+      const recurrence = document.getElementById('new-item-recurrence').value;
 
       const newItem = {
         id: Date.now(),
         text,
-        recurring: isRecurringDraft,
+        recurrence,
+        recurring: recurrence !== 'none',
         done: false
       };
 
@@ -685,7 +861,7 @@
       }
 
       input.value = '';
-      if (isRecurringDraft) window.toggleRecurringInput();
+      document.getElementById('new-item-recurrence').value = 'none';
 
       const updatedLists = groupData.lists.map(l => 
         l.id === activeListId ? { ...l, items: [newItem, ...(l.items || [])] } : l
@@ -693,47 +869,58 @@
       await saveListsToCloud(updatedLists);
     };
 
-    window.toggleItem = async function(itemId) {
+    window.toggleItemInList = async function(listId, itemId) {
       if (!groupData) return;
+      const memberIds = Object.keys(groupData.members || {});
+      let rotatedMessage = null;
+
       const updatedLists = groupData.lists.map(l => {
-        if (l.id === activeListId) {
-          return {
-            ...l,
-            items: l.items.map(i => i.id === itemId ? { ...i, done: !i.done } : i)
-          };
-        }
-        return l;
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map(i => {
+            if (i.id !== itemId) return i;
+            // Rotating chore logic: when checked off, immediately assign to next member and keep unchecked!
+            if (!i.done && i.recurrence === 'rotating' && memberIds.length > 1) {
+              const idx = memberIds.indexOf(i.assignee);
+              const nextUid = memberIds[(idx + 1) % memberIds.length];
+              const nextName = groupData.members[nextUid]?.name || 'nästa person';
+              rotatedMessage = `Klar! Nästa tur: ${nextName}`;
+              return { ...i, assignee: nextUid, done: false };
+            }
+            return { ...i, done: !i.done };
+          })
+        };
       });
+
       await saveListsToCloud(updatedLists);
+      if (rotatedMessage) showToast(rotatedMessage);
+    };
+
+    window.toggleItem = function(itemId) {
+      window.toggleItemInList(activeListId, itemId);
     };
 
     window.deleteItem = async function(e, itemId) {
       e.stopPropagation();
       if (!groupData) return;
-      const updatedLists = groupData.lists.map(l => {
-        if (l.id === activeListId) {
-          return {
-            ...l,
-            items: l.items.filter(i => i.id !== itemId)
-          };
-        }
-        return l;
-      });
+      const updatedLists = groupData.lists.map(l => 
+        l.id === activeListId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l
+      );
       await saveListsToCloud(updatedLists);
     };
 
     window.clearCompleted = async function() {
       if (!groupData) return;
       const updatedLists = groupData.lists.map(l => {
-        if (l.id === activeListId) {
-          const nextItems = l.items
-            .filter(i => !i.done || i.recurring)
-            .map(i => (i.done && i.recurring) ? { ...i, done: false } : i);
-          return { ...l, items: nextItems };
-        }
-        return l;
+        if (l.id !== activeListId) return l;
+        const nextItems = l.items
+          .filter(i => !i.done || i.recurring || (i.recurrence && i.recurrence !== 'none'))
+          .map(i => (i.done && (i.recurring || (i.recurrence && i.recurrence !== 'none'))) ? { ...i, done: false } : i);
+        return { ...l, items: nextItems };
       });
       await saveListsToCloud(updatedLists);
+      showToast('Rensade klara punkter');
     };
 
     window.createNewList = async function(e) {
@@ -755,18 +942,17 @@
 
     window.deleteCurrentList = async function() {
       if (!groupData || groupData.lists.length <= 1) {
-        alert('Du måste ha minst en lista kvar i gruppen.');
+        alert('Du måste ha minst en lista kvar.');
         return;
       }
       const activeList = groupData.lists.find(l => l.id === activeListId);
-      if (!confirm(`Vill du ta bort hela listan "${activeList.name}"?`)) return;
-
+      if (!confirm(`Vill du ta bort listan "${activeList.name}"?`)) return;
       const updatedLists = groupData.lists.filter(l => l.id !== activeListId);
       activeListId = updatedLists[0].id;
-      localStorage.setItem('familjens_todo_active_list', activeListId);
       await saveListsToCloud(updatedLists);
     };
 
+    // Store Order
     window.toggleStoreOrderPanel = function() {
       const panel = document.getElementById('store-order-panel');
       const arrow = document.getElementById('store-order-arrow');
@@ -783,6 +969,112 @@
       await updateDoc(doc(db, 'groups', currentGroupId), { categoryOrder: order });
     };
 
+    // Meals Planner
+    window.openMealModal = function(dayKey) {
+      editingMealDay = dayKey;
+      const dayObj = WEEKDAYS.find(d => d.key === dayKey);
+      const existing = (groupData.meals && groupData.meals[dayKey]) || { dish: '', ingredients: '' };
+      document.getElementById('meal-modal-title').textContent = `Middag – ${dayObj.label}`;
+      document.getElementById('meal-dish-input').value = existing.dish || '';
+      document.getElementById('meal-ingredients-input').value = existing.ingredients || '';
+      document.getElementById('meal-modal').classList.remove('hidden');
+    };
+
+    window.closeMealModal = function() {
+      document.getElementById('meal-modal').classList.add('hidden');
+    };
+
+    window.saveMeal = async function() {
+      if (!editingMealDay || !currentGroupId) return;
+      const dish = document.getElementById('meal-dish-input').value.trim();
+      const ingredients = document.getElementById('meal-ingredients-input').value.trim();
+      const meals = { ...(groupData.meals || {}), [editingMealDay]: { dish, ingredients } };
+      await updateDoc(doc(db, 'groups', currentGroupId), { meals });
+      window.closeMealModal();
+      showToast('Matsedel sparad');
+    };
+
+    window.saveMealAndPushToShopping = async function() {
+      const ingredientsText = document.getElementById('meal-ingredients-input').value.trim();
+      await window.saveMeal();
+      if (!ingredientsText || !groupData) return;
+
+      const lines = ingredientsText.split('\n').map(l => l.trim()).filter(Boolean);
+      const shopList = groupData.lists.find(l => l.type === 'shopping' || l.id === 'inkop') || groupData.lists[0];
+      if (!shopList) return;
+
+      const newItems = lines.map((line, idx) => ({
+        id: Date.now() + idx,
+        text: line,
+        qty: '',
+        category: 'Övrigt',
+        recurrence: 'none',
+        recurring: false,
+        done: false
+      }));
+
+      const updatedLists = groupData.lists.map(l => 
+        l.id === shopList.id ? { ...l, items: [...newItems, ...(l.items || [])] } : l
+      );
+      await saveListsToCloud(updatedLists);
+      showToast(`La till ${lines.length} varor i ${shopList.name}!`);
+    };
+
+    // Templates
+    window.applyTemplate = async function(tplKey) {
+      if (!groupData || !currentGroupId) return;
+      const templates = {
+        cleaning: {
+          name: 'Veckostädning',
+          type: 'todo',
+          items: [
+            { id: Date.now() + 1, text: 'Dammsuga alla golv', recurrence: 'rotating', recurring: true, done: false },
+            { id: Date.now() + 2, text: 'Rengöra badrum & toalett', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 3, text: 'Torka köksbänkar & spis', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 4, text: 'Byta sängkläder', recurrence: 'even', recurring: true, done: false }
+          ]
+        },
+        groceries: {
+          name: 'Basvaror (Mall)',
+          type: 'shopping',
+          items: [
+            { id: Date.now() + 11, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 12, text: 'Ägg', qty: '12-pack', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 13, text: 'Bröd', qty: '1 limpa', category: 'Bröd & Bageri', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 14, text: 'Bananer & Äpplen', qty: '1 kg', category: 'Frukt & Grönt', recurrence: 'weekly', recurring: true, done: false }
+          ]
+        },
+        cabin: {
+          name: 'Packlista resa',
+          type: 'todo',
+          items: [
+            { id: Date.now() + 21, text: 'Laddare till mobiler', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 22, text: 'Necessär & mediciner', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 23, text: 'Regnkläder & extraskor', recurrence: 'weekly', recurring: true, done: false }
+          ]
+        },
+        club: {
+          name: 'Förening & Kiosk',
+          type: 'todo',
+          items: [
+            { id: Date.now() + 31, text: 'Brygga kaffe & förbereda fika', recurrence: 'rotating', recurring: true, done: false },
+            { id: Date.now() + 32, text: 'Ställa fram soptunnor & bord', recurrence: 'weekly', recurring: true, done: false },
+            { id: Date.now() + 33, text: 'Låsa lokalen & larma efteråt', recurrence: 'rotating', recurring: true, done: false }
+          ]
+        }
+      };
+
+      const chosen = templates[tplKey];
+      if (!chosen) return;
+      const newId = 'tpl_' + Date.now();
+      const updatedLists = [...groupData.lists, { id: newId, name: chosen.name, type: chosen.type, items: chosen.items }];
+      activeListId = newId;
+      await saveListsToCloud(updatedLists);
+      window.switchTab('lists');
+      showToast(`Lade till mallen "${chosen.name}"`);
+    };
+
+    // Member & Group Settings
     window.changeMyColor = async function(color) {
       if (!groupData || !currentUser) return;
       const members = { ...(groupData.members || {}) };
@@ -804,13 +1096,8 @@
           return;
         } catch (err) {}
       }
-
       await navigator.clipboard.writeText(`${shareText} ${inviteUrl}`);
-      const btn = document.getElementById('share-btn');
-      if (btn) {
-        btn.textContent = 'Länk kopierad!';
-        setTimeout(() => btn.textContent = 'Skicka länk', 2500);
-      }
+      showToast('Inbjudningslänk kopierad!');
     };
 
     window.joinGroup = async function(e) {
@@ -827,7 +1114,8 @@
         input.value = '';
         feedback.classList.add('hidden');
         listenToGroup(code);
-        window.switchTab('lists');
+        window.switchTab('today');
+        showToast('Ansluten till grupp ' + code);
       } else {
         feedback.textContent = 'Hittade ingen grupp med koden ' + code;
         feedback.className = 'text-xs text-red-400';
@@ -843,15 +1131,25 @@
       if (!newName) return;
       input.value = '';
       await updateDoc(doc(db, 'groups', currentGroupId), { name: newName });
-      renderMyGroupsList();
+      showToast('Gruppnamn sparat');
     };
 
-    function renderItemRow(item, members, isShopping) {
+    function getRecurrenceBadge(item) {
+      const rec = item.recurrence || (item.recurring ? 'weekly' : 'none');
+      if (rec === 'odd') return `<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#fbbf24]">Udda v.</span>`;
+      if (rec === 'even') return `<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#38bdf8]">Jämn v.</span>`;
+      if (rec === 'rotating') return `<span title="Rullande ansvar" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#f472b6]">↻👤 Rullande</span>`;
+      if (rec === 'weekly') return `<span title="Återkommande" class="text-xs text-accent">↻</span>`;
+      return '';
+    }
+
+    function renderItemRow(item, members, isShopping, listIdForToggle = null) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
+      const toggleCall = listIdForToggle ? `toggleItemInList('${listIdForToggle}', ${item.id})` : `toggleItem(${item.id})`;
       return `
-        <div onclick="toggleItem(${item.id})" class="flex items-center gap-3 p-3 rounded-2xl bg-[#0f1115]/70 hover:bg-[#0f1115] cursor-pointer transition group">
+        <div onclick="${toggleCall}" class="flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition">
           <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
-            item.done ? 'bg-[#81c784] border-[#81c784]' : 'border-[#4b5563]'
+            item.done ? 'bg-accent border-accent' : 'border-[#4b5563]'
           }">
             ${item.done ? '<svg class="w-3 h-3 text-[#0f1115]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
           </div>
@@ -860,7 +1158,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${item.text}</span>
               ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${item.qty}</span>` : ''}
-              ${item.recurring ? `<span title="Återkommande" class="text-xs text-[#81c784]">↻</span>` : ''}
+              ${getRecurrenceBadge(item)}
             </div>
           </div>
 
@@ -871,9 +1169,11 @@
             </span>
           ` : ''}
 
-          <button onclick="deleteItem(event, ${item.id})" title="Ta bort" class="p-1.5 text-[#6b7280] hover:text-red-400 transition flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
+          ${!listIdForToggle ? `
+            <button onclick="deleteItem(event, ${item.id})" title="Ta bort" class="p-1.5 text-[#6b7280] hover:text-red-400 transition flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          ` : ''}
         </div>
       `;
     }
@@ -881,20 +1181,81 @@
     function render() {
       if (!groupData) return;
       document.getElementById('group-title').textContent = groupData.name || 'Familjen';
-
+      const members = groupData.members || {};
       const lists = groupData.lists || [];
-      if (!lists.find(l => l.id === activeListId) && lists.length > 0) {
-        activeListId = lists[0].id;
-      }
 
+      // Live Shopping Banner & Button
+      const shopper = groupData.activeShopper;
+      const liveBanner = document.getElementById('shopping-live-banner');
+      if (shopper) {
+        liveBanner.classList.remove('hidden');
+        document.getElementById('shopping-live-text').textContent = `${shopper.name} handlar just nu!`;
+      } else {
+        liveBanner.classList.add('hidden');
+      }
+      const isMeShopping = shopper && currentUser && shopper.uid === currentUser.uid;
+      document.getElementById('shopping-btn-title').textContent = isMeShopping ? 'Avsluta handling' : 'Jag handlar nu';
+      document.getElementById('shopping-btn-sub').textContent = isMeShopping ? 'Tryck när du betalat' : 'Meddela familjen';
+
+      // TODAY DASHBOARD
+      const now = new Date();
+      const weekInfo = getISOWeekInfo(now);
+      const dateStr = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('today-date-label').textContent = dateStr;
+      document.getElementById('today-greeting').textContent = `Hej ${currentUserProfile?.name || ''}!`;
+      document.getElementById('today-week-badge').textContent = `Vecka ${weekInfo.weekNo}`;
+      document.getElementById('today-week-parity').textContent = weekInfo.parityLabel;
+
+      const todayMeal = groupData.meals && groupData.meals[weekInfo.dayKey];
+      document.getElementById('today-dinner-preview').textContent = (todayMeal && todayMeal.dish) ? todayMeal.dish : 'Ej planerad';
+
+      // Filter button styling
+      const mineBtnClass = filterOnlyMine
+        ? 'px-3 py-1 rounded-full bg-accent text-[#0f1115] text-[11px] font-bold transition'
+        : 'px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition';
+      document.getElementById('today-filter-mine').className = mineBtnClass;
+      document.getElementById('list-filter-mine').className = mineBtnClass;
+
+      // Aggregate open tasks across all todo lists for Today View
+      let todayTasksHtml = '';
+      lists.filter(l => l.type !== 'shopping' && l.id !== 'inkop').forEach(l => {
+        let openItems = (l.items || []).filter(i => !i.done);
+        if (filterOnlyMine && currentUser) {
+          openItems = openItems.filter(i => i.assignee === currentUser.uid);
+        }
+        if (openItems.length > 0) {
+          todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${l.name}</span></div>`;
+          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id)).join('');
+        }
+      });
+      document.getElementById('today-tasks-container').innerHTML = todayTasksHtml || 
+        `<p class="text-center text-xs text-[#6b7280] py-5">${filterOnlyMine ? 'Inga egna sysslor kvar idag!' : 'Allt avklarat i gruppen!'}</p>`;
+
+      // MEALS VIEW
+      const mealsData = groupData.meals || {};
+      document.getElementById('meals-days-container').innerHTML = WEEKDAYS.map(d => {
+        const m = mealsData[d.key];
+        const isToday = d.key === weekInfo.dayKey;
+        return `
+          <div onclick="openMealModal('${d.key}')" class="bg-[#181b21] rounded-3xl p-4 border ${isToday ? 'border-accent/50' : 'border-white/5'} flex items-center justify-between cursor-pointer hover:bg-[#22262f] transition">
+            <div class="min-w-0 pr-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold ${isToday ? 'text-accent' : 'text-[#9ca3af]'}">${d.label}</span>
+                ${isToday ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">Idag</span>` : ''}
+              </div>
+              <p class="text-sm font-semibold text-white mt-0.5 truncate">${(m && m.dish) ? m.dish : 'Lägg till middag...'}</p>
+            </div>
+            <span class="text-xs text-[#9ca3af] bg-[#0f1115] px-3 py-1.5 rounded-full">Ändra</span>
+          </div>
+        `;
+      }).join('');
+
+      // LISTS VIEW
+      if (!lists.find(l => l.id === activeListId) && lists.length > 0) activeListId = lists[0].id;
       document.getElementById('list-tabs').innerHTML = lists.map(l => `
         <button onclick="selectList('${l.id}')" class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-          l.id === activeListId 
-            ? 'bg-[#a5b4fc] text-[#0f1115]' 
-            : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
-        }">
-          ${l.name}
-        </button>
+          l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
+        }">${l.name}</button>
       `).join('');
 
       const activeList = lists.find(l => l.id === activeListId);
@@ -903,12 +1264,12 @@
 
       const isShopping = activeList.type === 'shopping' || activeList.id === 'inkop';
       const categoryOrder = groupData.categoryOrder || DEFAULT_CATEGORIES;
-      const members = groupData.members || {};
 
       document.getElementById('new-item-qty').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-category').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-assignee').classList.toggle('hidden', isShopping);
       document.getElementById('store-order-wrapper').classList.toggle('hidden', !isShopping);
+      document.getElementById('list-filter-mine').classList.toggle('hidden', isShopping);
 
       const catSelect = document.getElementById('new-item-category');
       const prevCat = catSelect.value;
@@ -931,6 +1292,43 @@
         Object.entries(members).map(([uid, m]) => `<option value="${uid}">${m.name}</option>`).join('');
       if (prevAssignee) assigneeSelect.value = prevAssignee;
 
+      // Render items
+      const itemsEl = document.getElementById('items-container');
+      let items = activeList.items || [];
+      if (!isShopping && filterOnlyMine && currentUser) {
+        items = items.filter(i => i.assignee === currentUser.uid);
+      }
+
+      if (items.length === 0) {
+        itemsEl.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Listan är tom.</p>`;
+      } else if (isShopping) {
+        const activeItems = items.filter(i => !i.done);
+        const doneItems = items.filter(i => i.done);
+        let html = '';
+        categoryOrder.forEach(cat => {
+          const catItems = activeItems.filter(i => (i.category || 'Övrigt') === cat);
+          if (catItems.length > 0) {
+            html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-accent px-2">${cat}</span></div>`;
+            html += catItems.map(i => renderItemRow(i, members, true)).join('');
+          }
+        });
+        const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
+        if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true)).join('');
+        if (doneItems.length > 0) {
+          html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#6b7280] px-2">Avbockade</span></div>`;
+          html += doneItems.map(i => renderItemRow(i, members, true)).join('');
+        }
+        itemsEl.innerHTML = html;
+      } else {
+        const sorted = [...items].sort((a, b) => a.done - b.done);
+        itemsEl.innerHTML = sorted.map(i => renderItemRow(i, members, false)).join('');
+      }
+
+      // GROUP & SETTINGS VIEW
+      document.getElementById('group-theme-picker').innerHTML = GROUP_ACCENTS.map(t => `
+        <button type="button" onclick="setGroupAccent('${t.hex}')" title="${t.name}" class="w-8 h-8 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${t.hex}"></button>
+      `).join('');
+
       document.getElementById('members-list').innerHTML = Object.entries(members).map(([uid, m]) => `
         <div class="flex items-center justify-between bg-[#0f1115] px-4 py-2.5 rounded-2xl">
           <div class="flex items-center gap-2.5">
@@ -943,41 +1341,6 @@
       document.getElementById('color-picker').innerHTML = MEMBER_COLORS.map(c => `
         <button type="button" onclick="changeMyColor('${c}')" class="w-7 h-7 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${c}"></button>
       `).join('');
-
-      const itemsEl = document.getElementById('items-container');
-      const items = activeList.items || [];
-      if (items.length === 0) {
-        itemsEl.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Listan är tom – lägg till något ovan.</p>`;
-        return;
-      }
-
-      if (isShopping) {
-        const activeItems = items.filter(i => !i.done);
-        const doneItems = items.filter(i => i.done);
-        let html = '';
-
-        categoryOrder.forEach(cat => {
-          const catItems = activeItems.filter(i => (i.category || 'Övrigt') === cat);
-          if (catItems.length > 0) {
-            html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#81c784] px-2">${cat}</span></div>`;
-            html += catItems.map(i => renderItemRow(i, members, true)).join('');
-          }
-        });
-
-        const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
-        if (unlisted.length > 0) {
-          html += unlisted.map(i => renderItemRow(i, members, true)).join('');
-        }
-
-        if (doneItems.length > 0) {
-          html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#6b7280] px-2">Avbockade</span></div>`;
-          html += doneItems.map(i => renderItemRow(i, members, true)).join('');
-        }
-        itemsEl.innerHTML = html;
-      } else {
-        const sorted = [...items].sort((a, b) => a.done - b.done);
-        itemsEl.innerHTML = sorted.map(i => renderItemRow(i, members, false)).join('');
-      }
     }
   </script>
 </body>
