@@ -41,11 +41,11 @@
     #tabs-track {
       display: flex;
       align-items: flex-start;
-      width: 400%;
+      width: 500%;
       will-change: transform;
     }
     .tab-pane {
-      width: 25%;
+      width: 20%;
       flex-shrink: 0;
     }
     .tab-pane-collapsed {
@@ -71,7 +71,7 @@
         <span class="w-6 h-6 rounded-full bg-[#81c784]"></span>
       </div>
       <h1 class="text-2xl font-bold text-white tracking-tight">Familjens Todo</h1>
-      <p class="text-sm text-[#9ca3af] mt-1">Vardagsflyt, matsedel & delade listor</p>
+      <p class="text-sm text-[#9ca3af] mt-1">Vardagsflyt, matsedel, kalender & delade listor</p>
     </div>
 
     <!-- Saved Accounts Quick-Switch -->
@@ -193,14 +193,17 @@
 
         <!-- VIEW 1: IDAG (DASHBOARD) -->
         <main id="view-today" class="tab-pane px-5 pt-4 space-y-4">
-          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg">
-            <div>
+          <!-- IDAG HEADER CARD WITH TOGGLEABLE GREETING / UPCOMING EVENTS -->
+          <div id="today-hero-card" onclick="toggleTodayHeroMode()" class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg cursor-pointer hover:bg-[#22262f] transition relative overflow-hidden">
+            <div class="min-w-0 pr-3">
               <span id="today-date-label" class="text-xs font-medium text-[#9ca3af] capitalize">Måndag</span>
-              <h2 id="today-greeting" class="text-xl font-bold text-white mt-0.5">Hej!</h2>
+              <div id="today-hero-content" class="mt-0.5">
+                <h2 id="today-greeting" class="text-xl font-bold text-white truncate">Hej!</h2>
+              </div>
             </div>
-            <div class="text-right">
+            <div class="text-right flex-shrink-0 flex flex-col items-end gap-1">
               <span id="today-week-badge" class="inline-block px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold">Vecka --</span>
-              <span id="today-week-parity" class="block text-[11px] text-[#9ca3af] mt-1">Jämn/Udda</span>
+              <span id="today-hero-toggle-hint" class="text-[10px] text-[#9ca3af] underline">Klicka för händelser</span>
             </div>
           </div>
 
@@ -332,7 +335,51 @@
           <div id="meals-days-container" class="space-y-3"></div>
         </main>
 
-        <!-- VIEW 4: GRUPP & MALLAR -->
+        <!-- VIEW 4: KALENDER -->
+        <main id="view-calendar" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
+          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-2">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span>📅</span>
+              <span>Familjens kalender</span>
+            </h2>
+            <p class="text-xs text-[#9ca3af]">Lägg till händelser, möten eller aktiviteter som synkas direkt i gruppen.</p>
+          </div>
+
+          <!-- Add Event Form -->
+          <form onsubmit="addCalendarEvent(event)" class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-3.5 shadow-xl">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-accent px-1">Ny händelse</h3>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="text-[11px] text-[#9ca3af] block mb-1">Datum</label>
+                <input id="cal-event-date" type="date" required class="w-full bg-[#0f1115] text-white px-3 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none focus:border-accent/50" />
+              </div>
+              <div>
+                <label class="text-[11px] text-[#9ca3af] block mb-1">Tid (valfritt)</label>
+                <input id="cal-event-time" type="time" class="w-full bg-[#0f1115] text-white px-3 py-2.5 rounded-2xl border border-white/5 text-xs text-center focus:outline-none focus:border-accent/50" />
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] text-[#9ca3af] block mb-1">Händelse / Beskrivning</label>
+              <textarea id="cal-event-text" rows="2" required placeholder="T.ex. Utvecklingssamtal, Tandläkare kl 10..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none focus:border-accent/50"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-accent text-[#0f1115] font-semibold py-3 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs">
+              + Lägg till i kalendern
+            </button>
+          </form>
+
+          <!-- Upcoming Events Box -->
+          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-3 shadow-xl">
+            <div class="flex items-center justify-between px-1">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-[#9ca3af]">Kommande händelser</h3>
+              <span id="calendar-event-count" class="text-[10px] text-accent font-semibold px-2 py-0.5 rounded-full bg-accent/15">0 st</span>
+            </div>
+            <div id="calendar-events-container" class="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
+              <p class="text-center text-xs text-[#6b7280] py-6">Inga kommande händelser inlagda.</p>
+            </div>
+          </div>
+        </main>
+
+        <!-- VIEW 5: GRUPP & MALLAR -->
         <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-5">
           <!-- Push Notifications Card -->
           <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
@@ -427,18 +474,21 @@
       </div>
     </div>
 
-    <!-- Bottom 4-Tab Navigation -->
+    <!-- Bottom 5-Tab Navigation -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-between shadow-2xl z-30">
-      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition">
+      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-2 rounded-full text-[10px] font-semibold bg-accent text-[#0f1115] transition">
         Idag
       </button>
-      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
+      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2 rounded-full text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
         Listor
       </button>
-      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
+      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-2 rounded-full text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
         Matsedel
       </button>
-      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="flex-1 py-2 rounded-full text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
+        Kalender
+      </button>
+      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2 rounded-full text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
         Grupp
       </button>
     </nav>
@@ -854,7 +904,6 @@
       ]
     };
 
-    // Smart Swedish Meal -> Ingredients Knowledge Base
     const SWEDISH_MEAL_SUGGESTIONS = [
       { keywords: ["halloumi", "strips"], items: ["Halloumi", "Strips", "Dressing", "Sallad", "Tomat"] },
       { keywords: ["halloumi"], items: ["Halloumi", "Sallad", "Tomat", "Gurka", "Dressing"] },
@@ -967,7 +1016,7 @@
       { key: "sun", label: "Söndag" }
     ];
 
-    const TAB_ORDER = ['today', 'lists', 'meals', 'group'];
+    const TAB_ORDER = ['today', 'lists', 'meals', 'calendar', 'group'];
     let currentTab = 'today';
 
     let currentUser = null;
@@ -988,6 +1037,7 @@
     let editingItemTarget = null;
     let userManuallySelectedCategory = false;
     let isFullscreenListOpen = false;
+    let todayHeroMode = 'greeting'; // 'greeting' or 'events'
     let lastNotifiedShopperAt = Number(localStorage.getItem('familjens_todo_last_shopper_at') || 0);
 
     // Notification Permission & Mobile Alert Helper
@@ -1140,8 +1190,8 @@
       TAB_ORDER.forEach(t => {
         const navBtn = document.getElementById(`nav-${t}`);
         navBtn.className = t === tab
-          ? 'flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition'
-          : 'flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition';
+          ? 'flex-1 py-2 rounded-full text-[10px] font-semibold bg-accent text-[#0f1115] transition'
+          : 'flex-1 py-2 rounded-full text-[10px] font-semibold text-[#9ca3af] hover:text-white transition';
       });
     }
 
@@ -1179,10 +1229,11 @@
         expandVisiblePanes([nextIdx]);
       }
 
+      const paneWidthPct = 100 / TAB_ORDER.length;
       tabsTrack.style.transition = animate
         ? 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
         : 'none';
-      tabsTrack.style.transform = `translate3d(-${nextIdx * 25}%, 0, 0)`;
+      tabsTrack.style.transform = `translate3d(-${nextIdx * paneWidthPct}%, 0, 0)`;
 
       if (!animate) {
         expandVisiblePanes([nextIdx]);
@@ -1243,8 +1294,11 @@
           adjustedDx = dx * 0.28;
         }
 
-        const baseOffsetPx = -currentIdx * pagerState.width;
-        tabsTrack.style.transform = `translate3d(${baseOffsetPx + adjustedDx}px, 0, 0)`;
+        const paneWidthPct = 100 / TAB_ORDER.length;
+        const baseOffsetPx = -currentIdx * (pagerState.width);
+        // Translate accounting for percentage track
+        const currentTranslatePx = (baseOffsetPx / 100) * (pagerState.width * TAB_ORDER.length) + adjustedDx;
+        tabsTrack.style.transform = `translate3d(${currentTranslatePx}px, 0, 0)`;
       }
     }, { passive: false });
 
@@ -1289,6 +1343,58 @@
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
+
+    // Toggle Idag Hero Mode (Greeting vs Upcoming Events)
+    window.toggleTodayHeroMode = function() {
+      todayHeroMode = todayHeroMode === 'greeting' ? 'events' : 'greeting';
+      render();
+    };
+
+    // Calendar Event Functions
+    window.addCalendarEvent = async function(e) {
+      e.preventDefault();
+      if (!groupData || !currentGroupId) return;
+
+      const dateVal = document.getElementById('cal-event-date').value;
+      const timeVal = document.getElementById('cal-event-time').value.trim();
+      const textVal = document.getElementById('cal-event-text').value.trim();
+      if (!dateVal || !textVal) return;
+
+      const newEvent = {
+        id: Date.now(),
+        date: dateVal,
+        time: timeVal || '',
+        text: textVal,
+        author: currentUserProfile ? currentUserProfile.name : 'Familjen'
+      };
+
+      const events = Array.isArray(groupData.calendarEvents) ? [...groupData.calendarEvents, newEvent] : [newEvent];
+      // Sort chronologically by date & time
+      events.sort((a, b) => {
+        const da = `${a.date} ${a.time || '00:00'}`;
+        const db = `${b.date} ${b.time || '00:00'}`;
+        return da.localeCompare(db);
+      });
+
+      document.getElementById('cal-event-text').value = '';
+      document.getElementById('cal-event-time').value = '';
+
+      await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
+      showToast('Lade till händelse i kalendern!');
+    };
+
+    window.requestDeleteCalendarEvent = function(eventId) {
+      if (!groupData || !currentGroupId) return;
+      openConfirmDeleteModal(
+        'Ta bort händelse?',
+        'Vill du ta bort den här händelsen från kalendern?',
+        async () => {
+          const events = (groupData.calendarEvents || []).filter(ev => ev.id !== eventId);
+          await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
+          showToast('Händelse borttagen');
+        }
+      );
+    };
 
     // Edit Existing Item Modal Controls
     window.openEditItemModal = function(e, listId, itemId) {
@@ -1842,6 +1948,7 @@
           members: { [user.uid]: { name: displayName, color: MEMBER_COLORS[0] } },
           meals: {},
           savedMeals: [],
+          calendarEvents: [],
           lists: [
             {
               id: 'inkop',
@@ -2341,7 +2448,6 @@
         suggestions.push(capitalizeFirst(clean));
       }
 
-      // 1. Check group's own saved favorite dishes for matching recipes
       const saved = Array.isArray(groupData?.savedMeals) ? groupData.savedMeals : [];
       for (const sm of saved) {
         if (!sm.dish || !sm.ingredients) continue;
@@ -2351,7 +2457,6 @@
         }
       }
 
-      // 2. Match against built-in Swedish meal knowledge base
       for (const entry of SWEDISH_MEAL_SUGGESTIONS) {
         const allMatch = entry.keywords.every(kw => containsWholeWord(dishLower, kw) || dishLower.includes(kw));
         if (allMatch) {
@@ -2359,7 +2464,6 @@
         }
       }
 
-      // 3. Extract explicit ingredients mentioned in the dish title (e.g. "Halloumi och strips")
       const splitParts = dish
         .split(/\s+(?:och|med|samt|&)\s+|,\s*/i)
         .map(p => p.trim())
@@ -2852,9 +2956,59 @@
       const weekInfo = getISOWeekInfo(now);
       const dateStr = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' });
       document.getElementById('today-date-label').textContent = dateStr;
-      document.getElementById('today-greeting').textContent = `Hej ${currentUserProfile?.name || ''}!`;
       document.getElementById('today-week-badge').textContent = `Vecka ${weekInfo.weekNo}`;
-      document.getElementById('today-week-parity').textContent = weekInfo.parityLabel;
+
+      // Render Hero Card Content (Greeting vs Upcoming Events)
+      const heroContentEl = document.getElementById('today-hero-content');
+      const eventsList = Array.isArray(groupData.calendarEvents) ? groupData.calendarEvents : [];
+      
+      if (todayHeroMode === 'greeting') {
+        heroContentEl.innerHTML = `<h2 id="today-greeting" class="text-xl font-bold text-white truncate">Hej ${escHtml(currentUserProfile?.name || '')}!</h2>`;
+        document.getElementById('today-hero-toggle-hint').textContent = eventsList.length > 0 ? `Visa kommande (${eventsList.length})` : 'Inga händelser';
+      } else {
+        if (eventsList.length === 0) {
+          heroContentEl.innerHTML = `<p class="text-xs text-[#9ca3af] py-1">Inga kommande händelser i kalendern.</p>`;
+        } else {
+          const previewEvents = eventsList.slice(0, 2);
+          heroContentEl.innerHTML = `
+            <div class="space-y-1 mt-1 pr-1">
+              <span class="text-[10px] uppercase tracking-wider text-accent font-bold block">Kommande händelser:</span>
+              ${previewEvents.map(ev => `
+                <div class="text-xs text-white truncate flex items-center gap-1.5">
+                  <span class="text-[10px] text-[#9ca3af]">${escHtml(ev.date)}${ev.time ? ' ' + escHtml(ev.time) : ''}:</span>
+                  <span class="font-medium truncate">${escHtml(ev.text)}</span>
+                </div>
+              `).join('')}
+              ${eventsList.length > 2 ? `<span class="text-[10px] text-[#9ca3af] block">+ ${eventsList.length - 2} till (se Kalender)</span>` : ''}
+            </div>
+          `;
+        }
+        document.getElementById('today-hero-toggle-hint').textContent = 'Visa hälsning';
+      }
+
+      // Render Calendar View & Events
+      const calContainer = document.getElementById('calendar-events-container');
+      document.getElementById('calendar-event-count').textContent = `${eventsList.length} st`;
+
+      if (eventsList.length === 0) {
+        calContainer.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Inga kommande händelser inlagda.</p>`;
+      } else {
+        calContainer.innerHTML = eventsList.map(ev => `
+          <div class="bg-[#0f1115] p-3.5 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-accent">${escHtml(ev.date)}</span>
+                ${ev.time ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(ev.time)}</span>` : ''}
+              </div>
+              <p class="text-xs text-white font-medium mt-1 leading-relaxed">${escHtml(ev.text)}</p>
+              <span class="text-[10px] text-[#6b7280] block mt-1">Skapad av: ${escHtml(ev.author || 'Familjen')}</span>
+            </div>
+            <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition flex-shrink-0">
+              ✕
+            </button>
+          </div>
+        `).join('');
+      }
 
       const todayMeal = groupData.meals && groupData.meals[weekInfo.dayKey];
       document.getElementById('today-dinner-preview').textContent = (todayMeal && todayMeal.dish) ? todayMeal.dish : 'Ej planerad';
