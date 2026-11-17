@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f1115" />
+  <meta name="theme-color" content="#072225" id="meta-theme-color" />
   <title>Familjens Todo</title>
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,24 +12,106 @@
       theme: {
         extend: {
           colors: {
-            accent: 'var(--accent)'
+            accent: 'var(--accent)',
+            appbg: 'var(--bg-app)',
+            cardbg: 'var(--bg-card)',
+            innerbg: 'var(--bg-inner)',
+            txtmain: 'var(--text-main)',
+            txtmuted: 'var(--text-muted)'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Lora"', 'Georgia', 'serif']
           }
         }
       }
     };
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --accent: #81c784;
+      --accent: #7ce3db;
+      --accent-contrast: #062124;
+      --accent-soft: rgba(124, 227, 219, 0.14);
+      --bg-app: #072225;
+      --bg-app-gradient: radial-gradient(circle at 85% 8%, #0e3d42 0%, #072225 58%, #05191c 100%);
+      --bg-card: #0c3338;
+      --bg-card-hover: #114147;
+      --bg-inner: #072327;
+      --border-subtle: rgba(124, 227, 219, 0.14);
+      --text-main: #f0f7f6;
+      --text-muted: #98b8b5;
+      --dinner-card-bg: #0e3a40;
+      --dinner-card-border: rgba(124, 227, 219, 0.22);
+      --nav-bg: rgba(9, 40, 44, 0.94);
+      --nav-pill-bg: #134e54;
+      --nav-pill-text: #ffffff;
+      --leaf-color: #779c6b;
+      --leaf-opacity: 0.72;
+      --progress-track: rgba(255, 255, 255, 0.12);
     }
+
+    html.light {
+      --accent: #0f6e6e;
+      --accent-contrast: #ffffff;
+      --accent-soft: rgba(15, 110, 110, 0.12);
+      --bg-app: #eaf3f2;
+      --bg-app-gradient: radial-gradient(circle at 85% 8%, #f6fbfa 0%, #eaf3f2 60%, #e1ecea 100%);
+      --bg-card: #ffffff;
+      --bg-card-hover: #f7fbfb;
+      --bg-inner: #f1f7f6;
+      --border-subtle: rgba(15, 110, 110, 0.11);
+      --text-main: #112a2c;
+      --text-muted: #587577;
+      --dinner-card-bg: #f9e6d4;
+      --dinner-card-border: rgba(217, 165, 122, 0.35);
+      --nav-bg: rgba(255, 255, 255, 0.94);
+      --nav-pill-bg: #bfe6e2;
+      --nav-pill-text: #0b4f4f;
+      --leaf-color: #6b9158;
+      --leaf-opacity: 0.85;
+      --progress-track: #d5e6e4;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #0f1115;
-      color: #e4e6eb;
+      background-color: var(--bg-app);
+      background-image: var(--bg-app-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
       -webkit-tap-highlight-color: transparent;
       overscroll-behavior-x: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+    }
+    .theme-card-hover:hover {
+      background-color: var(--bg-card-hover);
+    }
+    .theme-inner {
+      background-color: var(--bg-inner);
+      border: 1px solid var(--border-subtle);
+    }
+    .theme-dinner-card {
+      background-color: var(--dinner-card-bg);
+      border: 1px solid var(--dinner-card-border);
+    }
+    .theme-nav {
+      background-color: var(--nav-bg);
+      border: 1px solid var(--border-subtle);
+    }
+    .theme-nav-active {
+      background-color: var(--nav-pill-bg);
+      color: var(--nav-pill-text);
+    }
+    .btn-accent {
+      background-color: var(--accent);
+      color: var(--accent-contrast);
+    }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     select { appearance: none; }
@@ -56,112 +138,124 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-28">
+<body class="min-h-screen flex flex-col max-w-md mx-auto relative pb-28">
 
   <!-- TOAST NOTIFICATION -->
-  <div id="toast-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] hidden px-4 py-2.5 rounded-full bg-[#181b21] border border-white/15 shadow-2xl text-xs font-semibold text-white flex items-center gap-2 transition-all">
+  <div id="toast-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] hidden px-4 py-2.5 rounded-full theme-card shadow-2xl text-xs font-semibold text-txtmain flex items-center gap-2 transition-all">
     <span class="w-2 h-2 rounded-full bg-accent"></span>
     <span id="toast-text">Sparat</span>
   </div>
 
   <!-- AUTH / ONBOARDING VIEW -->
-  <div id="view-auth" class="min-h-screen flex flex-col justify-center px-6 py-10 hidden">
+  <div id="view-auth" class="min-h-screen flex flex-col justify-center px-6 py-10 hidden relative">
     <div class="text-center mb-7">
-      <div class="w-14 h-14 rounded-3xl bg-[#181b21] border border-white/10 flex items-center justify-center mx-auto mb-4 shadow-lg">
-        <span class="w-6 h-6 rounded-full bg-[#81c784]"></span>
+      <div class="w-16 h-16 rounded-3xl theme-card flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
       </div>
-      <h1 class="text-2xl font-bold text-white tracking-tight">Familjens Todo</h1>
-      <p class="text-sm text-[#9ca3af] mt-1">Vardagsflyt, matsedel & delade listor</p>
+      <h1 class="font-serif text-3xl font-bold text-txtmain tracking-tight">Familjens Todo</h1>
+      <p class="text-sm text-txtmuted mt-1">Vardagsflyt, matsedel & delade listor</p>
     </div>
 
     <!-- Saved Accounts Quick-Switch -->
-    <div id="recent-accounts-box" class="hidden mb-6 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5">
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-1">Snabbval – tidigare konton</span>
+    <div id="recent-accounts-box" class="hidden mb-6 theme-card rounded-3xl p-4 space-y-2.5 shadow-md">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-txtmuted block px-1">Snabbval – tidigare konton</span>
       <div id="recent-accounts-list" class="space-y-1.5"></div>
     </div>
 
     <!-- Auth Tabs -->
-    <div class="bg-[#181b21] p-1.5 rounded-full flex mb-6 border border-white/5">
-      <button id="tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition">
+    <div class="theme-card p-1.5 rounded-full flex mb-6 shadow-sm">
+      <button id="tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-full text-xs font-semibold btn-accent transition">
         Logga in
       </button>
-      <button id="tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition">
+      <button id="tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-txtmuted hover:text-txtmain transition">
         Skapa användare
       </button>
     </div>
 
     <!-- Invite Banner -->
-    <div id="invite-detected-banner" class="hidden mb-4 p-3.5 rounded-2xl bg-[#81c784]/10 border border-[#81c784]/30 text-xs text-[#81c784] flex items-center gap-2.5">
+    <div id="invite-detected-banner" class="hidden mb-4 p-3.5 rounded-2xl bg-accent/15 border border-accent/30 text-xs text-accent flex items-center gap-2.5">
       <span class="text-base">📩</span>
       <span>Inbjudningskod har fyllts i automatiskt nedan!</span>
     </div>
 
     <!-- Login Form -->
-    <form id="form-login" onsubmit="handleLogin(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl">
+    <form id="form-login" onsubmit="handleLogin(event)" class="theme-card rounded-3xl p-6 space-y-4 shadow-xl">
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">E-postadress</label>
-        <input id="login-email" type="email" required placeholder="namn@exempel.se" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">E-postadress</label>
+        <input id="login-email" type="email" required placeholder="namn@exempel.se" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Lösenord</label>
-        <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">Lösenord</label>
+        <input id="login-password" type="password" required placeholder="••••••••" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <p id="login-error" class="text-xs text-red-400 hidden"></p>
-      <button type="submit" class="w-full bg-[#81c784] text-[#0f1115] font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2">
+      <button type="submit" class="w-full btn-accent font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2 shadow-md">
         Logga in
       </button>
     </form>
 
     <!-- Register Form -->
-    <form id="form-register" onsubmit="handleRegister(event)" class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4 shadow-xl hidden">
+    <form id="form-register" onsubmit="handleRegister(event)" class="theme-card rounded-3xl p-6 space-y-4 shadow-xl hidden">
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Ditt namn eller roll</label>
-        <input id="reg-name" type="text" required placeholder="T.ex. Johan eller Styrelsen" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">Ditt namn eller roll</label>
+        <input id="reg-name" type="text" required placeholder="T.ex. Cornelia eller Styrelsen" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">E-postadress</label>
-        <input id="reg-email" type="email" required placeholder="namn@exempel.se" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">E-postadress</label>
+        <input id="reg-email" type="email" required placeholder="namn@exempel.se" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Lösenord (minst 6 tecken)</label>
-        <input id="reg-password" type="password" required minlength="6" placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">Lösenord (minst 6 tecken)</label>
+        <input id="reg-password" type="password" required minlength="6" placeholder="••••••••" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5 ml-1">Bekräfta lösenord</label>
-        <input id="reg-password-confirm" type="password" required minlength="6" placeholder="••••••••" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-[#81c784]/50" />
+        <label class="text-xs text-txtmuted block mb-1.5 ml-1">Bekräfta lösenord</label>
+        <input id="reg-password-confirm" type="password" required minlength="6" placeholder="••••••••" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div class="pt-1">
-        <label class="text-xs text-[#a5b4fc] font-medium block mb-1.5 ml-1">Inbjudningskod (valfritt)</label>
-        <input id="reg-invite" type="text" placeholder="T.ex. FAM-4829 (lämna tom för ny grupp)" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm uppercase focus:outline-none focus:border-[#a5b4fc]/50" />
+        <label class="text-xs text-accent font-medium block mb-1.5 ml-1">Inbjudningskod (valfritt)</label>
+        <input id="reg-invite" type="text" placeholder="T.ex. FAM-4829 (lämna tom för ny grupp)" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm uppercase focus:outline-none focus:border-accent" />
       </div>
       <p id="reg-error" class="text-xs text-red-400 hidden"></p>
-      <button type="submit" class="w-full bg-[#81c784] text-[#0f1115] font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2">
+      <button type="submit" class="w-full btn-accent font-semibold py-3.5 rounded-full hover:opacity-90 transition text-sm mt-2 shadow-md">
         Skapa konto & starta
       </button>
     </form>
   </div>
 
   <!-- MAIN APP SHELL -->
-  <div id="app-shell" class="hidden flex-1 flex flex-col">
+  <div id="app-shell" class="hidden flex-1 flex flex-col relative overflow-x-hidden">
+
+    <!-- Decorative Botanical Branch Top Left -->
+    <svg class="pointer-events-none absolute -top-2 -left-3 w-28 h-28 z-10" style="color: var(--leaf-color); opacity: var(--leaf-opacity);" viewBox="0 0 120 120" fill="none">
+      <path d="M12 108C26 78 46 52 84 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M26 86C14 78 12 64 24 56C34 64 34 78 26 86Z" fill="currentColor" fill-opacity="0.75"/>
+      <path d="M38 72C48 78 62 76 66 64C54 58 42 62 38 72Z" fill="currentColor" fill-opacity="0.65"/>
+      <path d="M48 56C36 46 36 32 48 26C56 36 56 48 48 56Z" fill="currentColor" fill-opacity="0.8"/>
+      <path d="M62 42C72 48 86 44 88 32C76 28 66 32 62 42Z" fill="currentColor" fill-opacity="0.7"/>
+      <path d="M76 28C72 16 80 6 92 10C92 20 84 26 76 28Z" fill="currentColor" fill-opacity="0.85"/>
+    </svg>
     
-    <!-- Top Header with Instant Group Switcher -->
-    <header class="px-5 pt-5 pb-3.5 flex items-center justify-between sticky top-0 bg-[#0f1115]/95 backdrop-blur-md z-30 border-b border-white/5">
-      <div id="header-group-wrapper" class="relative min-w-0 pr-2">
-        <div class="flex items-center gap-2">
-          <span id="sync-dot" class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span>
-          <span id="header-user-badge" class="text-[11px] font-medium text-[#9ca3af] truncate">Ansluter...</span>
-        </div>
-        <button onclick="toggleHeaderGroupDropdown()" class="flex items-center gap-1.5 mt-0.5 text-left group">
-          <h1 id="group-title" class="text-lg font-bold text-white tracking-tight truncate">Familjen</h1>
-          <span class="text-xs text-accent px-1.5 py-0.5 rounded-lg bg-[#181b21] border border-white/10">▾</span>
+    <!-- Top Header matching screenshot -->
+    <header class="px-5 pt-5 pb-2.5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md" style="background-color: color-mix(in srgb, var(--bg-app) 84%, transparent);">
+      <div id="header-group-wrapper" class="relative min-w-0 pl-8 pr-2">
+        <button onclick="toggleHeaderGroupDropdown()" class="flex items-center gap-2 text-left group py-1">
+          <svg class="w-5 h-5 text-accent flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
+          <h1 id="group-title" class="text-[15px] font-bold text-txtmain tracking-tight truncate">Familjen</h1>
+          <svg class="w-4 h-4 text-txtmain/80 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
         </button>
+        <span id="header-user-badge" class="sr-only">Synkad</span>
 
         <!-- Dropdown for instant group switching -->
-        <div id="header-group-dropdown" class="hidden absolute left-0 mt-2 w-64 bg-[#181b21] border border-white/10 rounded-3xl p-2 shadow-2xl z-40 space-y-1">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-3 pt-1.5 pb-1">Växla grupp</span>
+        <div id="header-group-dropdown" class="hidden absolute left-4 mt-2 w-64 theme-card rounded-3xl p-2 shadow-2xl z-40 space-y-1">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-txtmuted block px-3 pt-1.5 pb-1">Växla grupp</span>
           <div id="header-groups-list" class="space-y-1"></div>
-          <div class="border-t border-white/5 pt-1 mt-1">
-            <button onclick="openNewGroupModal()" class="w-full text-left px-3 py-2 rounded-2xl text-xs font-semibold text-accent hover:bg-white/5 transition">
+          <div class="border-t border-white/10 pt-1 mt-1">
+            <button onclick="openNewGroupModal()" class="w-full text-left px-3 py-2 rounded-2xl text-xs font-semibold text-accent hover:bg-accent/10 transition">
               + Ny grupp (t.ex. Förening)
             </button>
           </div>
@@ -169,102 +263,239 @@
       </div>
 
       <div class="flex items-center gap-2 flex-shrink-0">
-        <button onclick="shareInviteLink()" class="px-3 py-2 rounded-full bg-[#181b21] border border-white/10 text-xs font-semibold text-accent hover:bg-[#22262f] transition flex items-center gap-1">
-          <span>Bjud in</span>
+        <!-- Theme Toggle Button (Light / Dark mode like the two phones in the image) -->
+        <button type="button" onclick="toggleColorTheme()" id="theme-toggle-btn" title="Växla mellan ljust och mörkt läge" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain transition shadow-sm">
+          <svg id="theme-icon-sun" class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="theme-icon-moon" class="w-4 h-4 text-[#0f6e6e] hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </button>
-        <button onclick="handleLogout()" title="Logga ut" class="p-2 rounded-full bg-[#181b21] border border-white/10 text-[#9ca3af] hover:text-red-300 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+
+        <!-- Bell / Notifications Quick Button -->
+        <button type="button" onclick="handleBellClick()" title="Aviseringar" class="relative w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain transition shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span id="bell-dot" class="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500"></span>
+        </button>
+
+        <!-- Group / Invite Quick Avatar Circle -->
+        <button type="button" onclick="switchTab('group')" title="Grupp & Medlemmar" class="w-9 h-9 rounded-full btn-accent flex items-center justify-center shadow-md hover:opacity-90 transition">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
         </button>
       </div>
     </header>
 
     <!-- Live Shopping Status Banner -->
-    <div id="shopping-live-banner" class="hidden mx-5 mt-3 px-4 py-2.5 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-between">
+    <div id="shopping-live-banner" class="hidden mx-5 mt-2 px-4 py-2.5 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-between z-20">
       <div class="flex items-center gap-2 text-xs font-semibold text-accent">
         <span class="animate-bounce">🛒</span>
         <span id="shopping-live-text">Någon handlar just nu!</span>
       </div>
-      <button onclick="openShoppingList()" class="text-[11px] underline text-white">Öppna listan</button>
+      <button onclick="openShoppingList()" class="text-[11px] font-bold underline text-txtmain">Öppna listan</button>
     </div>
 
     <!-- SWIPEABLE HORIZONTAL PAGER VIEWPORT -->
     <div id="tabs-viewport" class="flex-1 overflow-x-hidden w-full">
       <div id="tabs-track" style="transform: translate3d(0%, 0, 0);">
 
-        <!-- VIEW 1: IDAG (DASHBOARD) -->
-        <main id="view-today" class="tab-pane px-5 pt-4 space-y-4">
-          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg">
-            <div>
-              <span id="today-date-label" class="text-xs font-medium text-[#9ca3af] capitalize">Måndag</span>
-              <h2 id="today-greeting" class="text-xl font-bold text-white mt-0.5">Hej!</h2>
-            </div>
-            <div class="text-right">
-              <span id="today-week-badge" class="inline-block px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold">Vecka --</span>
-              <span id="today-week-parity" class="block text-[11px] text-[#9ca3af] mt-1">Jämn/Udda</span>
-            </div>
+        <!-- VIEW 1: IDAG (REDESIGNED DASHBOARD MATCHING IMAGE) -->
+        <main id="view-today" class="tab-pane px-5 pt-2 space-y-3.5 relative">
+          
+          <!-- Greeting Hero with Botanical Branch on Right -->
+          <div class="relative pt-1 pb-1.5 pl-1 pr-14">
+            <h2 id="today-greeting" class="font-serif text-[32px] leading-tight font-bold text-txtmain tracking-tight">Hej!</h2>
+            <p class="text-[13px] font-medium text-txtmuted mt-1 flex items-center gap-1.5 flex-wrap">
+              <span id="today-date-label" class="capitalize">Tisdag 17 november</span>
+              <span>·</span>
+              <span id="today-week-badge" class="font-semibold text-txtmain">Vecka --</span>
+              <span id="today-week-parity" class="text-[11px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">Jämn</span>
+            </p>
+
+            <!-- Botanical Branch Right -->
+            <svg class="pointer-events-none absolute -right-3 top-2 w-24 h-24" style="color: var(--leaf-color); opacity: var(--leaf-opacity);" viewBox="0 0 110 110" fill="none">
+              <path d="M98 18C74 36 52 58 22 92" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M82 32C88 20 82 8 70 10C66 22 72 30 82 32Z" fill="currentColor" fill-opacity="0.8"/>
+              <path d="M68 46C56 42 44 48 46 60C58 60 66 54 68 46Z" fill="currentColor" fill-opacity="0.7"/>
+              <path d="M56 58C64 68 60 82 48 84C42 74 46 62 56 58Z" fill="currentColor" fill-opacity="0.75"/>
+              <path d="M40 74C28 70 18 76 20 88C32 88 38 82 40 74Z" fill="currentColor" fill-opacity="0.8"/>
+            </svg>
           </div>
 
+          <!-- Top 2 Cards: Dagens middag & Handla nu -->
           <div class="grid grid-cols-2 gap-3">
-            <button onclick="toggleShoppingLive()" id="btn-shopping-live" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
-              <span class="text-lg block">🛒</span>
-              <span id="shopping-btn-title" class="text-xs font-bold text-white block">Jag handlar nu</span>
-              <span id="shopping-btn-sub" class="text-[11px] text-[#9ca3af] block">Meddela familjen</span>
+            <!-- Dagens middag card -->
+            <button onclick="switchTab('meals')" class="theme-dinner-card rounded-3xl p-4 text-left transition hover:scale-[1.01] active:scale-[0.99] shadow-md flex items-center gap-3 relative overflow-hidden">
+              <!-- Bowl Illustration -->
+              <div class="w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center bg-black/5 dark:bg-white/5">
+                <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none">
+                  <path d="M8 24C8 33.5 15.2 40 24 40C32.8 40 40 33.5 40 24H8Z" fill="#d8cfc6"/>
+                  <path d="M10 24C10 31.8 16.2 37 24 37C31.8 37 38 31.8 38 24H10Z" fill="#ebe3db"/>
+                  <circle cx="17" cy="22" r="4" fill="#ea580c"/>
+                  <circle cx="24" cy="20" r="4.5" fill="#f97316"/>
+                  <circle cx="31" cy="22" r="4" fill="#ea580c"/>
+                  <circle cx="20" cy="17" r="3.5" fill="#fb923c"/>
+                  <circle cx="28" cy="17" r="3.5" fill="#f97316"/>
+                  <path d="M24 14C22 10 17 10 16 13C19 14 22 14 24 14Z" fill="#22c55e"/>
+                  <path d="M24 14C26 10 31 10 32 13C29 14 26 14 24 14Z" fill="#16a34a"/>
+                </svg>
+              </div>
+              <div class="min-w-0 flex-1 pr-3">
+                <span class="text-[13px] font-bold text-txtmain leading-tight block">Dagens<br/>middag</span>
+                <span id="today-dinner-preview" class="text-[11px] text-txtmuted font-medium block mt-1 line-clamp-2 leading-snug">Ej planerad</span>
+              </div>
+              <svg class="w-4 h-4 text-txtmuted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
 
-            <button onclick="switchTab('meals')" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
-              <span class="text-lg block">🍽️</span>
-              <span class="text-xs font-bold text-white block">Dagens middag</span>
-              <span id="today-dinner-preview" class="text-[11px] text-accent font-medium block truncate">Ej planerad</span>
+            <!-- Handla nu card -->
+            <div class="theme-card rounded-3xl p-4 shadow-md flex flex-col justify-between relative">
+              <button onclick="openShoppingList()" class="text-left w-full flex items-start justify-between">
+                <div>
+                  <svg class="w-6 h-6 text-accent mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                  <span class="text-[14px] font-bold text-txtmain block leading-tight">Handla nu</span>
+                  <span id="shopping-items-count" class="text-[11px] text-txtmuted font-medium block mt-0.5">0 varor kvar</span>
+                </div>
+                <svg class="w-4 h-4 text-txtmuted mt-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <button type="button" onclick="toggleShoppingLive()" id="btn-shopping-live" class="mt-2.5 w-full py-1.5 px-2.5 rounded-full bg-accent/15 hover:bg-accent/25 text-accent text-[10px] font-bold transition text-center truncate">
+                <span id="shopping-btn-title">Meddela: Jag handlar nu</span>
+              </button>
+              <span id="shopping-btn-sub" class="sr-only">Meddela familjen</span>
+            </div>
+          </div>
+
+          <!-- Main Family Tasks Card ("Att göra i familjen") -->
+          <div class="theme-card rounded-3xl p-4.5 p-5 space-y-3 shadow-lg">
+            <div class="flex items-start justify-between gap-2">
+              <div onclick="switchTab('lists')" class="flex items-center gap-3 cursor-pointer min-w-0">
+                <div class="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center text-accent flex-shrink-0">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <h3 class="text-[15px] font-bold text-txtmain truncate">Att göra i familjen</h3>
+                  <p id="today-tasks-progress-text" class="text-xs text-txtmuted mt-0.5">0 av 0 uppgifter klara</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button onclick="toggleOnlyMine()" id="today-filter-mine" class="px-2.5 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition">
+                  Bara mina
+                </button>
+                <button onclick="switchTab('lists')" title="Visa alla listor" class="p-1 text-txtmuted hover:text-txtmain">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2 rounded-full overflow-hidden" style="background-color: var(--progress-track);">
+              <div id="today-tasks-progress-bar" class="h-full rounded-full bg-accent transition-all duration-300" style="width: 0%;"></div>
+            </div>
+
+            <!-- Task Rows -->
+            <div id="today-tasks-container" class="divide-y divide-black/5 dark:divide-white/5"></div>
+          </div>
+
+          <!-- Secondary 2-Column Summary Cards (Packlista / Lista & Denna vecka) -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Secondary List Progress Card -->
+            <button onclick="openSecondaryList()" class="theme-card theme-card-hover rounded-3xl p-4 text-left transition shadow-md flex flex-col justify-between space-y-2.5">
+              <div class="flex items-center justify-between gap-2 w-full">
+                <div class="flex items-center gap-2 min-w-0">
+                  <svg class="w-5 h-5 text-accent flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 6h-2V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v2H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2 0 .55.45 1 1 1s1-.45 1-1h6c0 .55.45 1 1 1s1-.45 1-1c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2h2v2h-2V4z"/>
+                  </svg>
+                  <div class="min-w-0">
+                    <span id="secondary-list-title" class="text-[13px] font-bold text-txtmain block truncate">Att göra</span>
+                    <span id="secondary-list-progress-text" class="text-[11px] text-txtmuted block">0 av 0</span>
+                  </div>
+                </div>
+                <svg class="w-4 h-4 text-txtmuted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </div>
+              <div class="w-full h-1.5 rounded-full overflow-hidden" style="background-color: var(--progress-track);">
+                <div id="secondary-list-progress-bar" class="h-full rounded-full bg-accent transition-all duration-300" style="width: 0%;"></div>
+              </div>
+            </button>
+
+            <!-- Denna vecka (Calendar summary) -->
+            <button onclick="switchTab('calendar')" class="theme-card theme-card-hover rounded-3xl p-4 text-left transition shadow-md flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <svg class="w-5 h-5 text-accent flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <div class="min-w-0">
+                  <span class="text-[13px] font-bold text-txtmain block truncate">Denna vecka</span>
+                  <span id="secondary-week-events-count" class="text-[11px] text-txtmuted block">0 händelser</span>
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-txtmuted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-            <div class="flex items-center justify-between px-2">
-              <h3 class="text-sm font-bold text-white">Att göra i gruppen</h3>
-              <button onclick="toggleOnlyMine()" id="today-filter-mine" class="px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
-                Bara mina
-              </button>
+          <!-- Bottom Quote & Scenic Mountain/Forest Card -->
+          <div class="theme-card rounded-3xl px-4 py-3.5 shadow-md relative overflow-hidden flex items-center justify-between min-h-[76px]">
+            <div class="flex items-center gap-2.5 z-10 max-w-[66%]">
+              <!-- Small Botanical Sprig -->
+              <svg class="w-8 h-10 flex-shrink-0" style="color: var(--leaf-color);" viewBox="0 0 36 44" fill="none">
+                <path d="M6 40C12 28 18 18 28 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M12 30C6 26 6 20 12 18C16 22 16 26 12 30Z" fill="currentColor" fill-opacity="0.8"/>
+                <path d="M18 22C24 24 28 22 28 16C24 14 20 16 18 22Z" fill="currentColor" fill-opacity="0.75"/>
+                <path d="M22 14C18 10 20 4 26 4C28 8 26 12 22 14Z" fill="currentColor" fill-opacity="0.85"/>
+              </svg>
+              <p class="font-serif italic text-[13px] leading-snug text-txtmain">
+                Små steg tillsammans skapar stora dagar.
+              </p>
             </div>
-            <div id="today-tasks-container" class="space-y-2"></div>
+
+            <!-- Scenic Mountains, Pine Trees & Moon SVG -->
+            <svg class="absolute right-0 bottom-0 h-full w-44 pointer-events-none" viewBox="0 0 180 80" fill="none" preserveAspectRatio="none">
+              <circle cx="145" cy="18" r="7" fill="#fef3c7" fill-opacity="0.85" class="hidden dark:block"/>
+              <path d="M40 80L92 34L138 80H40Z" fill="#0f6e6e" fill-opacity="0.22"/>
+              <path d="M88 80L136 26L180 72V80H88Z" fill="#0f6e6e" fill-opacity="0.35"/>
+              <!-- Pine Trees Silhouette -->
+              <path d="M132 80L140 50L148 80H132Z" fill="#0b4f4f" fill-opacity="0.75"/>
+              <path d="M146 80L156 42L166 80H146Z" fill="#083b3b" fill-opacity="0.85"/>
+              <path d="M162 80L171 48L180 80H162Z" fill="#0b4f4f" fill-opacity="0.8"/>
+            </svg>
           </div>
         </main>
 
         <!-- VIEW 2: LISTOR -->
         <main id="view-lists" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-3.5">
-          <!-- New List Quick Button -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-[#9ca3af]">Dina listor <span class="text-[10px] text-[#6b7280]">(håll in för att ta bort)</span></span>
+            <span class="text-xs font-medium text-txtmuted">Dina listor <span class="text-[10px] opacity-75">(håll in för att ta bort)</span></span>
             <button onclick="openNewListModal()" class="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/25 transition flex items-center gap-1">
               <span>+ Ny lista</span>
             </button>
           </div>
 
-          <!-- Existing List Selector Pills -->
           <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
 
-          <form onsubmit="addItem(event)" class="bg-[#181b21] rounded-3xl p-3.5 border border-white/5 space-y-2.5 shadow-lg">
+          <form onsubmit="addItem(event)" class="theme-card rounded-3xl p-3.5 space-y-2.5 shadow-lg">
             <div class="flex gap-2">
               <input 
                 id="new-item-input"
                 type="text" 
                 oninput="handleNewItemTyping(this.value)"
                 placeholder="Vad ska läggas till?" 
-                class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
+                class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent"
               />
               <input 
                 id="new-item-qty"
                 type="text" 
                 placeholder="Antal" 
-                class="w-20 bg-[#0f1115] text-white placeholder-[#6b7280] px-3 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm text-center"
+                class="w-20 theme-inner text-txtmain placeholder-txtmuted/60 px-3 py-3 rounded-2xl text-sm text-center focus:outline-none focus:border-accent"
               />
             </div>
 
             <div class="flex items-center gap-2 flex-wrap">
-              <select id="new-item-category" onchange="handleManualCategoryChange()" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
+              <select id="new-item-category" onchange="handleManualCategoryChange()" class="flex-1 min-w-[120px] theme-inner text-txtmain px-3.5 py-2.5 rounded-2xl text-xs focus:outline-none"></select>
 
-              <select id="new-item-assignee" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
+              <select id="new-item-assignee" class="flex-1 min-w-[120px] theme-inner text-txtmain px-3.5 py-2.5 rounded-2xl text-xs focus:outline-none hidden"></select>
 
-              <select id="new-item-recurrence" class="bg-[#0f1115] text-[#e4e6eb] px-3 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none">
+              <select id="new-item-recurrence" class="theme-inner text-txtmain px-3 py-2.5 rounded-2xl text-xs focus:outline-none">
                 <option value="none">Engångs</option>
                 <option value="weekly">↻ Återkommande</option>
                 <option value="odd">↻ Udda veckor</option>
@@ -272,12 +503,11 @@
                 <option value="rotating">↻👤 Rullande ansvar</option>
               </select>
 
-              <button type="submit" class="bg-accent text-[#0f1115] font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs ml-auto">
+              <button type="submit" class="btn-accent font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs ml-auto shadow-sm">
                 Lägg till
               </button>
             </div>
 
-            <!-- Live indicator when category was auto-guessed or recalled from memory -->
             <div id="category-auto-hint" class="hidden px-2 pt-0.5 flex items-center gap-1.5 text-[11px] text-accent">
               <span id="category-auto-icon">✨</span>
               <span id="category-auto-text">Valde avdelning automatiskt</span>
@@ -285,73 +515,73 @@
           </form>
 
           <div id="store-order-wrapper" class="hidden">
-            <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-[#181b21]/70 border border-white/5 text-xs text-[#9ca3af] hover:text-white transition">
+            <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl theme-card text-xs text-txtmuted hover:text-txtmain transition">
               <span id="store-order-toggle-label">Anpassa butikens avdelningsordning</span>
               <span id="store-order-arrow">▼</span>
             </button>
-            <div id="store-order-panel" class="hidden mt-2 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-1.5">
-              <p id="store-order-panel-desc" class="text-[11px] text-[#9ca3af] mb-2 px-1">Flytta avdelningarna så att ordningen matchar just denna butik:</p>
+            <div id="store-order-panel" class="hidden mt-2 theme-card rounded-3xl p-4 space-y-1.5 shadow-md">
+              <p id="store-order-panel-desc" class="text-[11px] text-txtmuted mb-2 px-1">Flytta avdelningarna så att ordningen matchar just denna butik:</p>
               <div id="category-order-list" class="space-y-1"></div>
             </div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-            <div class="px-2 pb-2 space-y-2 border-b border-white/5">
+          <div class="theme-card rounded-3xl p-4 space-y-2.5 shadow-xl">
+            <div class="px-2 pb-2 space-y-2 border-b border-black/5 dark:border-white/5">
               <div class="flex items-center justify-between gap-2">
-                <h2 id="active-list-name" class="text-base font-bold text-white truncate">Inköpslista</h2>
-                <button type="button" onclick="openFullscreenList()" title="Visa listan i nästan fullskärm" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1.5 flex-shrink-0">
+                <h2 id="active-list-name" class="text-base font-bold text-txtmain truncate">Inköpslista</h2>
+                <button type="button" onclick="openFullscreenList()" title="Visa listan i nästan fullskärm" class="px-2.5 py-1 rounded-full theme-inner text-[11px] font-medium text-txtmain hover:opacity-80 transition flex items-center gap-1.5 flex-shrink-0">
                   <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                   <span>Fullskärm</span>
                 </button>
               </div>
               <div class="flex items-center justify-between gap-2 flex-wrap">
-                <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1">
+                <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full theme-inner text-[11px] font-medium text-txtmain hover:opacity-80 transition flex items-center gap-1">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                   <span>Döp om</span>
                 </button>
                 <div class="flex items-center gap-2">
-                  <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
+                  <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition">
                     Bara mina
                   </button>
-                  <button onclick="clearCompleted()" class="text-[11px] font-medium text-[#9ca3af] hover:text-white transition px-1.5 py-1">Rensa klara</button>
+                  <button onclick="clearCompleted()" class="text-[11px] font-medium text-txtmuted hover:text-txtmain transition px-1.5 py-1">Rensa klara</button>
                 </div>
               </div>
             </div>
             <div id="items-container" class="space-y-2">
-              <p class="text-center text-xs text-[#6b7280] py-6">Laddar listor...</p>
+              <p class="text-center text-xs text-txtmuted py-6">Laddar listor...</p>
             </div>
           </div>
         </main>
 
         <!-- VIEW 3: KALENDER -->
         <main id="view-calendar" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
-          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-3 shadow-lg">
+          <div class="theme-card rounded-3xl p-5 space-y-3 shadow-lg">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-base font-bold text-white">Familjens Kalender</h2>
-                <p class="text-xs text-[#9ca3af] mt-0.5">Kommande händelser & gemensamma bokningar</p>
+                <h2 class="font-serif text-lg font-bold text-txtmain">Familjens Kalender</h2>
+                <p class="text-xs text-txtmuted mt-0.5">Kommande händelser & gemensamma bokningar</p>
               </div>
-              <button onclick="openAddEventModal()" class="px-3.5 py-2 rounded-full bg-accent text-[#0f1115] text-xs font-semibold hover:opacity-90 transition">
+              <button onclick="openAddEventModal()" class="px-3.5 py-2 rounded-full btn-accent text-xs font-semibold hover:opacity-90 transition shadow-sm">
                 + Ny händelse
               </button>
             </div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
+          <div class="theme-card rounded-3xl p-4 space-y-2.5 shadow-xl">
             <div class="flex items-center justify-between px-2 pb-1">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-[#9ca3af]">Kommande händelser</h3>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-txtmuted">Kommande händelser</h3>
             </div>
             <div id="calendar-events-container" class="space-y-2">
-              <p class="text-center text-xs text-[#6b7280] py-6">Laddar kalender...</p>
+              <p class="text-center text-xs text-txtmuted py-6">Laddar kalender...</p>
             </div>
           </div>
         </main>
 
         <!-- VIEW 4: MATSEDEL -->
         <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
-          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
-            <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
-            <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sparas de i era favoriträtter och sorteras automatiskt in i rätt butiksavdelning vid inköp.</p>
+          <div class="theme-card rounded-3xl p-5 space-y-1 shadow-md">
+            <h2 class="font-serif text-lg font-bold text-txtmain">Veckans matsedel</h2>
+            <p class="text-xs text-txtmuted">Lägg in rätter och ingredienser så sparas de i era favoriträtter och sorteras automatiskt in i rätt butiksavdelning vid inköp.</p>
           </div>
           <div id="meals-days-container" class="space-y-3"></div>
         </main>
@@ -359,90 +589,90 @@
         <!-- VIEW 5: GRUPP & MALLAR -->
         <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-5">
           <!-- Push Notifications Card -->
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-base">🔔</span>
-                <h2 class="text-base font-bold text-white">Aviseringar i mobilen</h2>
+                <h2 class="text-base font-bold text-txtmain">Aviseringar i mobilen</h2>
               </div>
-              <span id="notif-status-badge" class="text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/5 text-[#9ca3af] font-semibold">Av</span>
+              <span id="notif-status-badge" class="text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full theme-inner text-txtmuted font-semibold">Av</span>
             </div>
-            <p class="text-xs text-[#9ca3af]">Få en notis i mobilen när någon i gruppen trycker på <strong class="text-white">"Jag handlar nu"</strong>.</p>
+            <p class="text-xs text-txtmuted">Få en notis i mobilen när någon i gruppen trycker på <strong class="text-txtmain">"Jag handlar nu"</strong>.</p>
             <button id="btn-enable-notifications" type="button" onclick="requestNotificationPermission()" class="w-full py-3 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs hover:bg-accent/25 transition">
               Aktivera aviseringar på den här enheten
             </button>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
             <div class="flex items-center justify-between">
-              <h2 class="text-base font-bold text-white">Färdiga mallpaket</h2>
+              <h2 class="text-base font-bold text-txtmain">Färdiga mallpaket</h2>
               <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">1-klick</span>
             </div>
-            <p class="text-xs text-[#9ca3af]">Fyll på med färdiga listor för vardag, resa eller förening:</p>
+            <p class="text-xs text-txtmuted">Fyll på med färdiga listor för vardag, resa eller förening:</p>
             <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+              <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🧹</span>
-                <span class="text-xs font-semibold text-white block">Veckostädning</span>
-                <span class="text-[10px] text-[#9ca3af]">Rum för rum</span>
+                <span class="text-xs font-semibold text-txtmain block">Veckostädning</span>
+                <span class="text-[10px] text-txtmuted">Rum för rum</span>
               </button>
-              <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+              <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🥛</span>
-                <span class="text-xs font-semibold text-white block">Basvaror</span>
-                <span class="text-[10px] text-[#9ca3af]">Storhandling</span>
+                <span class="text-xs font-semibold text-txtmain block">Basvaror</span>
+                <span class="text-[10px] text-txtmuted">Storhandling</span>
               </button>
-              <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+              <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🎒</span>
-                <span class="text-xs font-semibold text-white block">Packlista resa</span>
-                <span class="text-[10px] text-[#9ca3af]">Stugan & helg</span>
+                <span class="text-xs font-semibold text-txtmain block">Packlista resa</span>
+                <span class="text-[10px] text-txtmuted">Stugan & helg</span>
               </button>
-              <button onclick="applyTemplate('club')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+              <button onclick="applyTemplate('club')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🏆</span>
-                <span class="text-xs font-semibold text-white block">Förening & Kiosk</span>
-                <span class="text-[10px] text-[#9ca3af]">Match & städdag</span>
+                <span class="text-xs font-semibold text-txtmain block">Förening & Kiosk</span>
+                <span class="text-[10px] text-txtmuted">Match & städdag</span>
               </button>
             </div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-            <h3 class="text-sm font-semibold text-white">Gruppens namn & färgprofil</h3>
+          <div class="theme-card rounded-3xl p-6 space-y-4 shadow-md">
+            <h3 class="text-sm font-semibold text-txtmain">Gruppens namn & färgprofil</h3>
             <form onsubmit="renameGroup(event)" class="flex gap-2">
-              <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
-              <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
+              <input id="rename-group-input" type="text" placeholder="T.ex. Familjen Goossens..." class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none" />
+              <button type="submit" class="px-5 py-3 rounded-2xl btn-accent font-semibold text-xs hover:opacity-90">Spara</button>
             </form>
             <div>
-              <span class="text-xs text-[#9ca3af] block mb-2">Välj accentfärg för denna grupp (så du ser skillnad på familj & förening):</span>
+              <span class="text-xs text-txtmuted block mb-2">Välj accentfärg för denna grupp:</span>
               <div id="group-theme-picker" class="flex gap-3"></div>
             </div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-            <h3 class="text-sm font-semibold text-white">Bjud in till aktiv grupp</h3>
-            <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
+          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+            <h3 class="text-sm font-semibold text-txtmain">Bjud in till aktiv grupp</h3>
+            <div class="theme-inner rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
+                <span class="text-[10px] uppercase tracking-wider text-txtmuted block">Inbjudningskod</span>
                 <span id="invite-code" class="text-lg font-bold text-accent tracking-widest">...</span>
               </div>
-              <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full bg-accent text-xs font-semibold text-[#0f1115] hover:opacity-90 transition">
+              <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full btn-accent text-xs font-semibold hover:opacity-90 transition">
                 Skicka länk
               </button>
             </div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-            <h3 class="text-sm font-semibold text-white">Medlemmar & Personlig färg</h3>
+          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+            <h3 class="text-sm font-semibold text-txtmain">Medlemmar & Personlig färg</h3>
             <div id="members-list" class="space-y-2 pt-1"></div>
             <div id="color-picker" class="flex gap-2.5 pt-2"></div>
           </div>
 
-          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-            <h3 class="text-sm font-semibold text-white">Anslut till befintlig grupp</h3>
+          <div class="theme-card rounded-3xl p-6 space-y-4 shadow-md">
+            <h3 class="text-sm font-semibold text-txtmain">Anslut till befintlig grupp</h3>
             <form onsubmit="joinGroup(event)" class="flex gap-2">
-              <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
-              <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Anslut</button>
+              <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-xs uppercase focus:outline-none" />
+              <button type="submit" class="px-4 py-3 rounded-2xl btn-accent font-semibold text-xs">Anslut</button>
             </form>
             <p id="join-feedback" class="text-xs hidden"></p>
-            <div class="pt-3 border-t border-white/5 flex justify-between items-center">
-              <span id="logged-in-email" class="text-xs text-[#6b7280] truncate pr-2"></span>
+            <div class="pt-3 border-t border-black/10 dark:border-white/10 flex justify-between items-center">
+              <span id="logged-in-email" class="text-xs text-txtmuted truncate pr-2"></span>
               <button onclick="handleLogout()" class="text-xs text-red-400 font-semibold hover:underline flex-shrink-0">Logga ut</button>
             </div>
           </div>
@@ -451,87 +681,92 @@
       </div>
     </div>
 
-    <!-- Bottom 5-Tab Navigation -->
-    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-between shadow-2xl z-30">
-      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition">
-        Idag
+    <!-- Bottom Navigation Bar with Icons + Pill Active State (matching screenshot) -->
+    <nav class="fixed bottom-3.5 left-1/2 -translate-x-1/2 w-[calc(100%-1.75rem)] max-w-sm theme-nav backdrop-blur-lg rounded-[30px] p-1.5 flex justify-between shadow-2xl z-30">
+      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Idag</span>
       </button>
-      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
-        Listor
+      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        <span>Listor</span>
       </button>
-      <button onclick="switchTab('calendar')" id="nav-calendar" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
-        Kalender
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span>Kalender</span>
       </button>
-      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
-        Matsedel
+      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v7a3 3 0 003 3v8m0-18v7m3-7v7a3 3 0 01-3 3m11-10v18m0-18c2.21 0 4 1.79 4 4v4h-4"/></svg>
+        <span>Matsedel</span>
       </button>
-      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition">
-        Grupp
+      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span>Grupp</span>
       </button>
     </nav>
   </div>
 
   <!-- MODAL: ADD / EDIT CALENDAR EVENT -->
-  <div id="calendar-event-modal" onclick="if(event.target === this) closeCalendarEventModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveCalendarEvent(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="calendar-event-modal" onclick="if(event.target === this) closeCalendarEventModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveCalendarEvent(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 id="calendar-modal-title" class="text-base font-bold text-white">Ny händelse</h3>
-        <button type="button" onclick="closeCalendarEventModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <h3 id="calendar-modal-title" class="text-base font-bold text-txtmain">Ny händelse</h3>
+        <button type="button" onclick="closeCalendarEventModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Vad händer?</label>
-        <input id="event-title-input" type="text" required placeholder="T.ex. Tandläkare, Fotbollsmatch..." class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <label class="text-xs text-txtmuted block mb-1.5">Vad händer?</label>
+        <input id="event-title-input" type="text" required placeholder="T.ex. Tandläkare, Fotbollsmatch..." class="w-full theme-inner text-txtmain px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-xs text-[#9ca3af] block mb-1.5">Datum</label>
-          <input id="event-date-input" type="date" required class="w-full bg-[#0f1115] text-white px-3.5 py-3 rounded-2xl border border-white/10 text-xs focus:outline-none focus:border-accent/50" />
+          <label class="text-xs text-txtmuted block mb-1.5">Datum</label>
+          <input id="event-date-input" type="date" required class="w-full theme-inner text-txtmain px-3.5 py-3 rounded-2xl text-xs focus:outline-none focus:border-accent" />
         </div>
         <div>
-          <label class="text-xs text-[#9ca3af] block mb-1.5">Tid (valfritt)</label>
-          <input id="event-time-input" type="time" class="w-full bg-[#0f1115] text-white px-3.5 py-3 rounded-2xl border border-white/10 text-xs focus:outline-none focus:border-accent/50" />
+          <label class="text-xs text-txtmuted block mb-1.5">Tid (valfritt)</label>
+          <input id="event-time-input" type="time" class="w-full theme-inner text-txtmain px-3.5 py-3 rounded-2xl text-xs focus:outline-none focus:border-accent" />
         </div>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Tilldela medlemmar (valfritt)</label>
-        <div id="event-assignees-container" class="space-y-1.5 bg-[#0f1115] p-3 rounded-2xl border border-white/5 max-h-40 overflow-y-auto no-scrollbar"></div>
+        <label class="text-xs text-txtmuted block mb-1.5">Tilldela medlemmar (valfritt)</label>
+        <div id="event-assignees-container" class="space-y-1.5 theme-inner p-3 rounded-2xl max-h-40 overflow-y-auto no-scrollbar"></div>
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="button" onclick="closeCalendarEventModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
-        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Spara händelse</button>
+        <button type="button" onclick="closeCalendarEventModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmuted font-semibold text-xs hover:text-txtmain transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs hover:opacity-90 transition">Spara händelse</button>
       </div>
     </form>
   </div>
 
   <!-- MODAL: EDIT EXISTING ITEM (TEXT, QTY, CATEGORY) -->
-  <div id="edit-item-modal" onclick="if(event.target === this) closeEditItemModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveEditedItem(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="edit-item-modal" onclick="if(event.target === this) closeEditItemModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveEditedItem(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white">Redigera punkt</h3>
-        <button type="button" onclick="closeEditItemModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <h3 class="text-base font-bold text-txtmain">Redigera punkt</h3>
+        <button type="button" onclick="closeEditItemModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Namn / beskrivning</label>
-        <input id="edit-item-text" type="text" required class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <label class="text-xs text-txtmuted block mb-1.5">Namn / beskrivning</label>
+        <input id="edit-item-text" type="text" required class="w-full theme-inner text-txtmain px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div id="edit-item-shopping-fields" class="grid grid-cols-2 gap-2.5">
         <div>
-          <label class="text-xs text-[#9ca3af] block mb-1.5">Antal</label>
-          <input id="edit-item-qty" type="text" placeholder="T.ex. 2 st" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-3.5 py-2.5 rounded-2xl border border-white/10 text-xs focus:outline-none focus:border-accent/50" />
+          <label class="text-xs text-txtmuted block mb-1.5">Antal</label>
+          <input id="edit-item-qty" type="text" placeholder="T.ex. 2 st" class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-3.5 py-2.5 rounded-2xl text-xs focus:outline-none focus:border-accent" />
         </div>
         <div>
-          <label class="text-xs text-[#9ca3af] block mb-1.5">Avdelning</label>
-          <select id="edit-item-category" class="w-full bg-[#0f1115] text-white px-3.5 py-2.5 rounded-2xl border border-white/10 text-xs focus:outline-none"></select>
+          <label class="text-xs text-txtmuted block mb-1.5">Avdelning</label>
+          <select id="edit-item-category" class="w-full theme-inner text-txtmain px-3.5 py-2.5 rounded-2xl text-xs focus:outline-none"></select>
         </div>
       </div>
       <div class="flex gap-2 pt-1">
         <button type="button" onclick="deleteFromEditModal()" class="px-4 py-3 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 font-semibold text-xs hover:bg-red-500/25 transition">
           Ta bort
         </button>
-        <button type="button" onclick="closeEditItemModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">
+        <button type="button" onclick="closeEditItemModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmuted font-semibold text-xs hover:text-txtmain transition">
           Avbryt
         </button>
-        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">
+        <button type="submit" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs hover:opacity-90 transition">
           Spara
         </button>
       </div>
@@ -539,49 +774,49 @@
   </div>
 
   <!-- MODAL: CREATE NEW GROUP -->
-  <div id="new-group-modal" onclick="if(event.target === this) closeNewGroupModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="submitNewGroup(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="new-group-modal" onclick="if(event.target === this) closeNewGroupModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="submitNewGroup(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white">Skapa ny grupp</h3>
-        <button type="button" onclick="closeNewGroupModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <h3 class="text-base font-bold text-txtmain">Skapa ny grupp</h3>
+        <button type="button" onclick="closeNewGroupModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Vad ska gruppen heta?</label>
-        <input id="new-group-name-input" type="text" required placeholder="T.ex. Fritidsföreningen eller Stugan..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <label class="text-xs text-txtmuted block mb-1.5">Vad ska gruppen heta?</label>
+        <input id="new-group-name-input" type="text" required placeholder="T.ex. Fritidsföreningen eller Stugan..." class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="button" onclick="closeNewGroupModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
-        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Skapa grupp</button>
+        <button type="button" onclick="closeNewGroupModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmuted font-semibold text-xs hover:text-txtmain transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs hover:opacity-90 transition">Skapa grupp</button>
       </div>
     </form>
   </div>
 
   <!-- MODAL: FULLSCREEN FLOATING LIST VIEW -->
-  <div id="fullscreen-list-modal" onclick="if(event.target === this) closeFullscreenList()" class="fixed inset-0 bg-black/85 backdrop-blur-md z-40 hidden flex items-center justify-center p-2.5 sm:p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-md h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-      <div class="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between gap-3 flex-shrink-0">
+  <div id="fullscreen-list-modal" onclick="if(event.target === this) closeFullscreenList()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex items-center justify-center p-2.5 sm:p-4">
+    <div class="theme-card rounded-3xl w-full max-w-md h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 pt-4 pb-3 border-b border-black/10 dark:border-white/10 flex items-center justify-between gap-3 flex-shrink-0">
         <div class="min-w-0">
           <span id="fullscreen-list-subtitle" class="text-[10px] font-semibold uppercase tracking-wider text-accent block">Helskärmsläge</span>
-          <h3 id="fullscreen-list-title" class="text-lg font-bold text-white truncate">Inköpslista</h3>
+          <h3 id="fullscreen-list-title" class="text-lg font-bold text-txtmain truncate">Inköpslista</h3>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <button type="button" onclick="clearCompleted()" class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#9ca3af] hover:text-white transition">
+          <button type="button" onclick="clearCompleted()" class="px-3 py-1.5 rounded-full theme-inner text-[11px] font-medium text-txtmuted hover:text-txtmain transition">
             Rensa klara
           </button>
-          <button type="button" onclick="closeFullscreenList()" title="Stäng fullskärm" class="w-9 h-9 rounded-full bg-[#0f1115] border border-white/15 text-white hover:bg-white/10 transition flex items-center justify-center text-sm font-bold">
+          <button type="button" onclick="closeFullscreenList()" title="Stäng fullskärm" class="w-9 h-9 rounded-full theme-inner text-txtmain hover:opacity-80 transition flex items-center justify-center text-sm font-bold">
             ✕
           </button>
         </div>
       </div>
 
-      <form onsubmit="addItemFromFullscreen(event)" class="px-4 py-3 border-b border-white/5 flex gap-2 flex-shrink-0 bg-[#181b21]">
+      <form onsubmit="addItemFromFullscreen(event)" class="px-4 py-3 border-b border-black/10 dark:border-white/10 flex gap-2 flex-shrink-0">
         <input 
           id="fullscreen-new-item-input"
           type="text" 
           placeholder="Lägg till direkt i listan..." 
-          class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-2.5 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
+          class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-2.5 rounded-2xl focus:outline-none focus:border-accent text-sm"
         />
-        <button type="submit" class="bg-accent text-[#0f1115] font-semibold px-4 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs flex-shrink-0">
+        <button type="submit" class="btn-accent font-semibold px-4 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs flex-shrink-0">
           + Lägg till
         </button>
       </form>
@@ -591,77 +826,77 @@
   </div>
 
   <!-- MODAL: RENAME LIST -->
-  <div id="rename-list-modal" onclick="if(event.target === this) closeRenameListModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveRenamedList(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="rename-list-modal" onclick="if(event.target === this) closeRenameListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveRenamedList(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white">Döp om listan</h3>
-        <button type="button" onclick="closeRenameListModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <h3 class="text-base font-bold text-txtmain">Döp om listan</h3>
+        <button type="button" onclick="closeRenameListModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Nytt namn på listan</label>
-        <input id="rename-list-input" type="text" required placeholder="T.ex. Inköpslista - Ica..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <label class="text-xs text-txtmuted block mb-1.5">Nytt namn på listan</label>
+        <input id="rename-list-input" type="text" required placeholder="T.ex. Inköpslista - Ica..." class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="button" onclick="closeRenameListModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
-        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Spara namn</button>
+        <button type="button" onclick="closeRenameListModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmuted font-semibold text-xs hover:text-txtmain transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs hover:opacity-90 transition">Spara namn</button>
       </div>
     </form>
   </div>
 
   <!-- MODAL: CHANGE CATEGORY FOR EXISTING SHOPPING ITEM -->
-  <div id="category-modal" onclick="if(event.target === this) closeCategoryModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="category-modal" onclick="if(event.target === this) closeCategoryModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Välj avdelning (sparas till nästa gång)</span>
-          <h3 id="category-modal-item-title" class="text-sm font-bold text-white truncate mt-0.5">Vara</h3>
+          <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Välj avdelning (sparas till nästa gång)</span>
+          <h3 id="category-modal-item-title" class="text-sm font-bold text-txtmain truncate mt-0.5">Vara</h3>
         </div>
-        <button type="button" onclick="closeCategoryModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <button type="button" onclick="closeCategoryModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div id="category-options-list" class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar"></div>
     </div>
   </div>
 
   <!-- MODAL: EDIT RECURRENCE FOR EXISTING ITEM -->
-  <div id="recurrence-modal" onclick="if(event.target === this) closeRecurrenceModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="recurrence-modal" onclick="if(event.target === this) closeRecurrenceModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Upprepning</span>
-          <h3 id="recurrence-modal-item-title" class="text-sm font-bold text-white truncate mt-0.5">Punkt</h3>
+          <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Upprepning</span>
+          <h3 id="recurrence-modal-item-title" class="text-sm font-bold text-txtmain truncate mt-0.5">Punkt</h3>
         </div>
-        <button type="button" onclick="closeRecurrenceModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <button type="button" onclick="closeRecurrenceModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div id="recurrence-options-list" class="space-y-2"></div>
     </div>
   </div>
 
   <!-- MODAL: ASSIGN TASK TO MEMBER -->
-  <div id="assign-modal" onclick="if(event.target === this) closeAssignModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="assign-modal" onclick="if(event.target === this) closeAssignModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Tilldela uppgift</span>
-          <h3 id="assign-modal-task-title" class="text-sm font-bold text-white truncate mt-0.5">Uppgift</h3>
+          <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Tilldela uppgift</span>
+          <h3 id="assign-modal-task-title" class="text-sm font-bold text-txtmain truncate mt-0.5">Uppgift</h3>
         </div>
-        <button type="button" onclick="closeAssignModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <button type="button" onclick="closeAssignModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div id="assign-members-options" class="space-y-2"></div>
     </div>
   </div>
 
   <!-- MODAL: CONFIRM DELETE (JA / NEJ) -->
-  <div id="confirm-delete-modal" onclick="if(event.target === this) closeConfirmDeleteModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl text-center">
+  <div id="confirm-delete-modal" onclick="if(event.target === this) closeConfirmDeleteModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl text-center">
       <div class="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </div>
       <div class="space-y-1.5">
-        <h3 id="confirm-delete-title" class="text-base font-bold text-white">Vill du ta bort?</h3>
-        <p id="confirm-delete-message" class="text-xs text-[#9ca3af] leading-relaxed">Detta går inte att ångra.</p>
+        <h3 id="confirm-delete-title" class="text-base font-bold text-txtmain">Vill du ta bort?</h3>
+        <p id="confirm-delete-message" class="text-xs text-txtmuted leading-relaxed">Detta går inte att ångra.</p>
       </div>
       <div class="flex gap-2.5 pt-1">
-        <button type="button" onclick="closeConfirmDeleteModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] border border-white/10 text-white font-semibold text-xs hover:bg-[#22262f] transition">
+        <button type="button" onclick="closeConfirmDeleteModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmain font-semibold text-xs hover:opacity-85 transition">
           Nej
         </button>
         <button type="button" onclick="confirmDeleteAction()" class="flex-1 py-3 rounded-full bg-red-500 text-white font-semibold text-xs hover:bg-red-600 transition">
@@ -673,45 +908,44 @@
 
   <!-- MODAL: CREATE NEW LIST -->
   <div id="new-list-modal" onclick="if(event.target === this) closeNewListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="createNewList(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="createNewList(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-white">Skapa ny lista</h3>
-        <button type="button" onclick="closeNewListModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <h3 class="text-base font-bold text-txtmain">Skapa ny lista</h3>
+        <button type="button" onclick="closeNewListModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Namn på listan</label>
-        <input id="new-list-name" type="text" required placeholder="T.ex. Inköpslista - Willys..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <label class="text-xs text-txtmuted block mb-1.5">Namn på listan</label>
+        <input id="new-list-name" type="text" required placeholder="T.ex. Packlista: Resa..." class="w-full theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent" />
       </div>
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1.5">Typ av lista</label>
-        <select id="new-list-type" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-xs focus:outline-none">
+        <label class="text-xs text-txtmuted block mb-1.5">Typ av lista</label>
+        <select id="new-list-type" class="w-full theme-inner text-txtmain px-4 py-3 rounded-2xl text-xs focus:outline-none">
           <option value="shopping">Inköpslista (med egen butiksordning & antal)</option>
           <option value="todo">Sysslor / Punkter (med tilldelning & rullande)</option>
         </select>
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="button" onclick="closeNewListModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
-        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Skapa lista</button>
+        <button type="button" onclick="closeNewListModal()" class="flex-1 py-3 rounded-full theme-inner text-txtmuted font-semibold text-xs hover:text-txtmain transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs hover:opacity-90 transition">Skapa lista</button>
       </div>
     </form>
   </div>
 
   <!-- MODAL: EDIT MEAL WITH HORIZONTAL SWIPEABLE FAVORITES & INGREDIENT SUGGESTIONS -->
   <div id="meal-modal" onclick="if(event.target === this) closeMealModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center">
-        <h3 id="meal-modal-title" class="text-base font-bold text-white">Planera middag</h3>
+        <h3 id="meal-modal-title" class="text-base font-bold text-txtmain">Planera middag</h3>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="clearMealDay()" class="text-[11px] text-[#9ca3af] hover:text-red-400 px-2 py-1 rounded-full bg-[#0f1115] border border-white/5 transition">Rensa dag</button>
-          <button type="button" onclick="closeMealModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+          <button type="button" onclick="clearMealDay()" class="text-[11px] text-txtmuted hover:text-red-400 px-2 py-1 rounded-full theme-inner transition">Rensa dag</button>
+          <button type="button" onclick="closeMealModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
         </div>
       </div>
 
-      <!-- Saved Favorite Dishes Horizontal Swipeable Row -->
       <div id="saved-meals-section" class="hidden space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-[10px] font-semibold uppercase tracking-wider text-accent">Snabbval – favoriter</span>
-          <button type="button" id="saved-meals-sort-btn" onclick="toggleSavedMealsSort()" class="px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
+          <button type="button" id="saved-meals-sort-btn" onclick="toggleSavedMealsSort()" class="px-2.5 py-1 rounded-full theme-inner text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
             Sortera: Populärast
           </button>
         </div>
@@ -719,18 +953,17 @@
       </div>
 
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1">Maträtt</label>
+        <label class="text-xs text-txtmuted block mb-1">Maträtt</label>
         <input
           id="meal-dish-input"
           type="text"
           oninput="handleMealDishTyping(this.value)"
-          placeholder="T.ex. Halloumi och strips eller Tacos"
-          class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"
+          placeholder="T.ex. Vegofärssås och pasta"
+          class="w-full theme-inner text-txtmain px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent"
         />
       </div>
 
-      <!-- Smart Ingredient Suggestions Box -->
-      <div id="meal-ingredient-suggestions-box" class="hidden bg-[#0f1115]/90 border border-accent/25 rounded-2xl p-3 space-y-2">
+      <div id="meal-ingredient-suggestions-box" class="hidden theme-inner rounded-2xl p-3 space-y-2">
         <div class="flex items-center justify-between gap-2">
           <span class="text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1">
             <span>✨</span>
@@ -744,33 +977,33 @@
       </div>
 
       <div>
-        <label class="text-xs text-[#9ca3af] block mb-1">Ingredienser (en per rad, t.ex. "500g Köttfärs")</label>
+        <label class="text-xs text-txtmuted block mb-1">Ingredienser (en per rad, t.ex. "500g Vegofärs")</label>
         <textarea
           id="meal-ingredients-input"
           rows="4"
           oninput="refreshMealIngredientSuggestions()"
-          placeholder="Halloumi&#10;Strips&#10;Dressing"
-          class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50"
+          placeholder="Vegofärs&#10;Pasta&#10;Krossade tomater"
+          class="w-full theme-inner text-txtmain px-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-accent"
         ></textarea>
       </div>
       <div class="flex gap-2 pt-1">
-        <button type="button" onclick="saveMeal()" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs">Spara middag</button>
-        <button type="button" onclick="saveMealAndPushToShopping()" class="flex-1 py-3 rounded-full bg-[#a5b4fc] text-[#0f1115] font-semibold text-xs">Spara & lägg i inköp</button>
+        <button type="button" onclick="saveMeal()" class="flex-1 py-3 rounded-full btn-accent font-semibold text-xs">Spara middag</button>
+        <button type="button" onclick="saveMealAndPushToShopping()" class="flex-1 py-3 rounded-full bg-amber-400 text-[#072225] font-semibold text-xs">Spara & lägg i inköp</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: CHOOSE SHOPPING LIST FOR MEAL INGREDIENTS -->
-  <div id="choose-shopping-list-modal" onclick="if(event.target === this) closeChooseShoppingListModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+  <div id="choose-shopping-list-modal" onclick="if(event.target === this) closeChooseShoppingListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Ingredienser från matsedeln</span>
-          <h3 class="text-base font-bold text-white mt-0.5">Välj inköpslista</h3>
+          <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Ingredienser från matsedeln</span>
+          <h3 class="text-base font-bold text-txtmain mt-0.5">Välj inköpslista</h3>
         </div>
-        <button type="button" onclick="closeChooseShoppingListModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <button type="button" onclick="closeChooseShoppingListModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
       </div>
-      <p id="choose-shopping-list-desc" class="text-xs text-[#9ca3af]">Vilken butik ska varorna läggas till i?</p>
+      <p id="choose-shopping-list-desc" class="text-xs text-txtmuted">Vilken butik ska varorna läggas till i?</p>
       <div id="choose-shopping-list-options" class="space-y-2"></div>
     </div>
   </div>
@@ -799,6 +1032,47 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Light / Dark Theme Persistence
+    function applySavedTheme() {
+      const mode = localStorage.getItem('familjens_todo_color_mode') || 'dark';
+      const htmlEl = document.documentElement;
+      const metaTheme = document.getElementById('meta-theme-color');
+      const sunIcon = document.getElementById('theme-icon-sun');
+      const moonIcon = document.getElementById('theme-icon-moon');
+
+      if (mode === 'light') {
+        htmlEl.classList.remove('dark');
+        htmlEl.classList.add('light');
+        if (metaTheme) metaTheme.setAttribute('content', '#eaf3f2');
+        if (sunIcon) sunIcon.classList.add('hidden');
+        if (moonIcon) moonIcon.classList.remove('hidden');
+      } else {
+        htmlEl.classList.remove('light');
+        htmlEl.classList.add('dark');
+        if (metaTheme) metaTheme.setAttribute('content', '#072225');
+        if (sunIcon) sunIcon.classList.remove('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+      }
+    }
+
+    window.toggleColorTheme = function() {
+      const current = localStorage.getItem('familjens_todo_color_mode') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('familjens_todo_color_mode', next);
+      applySavedTheme();
+      showToast(next === 'light' ? 'Ljust läge aktiverat' : 'Mörkt läge aktiverat');
+    };
+
+    applySavedTheme();
+
+    window.handleBellClick = function() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        window.requestNotificationPermission();
+      } else {
+        window.switchTab('group');
+      }
+    };
 
     function escHtml(str) {
       return String(str ?? '')
@@ -914,6 +1188,7 @@
     };
 
     const SWEDISH_MEAL_SUGGESTIONS = [
+      { keywords: ["vegofärssås", "vegofärs"], items: ["Vegofärs", "Pasta", "Krossade tomater", "Lök", "Vitlök", "Tomatpuré", "Riven ost"] },
       { keywords: ["halloumi", "strips"], items: ["Halloumi", "Strips", "Dressing", "Sallad", "Tomat"] },
       { keywords: ["halloumi"], items: ["Halloumi", "Sallad", "Tomat", "Gurka", "Dressing"] },
       { keywords: ["strips"], items: ["Strips", "Dressing", "Ketchup"] },
@@ -998,21 +1273,21 @@
       return null;
     }
 
-    const MEMBER_COLORS = ["#81c784", "#a5b4fc", "#f472b6", "#fbbf24", "#38bdf8", "#fb923c"];
+    const MEMBER_COLORS = ["#7ce3db", "#93c5fd", "#fda4af", "#fcd34d", "#a5b4fc", "#fdba74"];
     const GROUP_ACCENTS = [
-      { name: "Salvia (Familj)", hex: "#81c784" },
-      { name: "Bärnsten (Förening)", hex: "#fbbf24" },
+      { name: "Mint / Petrol", hex: "#7ce3db" },
+      { name: "Djup Teal", hex: "#0f6e6e" },
+      { name: "Bärnsten", hex: "#fbbf24" },
       { name: "Himmelblå", hex: "#38bdf8" },
-      { name: "Indigo", hex: "#a5b4fc" },
       { name: "Korall", hex: "#fb923c" }
     ];
 
     const RECURRENCE_OPTIONS = [
-      { value: "none", label: "Engångs (tas bort vid rensning)", badgeText: "Engångs", badgeClass: "bg-white/5 text-[#6b7280] hover:text-[#9ca3af]" },
+      { value: "none", label: "Engångs (tas bort vid rensning)", badgeText: "Engångs", badgeClass: "theme-inner text-txtmuted" },
       { value: "weekly", label: "↻ Återkommande (varje gång)", badgeText: "↻ Varje", badgeClass: "bg-accent/15 text-accent" },
-      { value: "odd", label: "↻ Udda veckor", badgeText: "↻ Udda v.", badgeClass: "bg-[#fbbf24]/15 text-[#fbbf24]" },
-      { value: "even", label: "↻ Jämna veckor", badgeText: "↻ Jämn v.", badgeClass: "bg-[#38bdf8]/15 text-[#38bdf8]" },
-      { value: "rotating", label: "↻👤 Rullande ansvar mellan medlemmar", badgeText: "↻👤 Rullande", badgeClass: "bg-[#f472b6]/15 text-[#f472b6]" }
+      { value: "odd", label: "↻ Udda veckor", badgeText: "↻ Udda v.", badgeClass: "bg-amber-400/20 text-amber-500" },
+      { value: "even", label: "↻ Jämna veckor", badgeText: "↻ Jämn v.", badgeClass: "bg-sky-400/20 text-sky-500" },
+      { value: "rotating", label: "↻👤 Rullande ansvar mellan medlemmar", badgeText: "↻👤 Rullande", badgeClass: "bg-pink-400/20 text-pink-500" }
     ];
 
     const WEEKDAYS = [
@@ -1032,6 +1307,7 @@
     let currentUserProfile = null;
     let currentGroupId = null;
     let activeListId = localStorage.getItem('familjens_todo_active_list') || 'inkop';
+    let secondaryListId = null;
     let savedMealsSortMode = localStorage.getItem('familjens_todo_saved_meals_sort') || 'popular';
     let groupData = null;
     let unsubscribeGroup = null;
@@ -1051,6 +1327,7 @@
     function updateNotificationUI() {
       const badge = document.getElementById('notif-status-badge');
       const btn = document.getElementById('btn-enable-notifications');
+      const bellDot = document.getElementById('bell-dot');
       if (!badge || !btn) return;
 
       if (!('Notification' in window)) {
@@ -1064,14 +1341,16 @@
         badge.textContent = 'På';
         badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold';
         btn.textContent = '✓ Aviseringar är aktiverade på den här mobilen';
+        if (bellDot && !groupData?.activeShopper) bellDot.classList.add('hidden');
       } else if (Notification.permission === 'denied') {
         badge.textContent = 'Blockerad';
         badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold';
         btn.textContent = 'Blockerad i webbläsarens inställningar';
       } else {
         badge.textContent = 'Av';
-        badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/5 text-[#9ca3af] font-semibold';
+        badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full theme-inner text-txtmuted font-semibold';
         btn.textContent = 'Aktivera aviseringar på den här enheten';
+        if (bellDot) bellDot.classList.remove('hidden');
       }
     }
 
@@ -1194,8 +1473,8 @@
       TAB_ORDER.forEach(t => {
         const navBtn = document.getElementById(`nav-${t}`);
         navBtn.className = t === tab
-          ? 'flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition'
-          : 'flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition';
+          ? 'flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition'
+          : 'flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition';
       });
     }
 
@@ -1357,10 +1636,10 @@
       const members = groupData.members || {};
       const container = document.getElementById('event-assignees-container');
       container.innerHTML = Object.entries(members).map(([uid, m]) => `
-        <label class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#0f1115] hover:bg-[#181b21] cursor-pointer transition">
+        <label class="flex items-center justify-between px-3 py-2 rounded-xl theme-card cursor-pointer transition">
           <div class="flex items-center gap-2.5">
             <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
-            <span class="text-xs font-medium text-white">${escHtml(m.name)}</span>
+            <span class="text-xs font-medium text-txtmain">${escHtml(m.name)}</span>
           </div>
           <input type="checkbox" name="event-assignee" value="${escAttr(uid)}" class="w-4 h-4 accent-accent rounded" />
         </label>
@@ -1635,7 +1914,7 @@
         const isSelected = currentCat === cat;
         return `
           <button type="button" onclick="selectItemCategory('${escAttr(cat)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-            isSelected ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#e4e6eb] hover:bg-[#22262f]'
+            isSelected ? 'bg-accent/15 border-accent/40 text-txtmain' : 'theme-inner text-txtmain hover:opacity-85'
           }">
             <span>${escHtml(cat)}</span>
             ${isSelected ? '<span class="text-accent">✓</span>' : ''}
@@ -1728,7 +2007,7 @@
         const isSelected = currentRec === opt.value;
         return `
           <button type="button" onclick="selectItemRecurrence('${opt.value}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-            isSelected ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#e4e6eb] hover:bg-[#22262f]'
+            isSelected ? 'bg-accent/15 border-accent/40 text-txtmain' : 'theme-inner text-txtmain hover:opacity-85'
           }">
             <span>${opt.label}</span>
             ${isSelected ? '<span class="text-accent">✓</span>' : ''}
@@ -1783,7 +2062,7 @@
 
       let html = `
         <button type="button" onclick="selectTaskAssignee('')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-          currentAssignee === '' ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#9ca3af] hover:text-white'
+          currentAssignee === '' ? 'bg-accent/15 border-accent/40 text-txtmain' : 'theme-inner text-txtmuted hover:text-txtmain'
         }">
           <span>Alla i gruppen (Ingen specifik)</span>
           ${currentAssignee === '' ? '<span class="text-accent">✓</span>' : ''}
@@ -1794,7 +2073,7 @@
         const isSelected = currentAssignee === uid;
         return `
           <button type="button" onclick="selectTaskAssignee('${escAttr(uid)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-            isSelected ? 'bg-white/10 border-white/25 text-white' : 'bg-[#0f1115] border-white/5 text-white hover:bg-[#22262f]'
+            isSelected ? 'bg-accent/15 border-accent/40 text-txtmain' : 'theme-inner text-txtmain hover:opacity-85'
           }">
             <div class="flex items-center gap-2.5">
               <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
@@ -1905,14 +2184,14 @@
       if (list.length === 0) { box.classList.add('hidden'); return; }
       box.classList.remove('hidden');
       container.innerHTML = list.map(acc => `
-        <div onclick="selectRecentAccount('${escAttr(acc.email)}')" class="flex items-center justify-between bg-[#0f1115] hover:bg-[#22262f] px-3.5 py-2.5 rounded-2xl border border-white/5 cursor-pointer transition">
+        <div onclick="selectRecentAccount('${escAttr(acc.email)}')" class="flex items-center justify-between theme-inner hover:opacity-85 px-3.5 py-2.5 rounded-2xl cursor-pointer transition">
           <div class="min-w-0">
-            <span class="text-xs font-semibold text-white block truncate">${escHtml(acc.name)}</span>
-            <span class="text-[11px] text-[#9ca3af] block truncate">${escHtml(acc.email)}</span>
+            <span class="text-xs font-semibold text-txtmain block truncate">${escHtml(acc.name)}</span>
+            <span class="text-[11px] text-txtmuted block truncate">${escHtml(acc.email)}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <span class="text-[11px] font-semibold text-[#81c784]">Välj →</span>
-            <button type="button" onclick="removeRecentAccount(event, '${escAttr(acc.email)}')" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
+            <span class="text-[11px] font-semibold text-accent">Välj →</span>
+            <button type="button" onclick="removeRecentAccount(event, '${escAttr(acc.email)}')" class="text-txtmuted hover:text-red-400 p-1">✕</button>
           </div>
         </div>
       `).join('');
@@ -1932,11 +2211,11 @@
       document.getElementById('form-register').classList.toggle('hidden', !isReg);
       document.getElementById('form-login').classList.toggle('hidden', isReg);
       document.getElementById('tab-register').className = isReg 
-        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition'
-        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
+        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold btn-accent transition'
+        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-txtmuted hover:text-txtmain transition';
       document.getElementById('tab-login').className = !isReg 
-        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold bg-[#81c784] text-[#0f1115] transition'
-        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-[#9ca3af] hover:text-white transition';
+        ? 'flex-1 py-2.5 rounded-full text-xs font-semibold btn-accent transition'
+        : 'flex-1 py-2.5 rounded-full text-xs font-semibold text-txtmuted hover:text-txtmain transition';
     };
 
     function generateGroupCode() {
@@ -1952,7 +2231,7 @@
         const weekInfo = getISOWeekInfo(new Date());
         const initialData = {
           name: customGroupName,
-          themeAccent: '#81c784',
+          themeAccent: '#7ce3db',
           createdAt: Date.now(),
           lastResetWeek: weekInfo.weekKey,
           categoryOrder: [...DEFAULT_CATEGORIES],
@@ -1976,7 +2255,7 @@
               name: 'Att göra & Schema',
               type: 'todo',
               items: [
-                { id: 2, text: 'Tömma diskmaskinen', assignee: user.uid, recurrence: 'rotating', done: false }
+                { id: 2, text: 'Dammsuga alla golv', assignee: user.uid, recurrence: 'rotating', done: false }
               ]
             }
           ]
@@ -2160,8 +2439,9 @@
             });
           }
 
-          const accent = groupData.themeAccent || '#81c784';
-          document.documentElement.style.setProperty('--accent', accent);
+          if (groupData.themeAccent && groupData.themeAccent !== '#81c784') {
+            document.documentElement.style.setProperty('--accent', groupData.themeAccent);
+          }
           const userName = currentUserProfile ? currentUserProfile.name : '';
           document.getElementById('header-user-badge').textContent = userName ? `${userName} • Synkad` : 'Synkad';
           render();
@@ -2180,15 +2460,15 @@
       const html = await Promise.all(currentUserProfile.groups.map(async (c) => {
         const snap = await getDoc(doc(db, 'groups', c));
         const gName = snap.exists() ? snap.data().name : c;
-        const gColor = (snap.exists() && snap.data().themeAccent) ? snap.data().themeAccent : '#81c784';
+        const gColor = (snap.exists() && snap.data().themeAccent) ? snap.data().themeAccent : '#7ce3db';
         const isActive = c === currentGroupId;
         return `
-          <button onclick="switchActiveGroup('${escAttr(c)}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
+          <button onclick="switchActiveGroup('${escAttr(c)}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-accent/15' : 'hover:bg-accent/10'}">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${escAttr(gColor)}"></span>
-              <span class="text-xs font-semibold text-white truncate">${escHtml(gName)}</span>
+              <span class="text-xs font-semibold text-txtmain truncate">${escHtml(gName)}</span>
             </div>
-            <span class="text-[10px] text-[#9ca3af]">${isActive ? '✓' : escHtml(c)}</span>
+            <span class="text-[10px] text-txtmuted">${isActive ? '✓' : escHtml(c)}</span>
           </button>
         `;
       }));
@@ -2207,6 +2487,7 @@
     window.setGroupAccent = async function(hex) {
       if (!currentGroupId) return;
       await updateDoc(doc(db, 'groups', currentGroupId), { themeAccent: hex });
+      document.documentElement.style.setProperty('--accent', hex);
       showToast('Färgprofil uppdaterad');
     };
 
@@ -2214,6 +2495,16 @@
       if (!groupData) return;
       const shopList = groupData.lists.find(l => l.type === 'shopping' || l.id === 'inkop') || groupData.lists[0];
       if (shopList) activeListId = shopList.id;
+      window.switchTab('lists');
+      render();
+    };
+
+    window.openSecondaryList = function() {
+      if (!groupData) return;
+      if (secondaryListId) {
+        activeListId = secondaryListId;
+        localStorage.setItem('familjens_todo_active_list', secondaryListId);
+      }
       window.switchTab('lists');
       render();
     };
@@ -2522,7 +2813,7 @@
         <button
           type="button"
           onclick="applySuggestedIngredient(${idx})"
-          class="px-3 py-1.5 rounded-full bg-[#181b21] border border-white/10 hover:border-accent/50 text-xs font-medium text-white hover:text-accent transition flex items-center gap-1"
+          class="px-3 py-1.5 rounded-full theme-card hover:border-accent text-xs font-medium text-txtmain hover:text-accent transition flex items-center gap-1"
         >
           <span class="text-accent font-bold">+</span>
           <span>${escHtml(item)}</span>
@@ -2584,11 +2875,11 @@
       });
 
       chipsContainer.innerHTML = sorted.map(sm => `
-        <div class="inline-flex items-center flex-shrink-0 bg-[#0f1115] border border-white/10 rounded-full overflow-hidden">
-          <button type="button" onclick="applySavedMeal(${sm.id})" class="px-3.5 py-1.5 text-xs font-medium text-white hover:bg-white/5 transition whitespace-nowrap">
+        <div class="inline-flex items-center flex-shrink-0 theme-inner rounded-full overflow-hidden">
+          <button type="button" onclick="applySavedMeal(${sm.id})" class="px-3.5 py-1.5 text-xs font-medium text-txtmain hover:opacity-80 transition whitespace-nowrap">
             ${escHtml(sm.dish)}
           </button>
-          <button type="button" onclick="removeSavedMeal(event, ${sm.id})" title="Ta bort favorit" class="pr-2.5 pl-1 py-1.5 text-[10px] text-[#6b7280] hover:text-red-400 transition">
+          <button type="button" onclick="removeSavedMeal(event, ${sm.id})" title="Ta bort favorit" class="pr-2.5 pl-1 py-1.5 text-[10px] text-txtmuted hover:text-red-400 transition">
             ✕
           </button>
         </div>
@@ -2712,10 +3003,10 @@
         document.getElementById('choose-shopping-list-desc').textContent =
           `Välj vilken lista du vill skicka ${lines.length} ${lines.length === 1 ? 'vara' : 'varor'} till:`;
         document.getElementById('choose-shopping-list-options').innerHTML = shoppingLists.map(l => `
-          <button type="button" onclick="confirmPushIngredientsToList('${escAttr(l.id)}')" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/10 text-left transition">
+          <button type="button" onclick="confirmPushIngredientsToList('${escAttr(l.id)}')" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl theme-inner hover:opacity-85 text-left transition">
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-base">🛒</span>
-              <span class="text-sm font-semibold text-white truncate">${escHtml(l.name)}</span>
+              <span class="text-sm font-semibold text-txtmain truncate">${escHtml(l.name)}</span>
             </div>
             <span class="text-xs font-semibold text-accent flex-shrink-0">Välj →</span>
           </button>
@@ -2737,9 +3028,9 @@
           name: 'Veckostädning',
           type: 'todo',
           items: [
-            { id: Date.now() + 1, text: 'Dammsuga alla golv', recurrence: 'rotating', done: false },
-            { id: Date.now() + 2, text: 'Rengöra badrum & toalett', recurrence: 'weekly', done: false },
-            { id: Date.now() + 3, text: 'Torka köksbänkar & spis', recurrence: 'weekly', done: false },
+            { id: Date.now() + 1, text: 'Skura alla golv', recurrence: 'rotating', done: false },
+            { id: Date.now() + 2, text: 'Dammsuga alla golv', recurrence: 'weekly', done: false },
+            { id: Date.now() + 3, text: 'Rengöra badrum & toalett', recurrence: 'weekly', done: false },
             { id: Date.now() + 4, text: 'Byta sängkläder', recurrence: 'even', done: false }
           ]
         },
@@ -2755,7 +3046,7 @@
           ]
         },
         cabin: {
-          name: 'Packlista resa',
+          name: 'Packlista: Resa',
           type: 'todo',
           items: [
             { id: Date.now() + 21, text: 'Laddare till mobiler', recurrence: 'weekly', done: false },
@@ -2856,6 +3147,44 @@
       `;
     }
 
+    // Compact row for Idag Dashboard ("Att göra i familjen" matching screenshot)
+    function renderDashboardTaskRow(item, members, targetListId) {
+      const assignee = (item.assignee && members[item.assignee]) ? members[item.assignee] : null;
+      const initial = assignee ? assignee.name.trim().charAt(0).toUpperCase() : '+';
+      const badgeBg = assignee ? assignee.color : 'rgba(150, 175, 175, 0.25)';
+      const safeListId = escAttr(targetListId);
+
+      return `
+        <div
+          onclick="handleItemRowClick('${safeListId}', ${item.id})"
+          ontouchstart="startLongPress(event, 'item', '${safeListId}', ${item.id})"
+          ontouchmove="moveLongPress(event)"
+          ontouchend="cancelLongPress()"
+          ontouchcancel="cancelLongPress()"
+          class="long-press-target flex items-center justify-between py-2.5 px-1 cursor-pointer hover:opacity-85 transition"
+        >
+          <div class="flex items-center gap-3 min-w-0 pr-2">
+            <div class="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-[1.75px] transition ${
+              item.done ? 'bg-accent border-accent' : 'border-txtmuted/50'
+            }">
+              ${item.done ? '<svg class="w-3.5 h-3.5" style="color: var(--accent-contrast);" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </div>
+            <span class="text-[14px] font-medium truncate transition ${item.done ? 'line-through text-txtmuted' : 'text-txtmain'}">${escHtml(item.text)}</span>
+          </div>
+
+          <button
+            type="button"
+            onclick="openAssignModal(event, '${safeListId}', ${item.id})"
+            title="${assignee ? 'Ansvarig: ' + escAttr(assignee.name) : 'Tilldela uppgift'}"
+            class="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold shadow-sm transition hover:scale-105"
+            style="background-color: ${escAttr(badgeBg)}; color: #072225;"
+          >
+            ${escHtml(initial)}
+          </button>
+        </div>
+      `;
+    }
+
     function renderItemRow(item, members, isShopping, targetListId) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
       const currentCat = item.category || 'Övrigt';
@@ -2868,20 +3197,20 @@
           ontouchend="cancelLongPress()"
           ontouchcancel="cancelLongPress()"
           oncontextmenu="event.preventDefault(); requestDeleteItemInList('${safeListId}', ${item.id})"
-          class="long-press-target flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition"
+          class="long-press-target flex items-center gap-3 p-3.5 rounded-2xl theme-inner hover:opacity-90 cursor-pointer transition"
         >
-          <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
-            item.done ? 'bg-accent border-accent' : 'border-[#4b5563]'
+          <div class="w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center border-[1.75px] transition ${
+            item.done ? 'bg-accent border-accent' : 'border-txtmuted/50'
           }">
-            ${item.done ? '<svg class="w-3 h-3 text-[#0f1115]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            ${item.done ? '<svg class="w-3.5 h-3.5" style="color: var(--accent-contrast);" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
           </div>
           
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${escHtml(item.text)}</span>
-              ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(item.qty)}</span>` : ''}
+              <span class="text-sm font-medium transition ${item.done ? 'line-through text-txtmuted' : 'text-txtmain'}">${escHtml(item.text)}</span>
+              ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent">${escHtml(item.qty)}</span>` : ''}
               ${isShopping ? `
-                <button type="button" onclick="openCategoryModal(event, '${safeListId}', ${item.id})" title="Byt avdelning (sparas till nästa gång)" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 transition">
+                <button type="button" onclick="openCategoryModal(event, '${safeListId}', ${item.id})" title="Byt avdelning (sparas till nästa gång)" class="text-[10px] font-medium px-2 py-0.5 rounded-full theme-card text-txtmuted hover:text-txtmain transition">
                   ${escHtml(currentCat)}
                 </button>
               ` : ''}
@@ -2891,12 +3220,11 @@
 
           <div class="flex items-center gap-1.5 flex-shrink-0">
             ${!isShopping ? (assignee ? `
-              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 hover:opacity-80 transition" style="background-color: ${escAttr(assignee.color)}20; color: ${escAttr(assignee.color)}">
-                <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(assignee.color)}"></span>
+              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 hover:opacity-85 transition" style="background-color: ${escAttr(assignee.color)}; color: #072225;">
                 <span>${escHtml(assignee.name)}</span>
               </button>
             ` : `
-              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition">
+              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full theme-card text-txtmuted hover:text-txtmain transition">
                 + Tilldela
               </button>
             `) : ''}
@@ -2906,7 +3234,7 @@
               onclick="openEditItemModal(event, '${safeListId}', ${item.id})" 
               ontouchstart="event.stopPropagation()"
               title="Redigera"
-              class="p-1.5 rounded-full text-[#6b7280] hover:text-white hover:bg-white/10 transition"
+              class="p-1.5 rounded-full text-txtmuted hover:text-txtmain transition"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
@@ -2917,7 +3245,7 @@
 
     function buildRenderedItemsHtml(items, members, isShopping, listId, categoryOrder) {
       if (items.length === 0) {
-        return `<p class="text-center text-xs text-[#6b7280] py-6">Listan är tom.</p>`;
+        return `<p class="text-center text-xs text-txtmuted py-6">Listan är tom.</p>`;
       }
       if (isShopping) {
         const activeItems = items.filter(i => !i.done);
@@ -2933,7 +3261,7 @@
         const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
         if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true, listId)).join('');
         if (doneItems.length > 0) {
-          html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#6b7280] px-2">Avbockade</span></div>`;
+          html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-txtmuted px-2">Avbockade</span></div>`;
           html += doneItems.map(i => renderItemRow(i, members, true, listId)).join('');
         }
         return html;
@@ -2957,8 +3285,12 @@
         liveBanner.classList.add('hidden');
       }
       const isMeShopping = shopper && currentUser && shopper.uid === currentUser.uid;
-      document.getElementById('shopping-btn-title').textContent = isMeShopping ? 'Avsluta handling' : 'Jag handlar nu';
-      document.getElementById('shopping-btn-sub').textContent = isMeShopping ? 'Tryck när du betalat' : 'Meddela familjen';
+      document.getElementById('shopping-btn-title').textContent = isMeShopping ? '✓ Handlar nu (Avsluta)' : 'Meddela: Jag handlar nu';
+
+      // Shopping count for "Handla nu" card
+      const shoppingLists = lists.filter(l => l.type === 'shopping' || l.id === 'inkop');
+      const remainingGroceries = shoppingLists.reduce((sum, l) => sum + (l.items || []).filter(i => !i.done).length, 0);
+      document.getElementById('shopping-items-count').textContent = `${remainingGroceries} ${remainingGroceries === 1 ? 'vara' : 'varor'} kvar`;
 
       const now = new Date();
       const weekInfo = getISOWeekInfo(now);
@@ -2966,54 +3298,90 @@
       document.getElementById('today-date-label').textContent = dateStr;
       document.getElementById('today-greeting').textContent = `Hej ${currentUserProfile?.name || ''}!`;
       document.getElementById('today-week-badge').textContent = `Vecka ${weekInfo.weekNo}`;
-      document.getElementById('today-week-parity').textContent = weekInfo.parityLabel;
+      document.getElementById('today-week-parity').textContent = weekInfo.isOdd ? 'Udda' : 'Jämn';
 
       const todayMeal = groupData.meals && groupData.meals[weekInfo.dayKey];
       document.getElementById('today-dinner-preview').textContent = (todayMeal && todayMeal.dish) ? todayMeal.dish : 'Ej planerad';
 
       const mineBtnClass = filterOnlyMine
-        ? 'px-3 py-1 rounded-full bg-accent text-[#0f1115] text-[11px] font-bold transition'
-        : 'px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition';
+        ? 'px-2.5 py-1 rounded-full btn-accent text-[11px] font-bold transition'
+        : 'px-2.5 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition';
       document.getElementById('today-filter-mine').className = mineBtnClass;
       document.getElementById('list-filter-mine').className = mineBtnClass;
 
-      let todayTasksHtml = '';
-      lists.filter(l => l.type !== 'shopping' && l.id !== 'inkop').forEach(l => {
-        let openItems = (l.items || []).filter(i => !i.done);
-        if (filterOnlyMine && currentUser) {
-          openItems = openItems.filter(i => i.assignee === currentUser.uid);
-        }
-        if (openItems.length > 0) {
-          todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${escHtml(l.name)}</span></div>`;
-          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id)).join('');
-        }
-      });
-      document.getElementById('today-tasks-container').innerHTML = todayTasksHtml || 
-        `<p class="text-center text-xs text-[#6b7280] py-5">${filterOnlyMine ? 'Inga egna sysslor kvar idag!' : 'Allt avklarat i gruppen!'}</p>`;
+      // Todo lists progress & items ("Att göra i familjen")
+      const todoLists = lists.filter(l => l.type !== 'shopping' && l.id !== 'inkop');
+      const primaryTodoList = todoLists[0];
+      const secondaryTodoList = todoLists[1] || shoppingLists[1] || null;
 
-      // Render Calendar Events View
+      let allTodoItems = [];
+      todoLists.forEach(l => {
+        (l.items || []).forEach(item => {
+          if (!filterOnlyMine || (currentUser && item.assignee === currentUser.uid)) {
+            allTodoItems.push({ item, listId: l.id });
+          }
+        });
+      });
+
+      const totalTodos = allTodoItems.length;
+      const doneTodos = allTodoItems.filter(x => x.item.done).length;
+      const pctTodos = totalTodos > 0 ? Math.round((doneTodos / totalTodos) * 100) : 0;
+
+      document.getElementById('today-tasks-progress-text').textContent = `${doneTodos} av ${totalTodos} uppgifter klara`;
+      document.getElementById('today-tasks-progress-bar').style.width = `${pctTodos}%`;
+
+      // Show undone first, then completed (just like screenshot)
+      const sortedDashboardTasks = [...allTodoItems].sort((a, b) => Number(a.item.done) - Number(b.item.done));
+      document.getElementById('today-tasks-container').innerHTML = sortedDashboardTasks.length > 0
+        ? sortedDashboardTasks.map(x => renderDashboardTaskRow(x.item, members, x.listId)).join('')
+        : `<p class="text-center text-xs text-txtmuted py-4">${filterOnlyMine ? 'Inga egna sysslor i listorna!' : 'Inga uppgifter tillagda ännu.'}</p>`;
+
+      // Secondary list progress card ("Packlista: Resa" or second list)
+      if (secondaryTodoList) {
+        secondaryListId = secondaryTodoList.id;
+        const secItems = secondaryTodoList.items || [];
+        const secDone = secItems.filter(i => i.done).length;
+        const secTotal = secItems.length;
+        const secPct = secTotal > 0 ? Math.round((secDone / secTotal) * 100) : 0;
+        document.getElementById('secondary-list-title').textContent = secondaryTodoList.name;
+        document.getElementById('secondary-list-progress-text').textContent = `${secDone} av ${secTotal}`;
+        document.getElementById('secondary-list-progress-bar').style.width = `${secPct}%`;
+      } else if (primaryTodoList) {
+        secondaryListId = primaryTodoList.id;
+        const pItems = primaryTodoList.items || [];
+        const pDone = pItems.filter(i => i.done).length;
+        const pTotal = pItems.length;
+        const pPct = pTotal > 0 ? Math.round((pDone / pTotal) * 100) : 0;
+        document.getElementById('secondary-list-title').textContent = primaryTodoList.name;
+        document.getElementById('secondary-list-progress-text').textContent = `${pDone} av ${pTotal}`;
+        document.getElementById('secondary-list-progress-bar').style.width = `${pPct}%`;
+      }
+
+      // Calendar Events View & Summary
       const events = Array.isArray(groupData.events) ? groupData.events : [];
+      document.getElementById('secondary-week-events-count').textContent = `${events.length} ${events.length === 1 ? 'händelse' : 'händelser'}`;
+
       const calContainer = document.getElementById('calendar-events-container');
       if (events.length === 0) {
-        calContainer.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Inga händelser inplanerade i kalendern.</p>`;
+        calContainer.innerHTML = `<p class="text-center text-xs text-txtmuted py-6">Inga händelser inplanerade i kalendern.</p>`;
       } else {
         calContainer.innerHTML = events.map(ev => {
           const assigneeBadges = (ev.assignees || []).map(uid => {
             const m = members[uid];
             if (!m) return '';
-            return `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1" style="background-color: ${escAttr(m.color)}20; color: ${escAttr(m.color)}"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(m.color)}"></span>${escHtml(m.name)}</span>`;
+            return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background-color: ${escAttr(m.color)}; color: #072225;">${escHtml(m.name)}</span>`;
           }).join('');
 
           return `
-            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] transition">
+            <div class="flex items-center justify-between p-3.5 rounded-2xl theme-inner transition">
               <div class="min-w-0 pr-3 space-y-1">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-bold text-accent">${escHtml(ev.date)}${ev.time ? ' kl ' + escHtml(ev.time) : ''}</span>
                 </div>
-                <h4 class="text-sm font-semibold text-white truncate">${escHtml(ev.title)}</h4>
+                <h4 class="text-sm font-semibold text-txtmain truncate">${escHtml(ev.title)}</h4>
                 ${assigneeBadges ? `<div class="flex items-center gap-1.5 flex-wrap pt-0.5">${assigneeBadges}</div>` : ''}
               </div>
-              <button type="button" onclick="deleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition flex-shrink-0">
+              <button type="button" onclick="deleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-txtmuted hover:text-red-400 transition flex-shrink-0">
                 ✕
               </button>
             </div>
@@ -3026,15 +3394,15 @@
         const m = mealsData[d.key];
         const isToday = d.key === weekInfo.dayKey;
         return `
-          <div onclick="openMealModal('${d.key}')" class="bg-[#181b21] rounded-3xl p-4 border ${isToday ? 'border-accent/50' : 'border-white/5'} flex items-center justify-between cursor-pointer hover:bg-[#22262f] transition">
+          <div onclick="openMealModal('${d.key}')" class="theme-card theme-card-hover rounded-3xl p-4 ${isToday ? 'ring-2 ring-accent/50' : ''} flex items-center justify-between cursor-pointer transition shadow-sm">
             <div class="min-w-0 pr-3">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold ${isToday ? 'text-accent' : 'text-[#9ca3af]'}">${d.label}</span>
+                <span class="text-xs font-bold ${isToday ? 'text-accent' : 'text-txtmuted'}">${d.label}</span>
                 ${isToday ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">Idag</span>` : ''}
               </div>
-              <p class="text-sm font-semibold text-white mt-0.5 truncate">${(m && m.dish) ? escHtml(m.dish) : 'Lägg till middag...'}</p>
+              <p class="text-sm font-semibold text-txtmain mt-0.5 truncate">${(m && m.dish) ? escHtml(m.dish) : 'Lägg till middag...'}</p>
             </div>
-            <span class="text-xs text-[#9ca3af] bg-[#0f1115] px-3 py-1.5 rounded-full">Ändra</span>
+            <span class="text-xs text-txtmuted theme-inner px-3 py-1.5 rounded-full">Ändra</span>
           </div>
         `;
       }).join('');
@@ -3052,7 +3420,7 @@
             ontouchcancel="cancelLongPress()"
             oncontextmenu="event.preventDefault(); requestDeleteListById('${safeId}')"
             class="long-press-target px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-              l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
+              l.id === activeListId ? 'btn-accent shadow-sm' : 'theme-card text-txtmuted hover:text-txtmain'
             }"
           >${escHtml(l.name)}</button>
         `;
@@ -3081,11 +3449,11 @@
       if (prevCat && categoryOrder.includes(prevCat)) catSelect.value = prevCat;
 
       document.getElementById('category-order-list').innerHTML = categoryOrder.map((cat, idx) => `
-        <div class="flex items-center justify-between bg-[#0f1115] px-3.5 py-2 rounded-xl text-xs">
-          <span class="text-[#e4e6eb]">${idx + 1}. ${escHtml(cat)}</span>
+        <div class="flex items-center justify-between theme-inner px-3.5 py-2 rounded-xl text-xs">
+          <span class="text-txtmain">${idx + 1}. ${escHtml(cat)}</span>
           <div class="flex gap-1">
-            <button type="button" onclick="moveCategory(${idx}, -1)" class="px-2 py-1 rounded bg-[#181b21] text-[#9ca3af] hover:text-white">↑</button>
-            <button type="button" onclick="moveCategory(${idx}, 1)" class="px-2 py-1 rounded bg-[#181b21] text-[#9ca3af] hover:text-white">↓</button>
+            <button type="button" onclick="moveCategory(${idx}, -1)" class="px-2 py-1 rounded theme-card text-txtmuted hover:text-txtmain">↑</button>
+            <button type="button" onclick="moveCategory(${idx}, 1)" class="px-2 py-1 rounded theme-card text-txtmuted hover:text-txtmain">↓</button>
           </div>
         </div>
       `).join('');
@@ -3112,21 +3480,21 @@
       }
 
       document.getElementById('group-theme-picker').innerHTML = GROUP_ACCENTS.map(t => `
-        <button type="button" onclick="setGroupAccent('${escAttr(t.hex)}')" title="${escAttr(t.name)}" class="w-8 h-8 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${escAttr(t.hex)}"></button>
+        <button type="button" onclick="setGroupAccent('${escAttr(t.hex)}')" title="${escAttr(t.name)}" class="w-8 h-8 rounded-full border-2 border-white/20 hover:scale-110 transition shadow-sm" style="background-color: ${escAttr(t.hex)}"></button>
       `).join('');
 
       document.getElementById('members-list').innerHTML = Object.entries(members).map(([uid, m]) => `
-        <div class="flex items-center justify-between bg-[#0f1115] px-4 py-2.5 rounded-2xl">
+        <div class="flex items-center justify-between theme-inner px-4 py-2.5 rounded-2xl">
           <div class="flex items-center gap-2.5">
-            <span class="w-3 h-3 rounded-full" style="background-color: ${escAttr(m.color)}"></span>
-            <span class="text-xs font-medium text-white">${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+            <span class="w-3.5 h-3.5 rounded-full" style="background-color: ${escAttr(m.color)}"></span>
+            <span class="text-xs font-medium text-txtmain">${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
           </div>
           ${m.notificationsEnabled ? '<span class="text-[10px] text-accent">🔔 Notiser på</span>' : ''}
         </div>
       `).join('');
 
       document.getElementById('color-picker').innerHTML = MEMBER_COLORS.map(c => `
-        <button type="button" onclick="changeMyColor('${escAttr(c)}')" class="w-7 h-7 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${escAttr(c)}"></button>
+        <button type="button" onclick="changeMyColor('${escAttr(c)}')" class="w-7 h-7 rounded-full border-2 border-white/20 hover:scale-110 transition shadow-sm" style="background-color: ${escAttr(c)}"></button>
       `).join('');
     }
   </script>
