@@ -7,6 +7,17 @@
   <title>Familjens Todo</title>
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: 'var(--accent)'
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -22,9 +33,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     select { appearance: none; }
-    .bg-accent { background-color: var(--accent); }
-    .text-accent { color: var(--accent); }
-    .border-accent { border-color: var(--accent); }
     .long-press-target {
       -webkit-user-select: none;
       user-select: none;
@@ -153,7 +161,7 @@
           <span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] block px-3 pt-1.5 pb-1">Växla grupp</span>
           <div id="header-groups-list" class="space-y-1"></div>
           <div class="border-t border-white/5 pt-1 mt-1">
-            <button onclick="createBrandNewGroup()" class="w-full text-left px-3 py-2 rounded-2xl text-xs font-semibold text-accent hover:bg-white/5 transition">
+            <button onclick="openNewGroupModal()" class="w-full text-left px-3 py-2 rounded-2xl text-xs font-semibold text-accent hover:bg-white/5 transition">
               + Ny grupp (t.ex. Förening)
             </button>
           </div>
@@ -288,7 +296,6 @@
           </div>
 
           <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-            <!-- List Header: Title + Fullscreen Button on row 1, Clean Actions on row 2 -->
             <div class="px-2 pb-2 space-y-2 border-b border-white/5">
               <div class="flex items-center justify-between gap-2">
                 <h2 id="active-list-name" class="text-base font-bold text-white truncate">Inköpslista</h2>
@@ -327,6 +334,21 @@
 
         <!-- VIEW 4: GRUPP & MALLAR -->
         <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-5">
+          <!-- Push Notifications Card -->
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-base">🔔</span>
+                <h2 class="text-base font-bold text-white">Aviseringar i mobilen</h2>
+              </div>
+              <span id="notif-status-badge" class="text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/5 text-[#9ca3af] font-semibold">Av</span>
+            </div>
+            <p class="text-xs text-[#9ca3af]">Få en notis i mobilen när någon i gruppen trycker på <strong class="text-white">"Jag handlar nu"</strong>.</p>
+            <button id="btn-enable-notifications" type="button" onclick="requestNotificationPermission()" class="w-full py-3 rounded-full bg-accent/15 border border-accent/30 text-accent font-semibold text-xs hover:bg-accent/25 transition">
+              Aktivera aviseringar på den här enheten
+            </button>
+          </div>
+
           <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-bold text-white">Färdiga mallpaket</h2>
@@ -422,10 +444,27 @@
     </nav>
   </div>
 
+  <!-- MODAL: CREATE NEW GROUP -->
+  <div id="new-group-modal" onclick="if(event.target === this) closeNewGroupModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="submitNewGroup(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Skapa ny grupp</h3>
+        <button type="button" onclick="closeNewGroupModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5">Vad ska gruppen heta?</label>
+        <input id="new-group-name-input" type="text" required placeholder="T.ex. Fritidsföreningen eller Stugan..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="closeNewGroupModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Skapa grupp</button>
+      </div>
+    </form>
+  </div>
+
   <!-- MODAL: FULLSCREEN FLOATING LIST VIEW -->
   <div id="fullscreen-list-modal" onclick="if(event.target === this) closeFullscreenList()" class="fixed inset-0 bg-black/85 backdrop-blur-md z-40 hidden flex items-center justify-center p-2.5 sm:p-4">
     <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-md h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-      <!-- Top Bar with List Name & Close (X) Button -->
       <div class="px-5 pt-4 pb-3 border-b border-white/5 flex items-center justify-between gap-3 flex-shrink-0">
         <div class="min-w-0">
           <span id="fullscreen-list-subtitle" class="text-[10px] font-semibold uppercase tracking-wider text-accent block">Helskärmsläge</span>
@@ -441,7 +480,6 @@
         </div>
       </div>
 
-      <!-- Quick Add Input inside Fullscreen -->
       <form onsubmit="addItemFromFullscreen(event)" class="px-4 py-3 border-b border-white/5 flex gap-2 flex-shrink-0 bg-[#181b21]">
         <input 
           id="fullscreen-new-item-input"
@@ -454,7 +492,6 @@
         </button>
       </form>
 
-      <!-- Scrollable Items Area -->
       <div id="fullscreen-items-container" class="flex-1 overflow-y-auto px-4 py-3 space-y-2 no-scrollbar"></div>
     </div>
   </div>
@@ -607,14 +644,16 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    let swRegistration = null;
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        swRegistration = reg;
+      });
     }
 
     const firebaseConfig = {
       apiKey: "AIzaSyD1goFY5qPdwOppR-UNME600BAEJLGdUWE",
       authDomain: "familjens-todo.firebaseapp.com",
-      databaseURL: "https://familjens-todo-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "familjens-todo",
       storageBucket: "familjens-todo.firebasestorage.app",
       messagingSenderId: "538061289881",
@@ -624,6 +663,31 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Safe HTML & Attribute Escaping
+    function escHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escAttr(str) {
+      return String(str ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;');
+    }
+
+    // Whole-word Swedish boundary matching (so "te" doesn't match "kotlett" or "leverpastej")
+    function containsWholeWord(haystack, needle) {
+      if (!haystack || !needle) return false;
+      const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?:^|[^a-zåäö0-9])${escaped}(?:$|[^a-zåäö0-9])`, 'i');
+      return regex.test(haystack);
+    }
 
     const DEFAULT_CATEGORIES = [
       "Frukt & Grönt",
@@ -637,7 +701,6 @@
       "Övrigt"
     ];
 
-    // Built-in Swedish Grocery & Household Knowledge Base
     const SWEDISH_GROCERY_MAP = {
       "Frukt & Grönt": [
         "äpple", "äpplen", "banan", "bananer", "päron", "apelsin", "apelsiner", "clementin", "clementiner",
@@ -753,13 +816,13 @@
         .sort((a, b) => b[0].length - a[0].length);
 
       for (const [word, cat] of sortedLearned) {
-        if (key.includes(word) || (key.length >= 3 && word.includes(key))) {
+        if (containsWholeWord(key, word) || (key.length >= 4 && containsWholeWord(word, key))) {
           return { category: cat, source: 'learned' };
         }
       }
 
       for (const entry of SORTED_KEYWORD_ENTRIES) {
-        if (key === entry.word || key.includes(entry.word)) {
+        if (key === entry.word || containsWholeWord(key, entry.word)) {
           if (availableCats.includes(entry.category)) {
             return { category: entry.category, source: 'smart' };
           }
@@ -814,6 +877,70 @@
     let categoryTarget = null;
     let userManuallySelectedCategory = false;
     let isFullscreenListOpen = false;
+    let lastNotifiedShopperAt = Number(localStorage.getItem('familjens_todo_last_shopper_at') || 0);
+
+    // Notification Permission & Mobile Alert Helper
+    function updateNotificationUI() {
+      const badge = document.getElementById('notif-status-badge');
+      const btn = document.getElementById('btn-enable-notifications');
+      if (!badge || !btn) return;
+
+      if (!('Notification' in window)) {
+        badge.textContent = 'Stöds ej';
+        btn.textContent = 'Webbläsaren stöder inte aviseringar';
+        btn.disabled = true;
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        badge.textContent = 'På';
+        badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold';
+        btn.textContent = '✓ Aviseringar är aktiverade på den här mobilen';
+      } else if (Notification.permission === 'denied') {
+        badge.textContent = 'Blockerad';
+        badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold';
+        btn.textContent = 'Blockerad i webbläsarens inställningar';
+      } else {
+        badge.textContent = 'Av';
+        badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/5 text-[#9ca3af] font-semibold';
+        btn.textContent = 'Aktivera aviseringar på den här enheten';
+      }
+    }
+
+    window.requestNotificationPermission = async function() {
+      if (!('Notification' in window)) {
+        showToast('Din webbläsare stöder inte aviseringar');
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      updateNotificationUI();
+
+      if (permission === 'granted') {
+        if (currentGroupId && currentUser && groupData?.members?.[currentUser.uid]) {
+          const members = { ...groupData.members };
+          members[currentUser.uid].notificationsEnabled = true;
+          await updateDoc(doc(db, 'groups', currentGroupId), { members });
+        }
+        showToast('Aviseringar aktiverade!');
+        triggerDeviceNotification('Familjens Todo', 'Du får nu en notis när någon i gruppen börjar handla 🛒');
+      } else if (permission === 'denied') {
+        showToast('Aviseringar blockerades i webbläsaren');
+      }
+    };
+
+    function triggerDeviceNotification(title, body) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      const options = {
+        body,
+        tag: 'familjens-todo-shopping',
+        renotify: true
+      };
+      if (swRegistration && swRegistration.showNotification) {
+        swRegistration.showNotification(title, options);
+      } else {
+        new Notification(title, options);
+      }
+    }
 
     // Close Header Group Dropdown on Outside Click or Escape Key
     document.addEventListener('click', (e) => {
@@ -1052,6 +1179,31 @@
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
 
+    // Create New Group Modal Controls
+    window.openNewGroupModal = function() {
+      document.getElementById('header-group-dropdown').classList.add('hidden');
+      const input = document.getElementById('new-group-name-input');
+      input.value = '';
+      document.getElementById('new-group-modal').classList.remove('hidden');
+      setTimeout(() => input.focus(), 50);
+    };
+
+    window.closeNewGroupModal = function() {
+      document.getElementById('new-group-modal').classList.add('hidden');
+    };
+
+    window.submitNewGroup = async function(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+      const groupName = document.getElementById('new-group-name-input').value.trim();
+      if (!groupName) return;
+      window.closeNewGroupModal();
+      const userName = currentUserProfile ? currentUserProfile.name : currentUser.email.split('@')[0];
+      const newCode = await setupUserInGroup(currentUser, userName, null, groupName);
+      listenToGroup(newCode);
+      showToast(`Skapade ${groupName}`);
+    };
+
     // Fullscreen List Modal Controls
     window.openFullscreenList = function() {
       isFullscreenListOpen = true;
@@ -1079,7 +1231,6 @@
         id: Date.now(),
         text,
         recurrence: 'none',
-        recurring: false,
         done: false
       };
 
@@ -1146,7 +1297,7 @@
       }
     };
 
-    // Change Category Modal for Existing Shopping Item (also updates memory)
+    // Change Category Modal for Existing Shopping Item
     window.openCategoryModal = function(e, listId, itemId) {
       e.stopPropagation();
       if (!groupData) return;
@@ -1164,10 +1315,10 @@
       optionsEl.innerHTML = categoryOrder.map(cat => {
         const isSelected = currentCat === cat;
         return `
-          <button type="button" onclick="selectItemCategory('${cat}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+          <button type="button" onclick="selectItemCategory('${escAttr(cat)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
             isSelected ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#e4e6eb] hover:bg-[#22262f]'
           }">
-            <span>${cat}</span>
+            <span>${escHtml(cat)}</span>
             ${isSelected ? '<span class="text-accent">✓</span>' : ''}
           </button>
         `;
@@ -1287,11 +1438,9 @@
           ...l,
           items: l.items.map(i => {
             if (i.id !== itemId) return i;
-            return {
-              ...i,
-              recurrence: recValue,
-              recurring: recValue !== 'none'
-            };
+            const copy = { ...i, recurrence: recValue };
+            delete copy.recurring;
+            return copy;
           })
         };
       });
@@ -1328,12 +1477,12 @@
       html += Object.entries(members).map(([uid, m]) => {
         const isSelected = currentAssignee === uid;
         return `
-          <button type="button" onclick="selectTaskAssignee('${uid}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+          <button type="button" onclick="selectTaskAssignee('${escAttr(uid)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
             isSelected ? 'bg-white/10 border-white/25 text-white' : 'bg-[#0f1115] border-white/5 text-white hover:bg-[#22262f]'
           }">
             <div class="flex items-center gap-2.5">
-              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${m.color}"></span>
-              <span>${m.name} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
+              <span>${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
             </div>
             ${isSelected ? '<span class="text-accent">✓</span>' : ''}
           </button>
@@ -1433,14 +1582,14 @@
       if (list.length === 0) { box.classList.add('hidden'); return; }
       box.classList.remove('hidden');
       container.innerHTML = list.map(acc => `
-        <div onclick="selectRecentAccount('${acc.email}')" class="flex items-center justify-between bg-[#0f1115] hover:bg-[#22262f] px-3.5 py-2.5 rounded-2xl border border-white/5 cursor-pointer transition">
+        <div onclick="selectRecentAccount('${escAttr(acc.email)}')" class="flex items-center justify-between bg-[#0f1115] hover:bg-[#22262f] px-3.5 py-2.5 rounded-2xl border border-white/5 cursor-pointer transition">
           <div class="min-w-0">
-            <span class="text-xs font-semibold text-white block truncate">${acc.name}</span>
-            <span class="text-[11px] text-[#9ca3af] block truncate">${acc.email}</span>
+            <span class="text-xs font-semibold text-white block truncate">${escHtml(acc.name)}</span>
+            <span class="text-[11px] text-[#9ca3af] block truncate">${escHtml(acc.email)}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="text-[11px] font-semibold text-[#81c784]">Välj →</span>
-            <button type="button" onclick="removeRecentAccount(event, '${acc.email}')" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
+            <button type="button" onclick="removeRecentAccount(event, '${escAttr(acc.email)}')" class="text-[#6b7280] hover:text-red-400 p-1">✕</button>
           </div>
         </div>
       `).join('');
@@ -1492,7 +1641,7 @@
               type: 'shopping',
               categoryOrder: [...DEFAULT_CATEGORIES],
               items: [
-                { id: 1, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurring: true, done: false }
+                { id: 1, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurrence: 'weekly', done: false }
               ]
             },
             {
@@ -1500,7 +1649,7 @@
               name: 'Att göra & Schema',
               type: 'todo',
               items: [
-                { id: 2, text: 'Tömma diskmaskinen', assignee: user.uid, recurrence: 'rotating', recurring: true, done: false }
+                { id: 2, text: 'Tömma diskmaskinen', assignee: user.uid, recurrence: 'rotating', done: false }
               ]
             }
           ]
@@ -1594,6 +1743,7 @@
         document.getElementById('view-auth').classList.add('hidden');
         document.getElementById('app-shell').classList.remove('hidden');
         document.getElementById('logged-in-email').textContent = user.email;
+        updateNotificationUI();
 
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists() && userSnap.data().groupId) {
@@ -1622,6 +1772,23 @@
       unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
         if (snapshot.exists()) {
           groupData = snapshot.data();
+
+          // Notify device if another family member just activated "Jag handlar nu"
+          const shopper = groupData.activeShopper;
+          if (
+            shopper &&
+            currentUser &&
+            shopper.uid !== currentUser.uid &&
+            shopper.at &&
+            shopper.at > lastNotifiedShopperAt
+          ) {
+            lastNotifiedShopperAt = shopper.at;
+            localStorage.setItem('familjens_todo_last_shopper_at', String(shopper.at));
+            triggerDeviceNotification(
+              `${groupData.name || 'Familjens Todo'}`,
+              `🛒 ${shopper.name} handlar just nu! Passa på om något ska läggas till.`
+            );
+          }
 
           const existingMem = groupData.itemCategories || {};
           const learnedAdditions = {};
@@ -1666,12 +1833,12 @@
         const gColor = (snap.exists() && snap.data().themeAccent) ? snap.data().themeAccent : '#81c784';
         const isActive = c === currentGroupId;
         return `
-          <button onclick="switchActiveGroup('${c}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
+          <button onclick="switchActiveGroup('${escAttr(c)}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${gColor}"></span>
-              <span class="text-xs font-semibold text-white truncate">${gName}</span>
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${escAttr(gColor)}"></span>
+              <span class="text-xs font-semibold text-white truncate">${escHtml(gName)}</span>
             </div>
-            <span class="text-[10px] text-[#9ca3af]">${isActive ? '✓' : c}</span>
+            <span class="text-[10px] text-[#9ca3af]">${isActive ? '✓' : escHtml(c)}</span>
           </button>
         `;
       }));
@@ -1685,17 +1852,6 @@
       currentUserProfile.groupId = code;
       listenToGroup(code);
       showToast('Bytte grupp');
-    };
-
-    window.createBrandNewGroup = async function() {
-      document.getElementById('header-group-dropdown').classList.add('hidden');
-      if (!currentUser) return;
-      const groupName = prompt('Vad ska den nya gruppen heta? (t.ex. Fritidsföreningen)');
-      if (!groupName || !groupName.trim()) return;
-      const userName = currentUserProfile ? currentUserProfile.name : currentUser.email.split('@')[0];
-      const newCode = await setupUserInGroup(currentUser, userName, null, groupName.trim());
-      listenToGroup(newCode);
-      showToast(`Skapade ${groupName.trim()}`);
     };
 
     window.setGroupAccent = async function(hex) {
@@ -1789,7 +1945,6 @@
         id: Date.now(),
         text,
         recurrence,
-        recurring: recurrence !== 'none',
         done: false
       };
 
@@ -1978,7 +2133,6 @@
           qty: '',
           category: detected ? detected.category : 'Övrigt',
           recurrence: 'none',
-          recurring: false,
           done: false
         };
       });
@@ -2005,10 +2159,10 @@
         document.getElementById('choose-shopping-list-desc').textContent =
           `Välj vilken lista du vill skicka ${lines.length} ${lines.length === 1 ? 'vara' : 'varor'} till:`;
         document.getElementById('choose-shopping-list-options').innerHTML = shoppingLists.map(l => `
-          <button type="button" onclick="confirmPushIngredientsToList('${l.id}')" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/10 text-left transition">
+          <button type="button" onclick="confirmPushIngredientsToList('${escAttr(l.id)}')" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/10 text-left transition">
             <div class="flex items-center gap-2.5 min-w-0">
               <span class="text-base">🛒</span>
-              <span class="text-sm font-semibold text-white truncate">${l.name}</span>
+              <span class="text-sm font-semibold text-white truncate">${escHtml(l.name)}</span>
             </div>
             <span class="text-xs font-semibold text-accent flex-shrink-0">Välj →</span>
           </button>
@@ -2030,10 +2184,10 @@
           name: 'Veckostädning',
           type: 'todo',
           items: [
-            { id: Date.now() + 1, text: 'Dammsuga alla golv', recurrence: 'rotating', recurring: true, done: false },
-            { id: Date.now() + 2, text: 'Rengöra badrum & toalett', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 3, text: 'Torka köksbänkar & spis', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 4, text: 'Byta sängkläder', recurrence: 'even', recurring: true, done: false }
+            { id: Date.now() + 1, text: 'Dammsuga alla golv', recurrence: 'rotating', done: false },
+            { id: Date.now() + 2, text: 'Rengöra badrum & toalett', recurrence: 'weekly', done: false },
+            { id: Date.now() + 3, text: 'Torka köksbänkar & spis', recurrence: 'weekly', done: false },
+            { id: Date.now() + 4, text: 'Byta sängkläder', recurrence: 'even', done: false }
           ]
         },
         groceries: {
@@ -2041,28 +2195,28 @@
           type: 'shopping',
           categoryOrder: [...(groupData.categoryOrder || DEFAULT_CATEGORIES)],
           items: [
-            { id: Date.now() + 11, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 12, text: 'Ägg', qty: '12-pack', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 13, text: 'Bröd', qty: '1 limpa', category: 'Bröd & Bageri', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 14, text: 'Bananer & Äpplen', qty: '1 kg', category: 'Frukt & Grönt', recurrence: 'weekly', recurring: true, done: false }
+            { id: Date.now() + 11, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurrence: 'weekly', done: false },
+            { id: Date.now() + 12, text: 'Ägg', qty: '12-pack', category: 'Mejeri & Ost', recurrence: 'weekly', done: false },
+            { id: Date.now() + 13, text: 'Bröd', qty: '1 limpa', category: 'Bröd & Bageri', recurrence: 'weekly', done: false },
+            { id: Date.now() + 14, text: 'Bananer & Äpplen', qty: '1 kg', category: 'Frukt & Grönt', recurrence: 'weekly', done: false }
           ]
         },
         cabin: {
           name: 'Packlista resa',
           type: 'todo',
           items: [
-            { id: Date.now() + 21, text: 'Laddare till mobiler', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 22, text: 'Necessär & mediciner', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 23, text: 'Regnkläder & extraskor', recurrence: 'weekly', recurring: true, done: false }
+            { id: Date.now() + 21, text: 'Laddare till mobiler', recurrence: 'weekly', done: false },
+            { id: Date.now() + 22, text: 'Necessär & mediciner', recurrence: 'weekly', done: false },
+            { id: Date.now() + 23, text: 'Regnkläder & extraskor', recurrence: 'weekly', done: false }
           ]
         },
         club: {
           name: 'Förening & Kiosk',
           type: 'todo',
           items: [
-            { id: Date.now() + 31, text: 'Brygga kaffe & förbereda fika', recurrence: 'rotating', recurring: true, done: false },
-            { id: Date.now() + 32, text: 'Ställa fram soptunnor & bord', recurrence: 'weekly', recurring: true, done: false },
-            { id: Date.now() + 33, text: 'Låsa lokalen & larma efteråt', recurrence: 'rotating', recurring: true, done: false }
+            { id: Date.now() + 31, text: 'Brygga kaffe & förbereda fika', recurrence: 'rotating', done: false },
+            { id: Date.now() + 32, text: 'Ställa fram soptunnor & bord', recurrence: 'weekly', done: false },
+            { id: Date.now() + 33, text: 'Låsa lokalen & larma efteråt', recurrence: 'rotating', done: false }
           ]
         }
       };
@@ -2143,7 +2297,7 @@
       const rec = item.recurrence || (item.recurring ? 'weekly' : 'none');
       const opt = RECURRENCE_OPTIONS.find(o => o.value === rec) || RECURRENCE_OPTIONS[0];
       return `
-        <button type="button" onclick="openRecurrenceModal(event, '${targetListId}', ${item.id})" title="Ändra upprepning" class="text-[10px] font-medium px-2 py-0.5 rounded-full transition ${opt.badgeClass}">
+        <button type="button" onclick="openRecurrenceModal(event, '${escAttr(targetListId)}', ${item.id})" title="Ändra upprepning" class="text-[10px] font-medium px-2 py-0.5 rounded-full transition ${opt.badgeClass}">
           ${opt.badgeText}
         </button>
       `;
@@ -2152,14 +2306,15 @@
     function renderItemRow(item, members, isShopping, targetListId) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
       const currentCat = item.category || 'Övrigt';
+      const safeListId = escAttr(targetListId);
       return `
         <div 
-          onclick="handleItemRowClick('${targetListId}', ${item.id})"
-          ontouchstart="startLongPress(event, 'item', '${targetListId}', ${item.id})"
+          onclick="handleItemRowClick('${safeListId}', ${item.id})"
+          ontouchstart="startLongPress(event, 'item', '${safeListId}', ${item.id})"
           ontouchmove="moveLongPress(event)"
           ontouchend="cancelLongPress()"
           ontouchcancel="cancelLongPress()"
-          oncontextmenu="event.preventDefault(); requestDeleteItemInList('${targetListId}', ${item.id})"
+          oncontextmenu="event.preventDefault(); requestDeleteItemInList('${safeListId}', ${item.id})"
           class="long-press-target flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition"
         >
           <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
@@ -2170,11 +2325,11 @@
           
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${item.text}</span>
-              ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${item.qty}</span>` : ''}
+              <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${escHtml(item.text)}</span>
+              ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(item.qty)}</span>` : ''}
               ${isShopping ? `
-                <button type="button" onclick="openCategoryModal(event, '${targetListId}', ${item.id})" title="Byt avdelning (sparas till nästa gång)" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 transition">
-                  ${currentCat}
+                <button type="button" onclick="openCategoryModal(event, '${safeListId}', ${item.id})" title="Byt avdelning (sparas till nästa gång)" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 transition">
+                  ${escHtml(currentCat)}
                 </button>
               ` : ''}
               ${getRecurrenceBadge(item, targetListId)}
@@ -2182,12 +2337,12 @@
           </div>
 
           ${!isShopping ? (assignee ? `
-            <button type="button" onclick="openAssignModal(event, '${targetListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition" style="background-color: ${assignee.color}20; color: ${assignee.color}">
-              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${assignee.color}"></span>
-              <span>${assignee.name}</span>
+            <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition" style="background-color: ${escAttr(assignee.color)}20; color: ${escAttr(assignee.color)}">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(assignee.color)}"></span>
+              <span>${escHtml(assignee.name)}</span>
             </button>
           ` : `
-            <button type="button" onclick="openAssignModal(event, '${targetListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition flex-shrink-0">
+            <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition flex-shrink-0">
               + Tilldela
             </button>
           `) : ''}
@@ -2206,7 +2361,7 @@
         categoryOrder.forEach(cat => {
           const catItems = activeItems.filter(i => (i.category || 'Övrigt') === cat);
           if (catItems.length > 0) {
-            html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-accent px-2">${cat}</span></div>`;
+            html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-accent px-2">${escHtml(cat)}</span></div>`;
             html += catItems.map(i => renderItemRow(i, members, true, listId)).join('');
           }
         });
@@ -2264,7 +2419,7 @@
           openItems = openItems.filter(i => i.assignee === currentUser.uid);
         }
         if (openItems.length > 0) {
-          todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${l.name}</span></div>`;
+          todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${escHtml(l.name)}</span></div>`;
           todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id)).join('');
         }
       });
@@ -2282,7 +2437,7 @@
                 <span class="text-xs font-bold ${isToday ? 'text-accent' : 'text-[#9ca3af]'}">${d.label}</span>
                 ${isToday ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">Idag</span>` : ''}
               </div>
-              <p class="text-sm font-semibold text-white mt-0.5 truncate">${(m && m.dish) ? m.dish : 'Lägg till middag...'}</p>
+              <p class="text-sm font-semibold text-white mt-0.5 truncate">${(m && m.dish) ? escHtml(m.dish) : 'Lägg till middag...'}</p>
             </div>
             <span class="text-xs text-[#9ca3af] bg-[#0f1115] px-3 py-1.5 rounded-full">Ändra</span>
           </div>
@@ -2290,20 +2445,23 @@
       }).join('');
 
       if (!lists.find(l => l.id === activeListId) && lists.length > 0) activeListId = lists[0].id;
-      document.getElementById('list-tabs').innerHTML = lists.map(l => `
-        <button 
-          type="button"
-          onclick="handleListPillClick('${l.id}')"
-          ontouchstart="startLongPress(event, 'list', '${l.id}')"
-          ontouchmove="moveLongPress(event)"
-          ontouchend="cancelLongPress()"
-          ontouchcancel="cancelLongPress()"
-          oncontextmenu="event.preventDefault(); requestDeleteListById('${l.id}')"
-          class="long-press-target px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-            l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
-          }"
-        >${l.name}</button>
-      `).join('');
+      document.getElementById('list-tabs').innerHTML = lists.map(l => {
+        const safeId = escAttr(l.id);
+        return `
+          <button 
+            type="button"
+            onclick="handleListPillClick('${safeId}')"
+            ontouchstart="startLongPress(event, 'list', '${safeId}')"
+            ontouchmove="moveLongPress(event)"
+            ontouchend="cancelLongPress()"
+            ontouchcancel="cancelLongPress()"
+            oncontextmenu="event.preventDefault(); requestDeleteListById('${safeId}')"
+            class="long-press-target px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+              l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
+            }"
+          >${escHtml(l.name)}</button>
+        `;
+      }).join('');
 
       const activeList = lists.find(l => l.id === activeListId);
       if (!activeList) return;
@@ -2324,12 +2482,12 @@
 
       const catSelect = document.getElementById('new-item-category');
       const prevCat = catSelect.value;
-      catSelect.innerHTML = categoryOrder.map(c => `<option value="${c}">${c}</option>`).join('');
+      catSelect.innerHTML = categoryOrder.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
       if (prevCat && categoryOrder.includes(prevCat)) catSelect.value = prevCat;
 
       document.getElementById('category-order-list').innerHTML = categoryOrder.map((cat, idx) => `
         <div class="flex items-center justify-between bg-[#0f1115] px-3.5 py-2 rounded-xl text-xs">
-          <span class="text-[#e4e6eb]">${idx + 1}. ${cat}</span>
+          <span class="text-[#e4e6eb]">${idx + 1}. ${escHtml(cat)}</span>
           <div class="flex gap-1">
             <button type="button" onclick="moveCategory(${idx}, -1)" class="px-2 py-1 rounded bg-[#181b21] text-[#9ca3af] hover:text-white">↑</button>
             <button type="button" onclick="moveCategory(${idx}, 1)" class="px-2 py-1 rounded bg-[#181b21] text-[#9ca3af] hover:text-white">↓</button>
@@ -2340,7 +2498,7 @@
       const assigneeSelect = document.getElementById('new-item-assignee');
       const prevAssignee = assigneeSelect.value;
       assigneeSelect.innerHTML = `<option value="">Vem gör det? (Alla)</option>` + 
-        Object.entries(members).map(([uid, m]) => `<option value="${uid}">${m.name}</option>`).join('');
+        Object.entries(members).map(([uid, m]) => `<option value="${escAttr(uid)}">${escHtml(m.name)}</option>`).join('');
       if (prevAssignee) assigneeSelect.value = prevAssignee;
 
       let items = activeList.items || [];
@@ -2359,20 +2517,21 @@
       }
 
       document.getElementById('group-theme-picker').innerHTML = GROUP_ACCENTS.map(t => `
-        <button type="button" onclick="setGroupAccent('${t.hex}')" title="${t.name}" class="w-8 h-8 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${t.hex}"></button>
+        <button type="button" onclick="setGroupAccent('${escAttr(t.hex)}')" title="${escAttr(t.name)}" class="w-8 h-8 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${escAttr(t.hex)}"></button>
       `).join('');
 
       document.getElementById('members-list').innerHTML = Object.entries(members).map(([uid, m]) => `
         <div class="flex items-center justify-between bg-[#0f1115] px-4 py-2.5 rounded-2xl">
           <div class="flex items-center gap-2.5">
-            <span class="w-3 h-3 rounded-full" style="background-color: ${m.color}"></span>
-            <span class="text-xs font-medium text-white">${m.name} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+            <span class="w-3 h-3 rounded-full" style="background-color: ${escAttr(m.color)}"></span>
+            <span class="text-xs font-medium text-white">${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
           </div>
+          ${m.notificationsEnabled ? '<span class="text-[10px] text-accent">🔔 Notiser på</span>' : ''}
         </div>
       `).join('');
 
       document.getElementById('color-picker').innerHTML = MEMBER_COLORS.map(c => `
-        <button type="button" onclick="changeMyColor('${c}')" class="w-7 h-7 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${c}"></button>
+        <button type="button" onclick="changeMyColor('${escAttr(c)}')" class="w-7 h-7 rounded-full border-2 border-[#0f1115] hover:scale-110 transition" style="background-color: ${escAttr(c)}"></button>
       `).join('');
     }
   </script>
