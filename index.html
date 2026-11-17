@@ -364,7 +364,7 @@
             </div>
             <div>
               <label class="text-[11px] text-[#9ca3af] block mb-1.5">Gäller vem? (Lämna tom för alla)</label>
-              <select id="cal-event-assignee" class="w-full bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
+              <div id="cal-event-assignees-container" class="grid grid-cols-2 gap-1.5 bg-[#0f1115] p-2.5 rounded-2xl border border-white/5"></div>
             </div>
             <button type="submit" class="w-full bg-accent text-[#0f1115] font-semibold py-3 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs">
               + Lägg till i kalendern
@@ -533,17 +533,55 @@
     </form>
   </div>
 
-  <!-- MODAL: ASSIGN CALENDAR EVENT TO MEMBER -->
+  <!-- MODAL: EDIT CALENDAR EVENT (DATE, TIME, TEXT) -->
+  <div id="edit-cal-modal" onclick="if(event.target === this) closeEditCalModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveEditedCalendarEvent(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Redigera händelse</h3>
+        <button type="button" onclick="closeEditCalModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="text-xs text-[#9ca3af] block mb-1">Datum</label>
+          <input id="edit-cal-date" type="date" required class="w-full bg-[#0f1115] text-white px-3 py-2.5 rounded-2xl border border-white/10 text-xs focus:outline-none focus:border-accent/50" />
+        </div>
+        <div>
+          <label class="text-xs text-[#9ca3af] block mb-1">Tid (valfritt)</label>
+          <input id="edit-cal-time" type="time" class="w-full bg-[#0f1115] text-white px-3 py-2.5 rounded-2xl border border-white/10 text-xs text-center focus:outline-none focus:border-accent/50" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1">Händelse / Beskrivning</label>
+        <textarea id="edit-cal-text" rows="3" required class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50"></textarea>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="deleteCalendarEventFromEditModal()" class="px-4 py-3 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 font-semibold text-xs hover:bg-red-500/25 transition">
+          Ta bort
+        </button>
+        <button type="button" onclick="closeEditCalModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">
+          Avbryt
+        </button>
+        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">
+          Spara
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- MODAL: ASSIGN CALENDAR EVENT TO MEMBERS (MULTiselect) -->
   <div id="assign-cal-modal" onclick="if(event.target === this) closeAssignCalModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
-          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Gäller vem?</span>
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Gäller vem? (Välj en eller flera)</span>
           <h3 id="assign-cal-modal-title" class="text-sm font-bold text-white truncate mt-0.5">Händelse</h3>
         </div>
         <button type="button" onclick="closeAssignCalModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
       </div>
-      <div id="assign-cal-members-options" class="space-y-2"></div>
+      <div id="assign-cal-members-options" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar"></div>
+      <button type="button" onclick="saveCalendarEventAssignees()" class="w-full bg-accent text-[#0f1115] font-semibold py-3 rounded-2xl hover:opacity-90 transition text-xs">
+        Spara tilldelning
+      </button>
     </div>
   </div>
 
@@ -1051,6 +1089,7 @@
     let currentMealSuggestions = [];
     let assigningTarget = null;
     let assigningCalTarget = null;
+    let editingCalTarget = null;
     let recurrenceTarget = null;
     let categoryTarget = null;
     let editingItemTarget = null;
@@ -1376,7 +1415,9 @@
       const dateVal = document.getElementById('cal-event-date').value;
       const timeVal = document.getElementById('cal-event-time').value.trim();
       const textVal = document.getElementById('cal-event-text').value.trim();
-      const assigneeVal = document.getElementById('cal-event-assignee').value;
+      const checkboxes = document.querySelectorAll('input[name="new-cal-assignee"]:checked');
+      const assignees = Array.from(checkboxes).map(cb => cb.value);
+
       if (!dateVal || !textVal) return;
 
       const newEvent = {
@@ -1384,7 +1425,7 @@
         date: dateVal,
         time: timeVal || '',
         text: textVal,
-        assignee: assigneeVal || '',
+        assignees: assignees,
         author: currentUserProfile ? currentUserProfile.name : 'Familjen'
       };
 
@@ -1397,7 +1438,7 @@
 
       document.getElementById('cal-event-text').value = '';
       document.getElementById('cal-event-time').value = '';
-      document.getElementById('cal-event-assignee').value = '';
+      document.querySelectorAll('input[name="new-cal-assignee"]').forEach(cb => cb.checked = false);
 
       await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
       showToast('Lade till händelse i kalendern!');
@@ -1416,7 +1457,60 @@
       );
     };
 
-    // Assign / Re-assign Calendar Event Modal Controls
+    // Edit Calendar Event Modal Controls (Date, Time, Text)
+    window.openEditCalModal = function(eventId) {
+      if (!groupData) return;
+      const event = (groupData.calendarEvents || []).find(ev => ev.id === eventId);
+      if (!event) return;
+
+      editingCalTarget = eventId;
+      document.getElementById('edit-cal-date').value = event.date || '';
+      document.getElementById('edit-cal-time').value = event.time || '';
+      document.getElementById('edit-cal-text').value = event.text || '';
+
+      document.getElementById('edit-cal-modal').classList.remove('hidden');
+    };
+
+    window.closeEditCalModal = function() {
+      document.getElementById('edit-cal-modal').classList.add('hidden');
+      editingCalTarget = null;
+    };
+
+    window.deleteCalendarEventFromEditModal = function() {
+      if (!editingCalTarget) return;
+      const eventId = editingCalTarget;
+      window.closeEditCalModal();
+      window.requestDeleteCalendarEvent(eventId);
+    };
+
+    window.saveEditedCalendarEvent = async function(e) {
+      e.preventDefault();
+      if (!groupData || !editingCalTarget || !currentGroupId) return;
+
+      const dateVal = document.getElementById('edit-cal-date').value;
+      const timeVal = document.getElementById('edit-cal-time').value.trim();
+      const textVal = document.getElementById('edit-cal-text').value.trim();
+      if (!dateVal || !textVal) return;
+
+      const eventId = editingCalTarget;
+      window.closeEditCalModal();
+
+      const events = (groupData.calendarEvents || []).map(ev => {
+        if (ev.id !== eventId) return ev;
+        return { ...ev, date: dateVal, time: timeVal || '', text: textVal };
+      });
+
+      events.sort((a, b) => {
+        const da = `${a.date} ${a.time || '00:00'}`;
+        const db = `${b.date} ${b.time || '00:00'}`;
+        return da.localeCompare(db);
+      });
+
+      await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
+      showToast('Händelse uppdaterad');
+    };
+
+    // Assign / Re-assign Calendar Event Modal Controls (Multi-select)
     window.openAssignCalModal = function(eventId) {
       if (!groupData) return;
       const event = (groupData.calendarEvents || []).find(ev => ev.id === eventId);
@@ -1427,33 +1521,21 @@
 
       const members = groupData.members || {};
       const optionsEl = document.getElementById('assign-cal-members-options');
-      const currentAssignee = event.assignee || '';
+      const assignedList = Array.isArray(event.assignees) ? event.assignees : (event.assignee ? [event.assignee] : []);
 
-      let html = `
-        <button type="button" onclick="selectCalendarEventAssignee('')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-          currentAssignee === '' ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#9ca3af] hover:text-white'
-        }">
-          <span>Alla i gruppen (Ingen specifik)</span>
-          ${currentAssignee === '' ? '<span class="text-accent">✓</span>' : ''}
-        </button>
-      `;
-
-      html += Object.entries(members).map(([uid, m]) => {
-        const isSelected = currentAssignee === uid;
+      optionsEl.innerHTML = Object.entries(members).map(([uid, m]) => {
+        const isChecked = assignedList.includes(uid);
         return `
-          <button type="button" onclick="selectCalendarEventAssignee('${escAttr(uid)}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
-            isSelected ? 'bg-white/10 border-white/25 text-white' : 'bg-[#0f1115] border-white/5 text-white hover:bg-[#22262f]'
-          }">
-            <div class="flex items-center gap-2.5">
+          <label class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-[#0f1115] border border-white/5 cursor-pointer hover:bg-[#22262f] transition">
+            <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
-              <span>${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
+              <span class="text-xs font-semibold text-white truncate">${escHtml(m.name)} ${currentUser && uid === currentUser.uid ? '(Du)' : ''}</span>
             </div>
-            ${isSelected ? '<span class="text-accent">✓</span>' : ''}
-          </button>
+            <input type="checkbox" name="cal-assignee-cb" value="${escAttr(uid)}" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded accent-[#81c784]" />
+          </label>
         `;
       }).join('');
 
-      optionsEl.innerHTML = html;
       document.getElementById('assign-cal-modal').classList.remove('hidden');
     };
 
@@ -1462,21 +1544,22 @@
       assigningCalTarget = null;
     };
 
-    window.selectCalendarEventAssignee = async function(uid) {
+    window.saveCalendarEventAssignees = async function() {
       if (!groupData || !assigningCalTarget || !currentGroupId) return;
+      const checkboxes = document.querySelectorAll('input[name="cal-assignee-cb"]:checked');
+      const assignees = Array.from(checkboxes).map(cb => cb.value);
+
       window.closeAssignCalModal();
 
       const events = (groupData.calendarEvents || []).map(ev => {
         if (ev.id !== assigningCalTarget) return ev;
-        const copy = { ...ev };
-        if (uid) copy.assignee = uid;
-        else delete copy.assignee;
+        const copy = { ...ev, assignees };
+        delete copy.assignee; // Clean legacy single assignee if any
         return copy;
       });
 
       await updateDoc(doc(db, 'groups', currentGroupId), { calendarEvents: events });
-      const assignedName = uid && groupData.members[uid] ? groupData.members[uid].name : 'Alla';
-      showToast(`Händelse tilldelad: ${assignedName}`);
+      showToast(assignees.length > 0 ? `Tilldelade händelsen till ${assignees.length} st` : 'Händelsen gäller nu hela gruppen');
     };
 
     // Edit Existing Item Modal Controls
@@ -3048,12 +3131,11 @@
             <div class="space-y-1 mt-1 pr-1">
               <span class="text-[10px] uppercase tracking-wider text-accent font-bold block">Kommande händelser:</span>
               ${previewEvents.map(ev => {
-                const evAssignee = ev.assignee && members[ev.assignee] ? members[ev.assignee] : null;
+                const assignedIds = Array.isArray(ev.assignees) ? ev.assignees : (ev.assignee ? [ev.assignee] : []);
                 return `
                   <div class="text-xs text-white truncate flex items-center gap-1.5">
                     <span class="text-[10px] text-[#9ca3af]">${escHtml(ev.date)}${ev.time ? ' ' + escHtml(ev.time) : ''}:</span>
                     <span class="font-medium truncate">${escHtml(ev.text)}</span>
-                    ${evAssignee ? `<span class="text-[9px] px-1.5 py-0.2 rounded-full" style="background-color: ${escAttr(evAssignee.color)}25; color: ${escAttr(evAssignee.color)}">${escHtml(evAssignee.name)}</span>` : ''}
                   </div>
                 `;
               }).join('')}
@@ -3064,12 +3146,17 @@
         document.getElementById('today-hero-toggle-hint').textContent = 'Visa hälsning';
       }
 
-      // Render Calendar Assignee Select dropdown in form
-      const calAssigneeSelect = document.getElementById('cal-event-assignee');
-      const prevCalAssignee = calAssigneeSelect.value;
-      calAssigneeSelect.innerHTML = `<option value="">Alla i gruppen (Ingen specifik)</option>` +
-        Object.entries(members).map(([uid, m]) => `<option value="${escAttr(uid)}">${escHtml(m.name)}</option>`).join('');
-      if (prevCalAssignee) calAssigneeSelect.value = prevCalAssignee;
+      // Render Multi-select Checkboxes in New Calendar Event Form
+      const calAssigneesContainer = document.getElementById('cal-event-assignees-container');
+      calAssigneesContainer.innerHTML = Object.entries(members).length === 0
+        ? `<span class="text-[11px] text-[#6b7280] px-1">Inga medlemmar inlagda än</span>`
+        : Object.entries(members).map(([uid, m]) => `
+          <label class="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-[#181b21] border border-white/5 cursor-pointer hover:bg-[#22262f] transition">
+            <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${escAttr(m.color)}"></span>
+            <span class="text-[11px] font-medium text-white truncate">${escHtml(m.name)}</span>
+            <input type="checkbox" name="new-cal-assignee" value="${escAttr(uid)}" class="ml-auto w-3.5 h-3.5 rounded accent-[#81c784]" />
+          </label>
+        `).join('');
 
       // Render Calendar View & Events
       const calContainer = document.getElementById('calendar-events-container');
@@ -3079,34 +3166,43 @@
         calContainer.innerHTML = `<p class="text-center text-xs text-[#6b7280] py-6">Inga kommande händelser inlagda.</p>`;
       } else {
         calContainer.innerHTML = eventsList.map(ev => {
-          const evAssignee = ev.assignee && members[ev.assignee] ? members[ev.assignee] : null;
+          const assignedIds = Array.isArray(ev.assignees) ? ev.assignees : (ev.assignee ? [ev.assignee] : []);
           return `
-            <div class="bg-[#0f1115] p-3.5 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
-              <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
+            <div class="bg-[#0f1115] p-3.5 rounded-2xl border border-white/5 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 flex-wrap min-w-0">
                   <span class="text-xs font-bold text-accent">${escHtml(ev.date)}</span>
                   ${ev.time ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${escHtml(ev.time)}</span>` : ''}
-                  
-                  ${evAssignee ? `
-                    <button type="button" onclick="openAssignCalModal(${ev.id})" title="Byt vem händelsen gäller" class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 hover:opacity-80 transition" style="background-color: ${escAttr(evAssignee.color)}20; color: ${escAttr(evAssignee.color)}">
-                      <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(evAssignee.color)}"></span>
-                      <span>${escHtml(evAssignee.name)}</span>
-                    </button>
-                  ` : `
-                    <button type="button" onclick="openAssignCalModal(${ev.id})" title="Tilldela vem händelsen gäller" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition">
-                      + Tilldela
-                    </button>
-                  `}
                 </div>
-                <p class="text-xs text-white font-medium mt-1 leading-relaxed">${escHtml(ev.text)}</p>
-                <span class="text-[10px] text-[#6b7280] block mt-1">Skapad av: ${escHtml(ev.author || 'Familjen')}</span>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button type="button" onclick="openEditCalModal(${ev.id})" title="Redigera tid och text" class="p-2 rounded-full text-[#9ca3af] hover:text-white hover:bg-white/5 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  </button>
+                  <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition">
+                    ✕
+                  </button>
+                </div>
               </div>
-              <div class="flex items-center gap-1 flex-shrink-0">
-                <button type="button" onclick="openAssignCalModal(${ev.id})" title="Ändra tilldelning" class="p-2 rounded-full text-[#9ca3af] hover:text-white hover:bg-white/5 transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                </button>
-                <button type="button" onclick="requestDeleteCalendarEvent(${ev.id})" title="Ta bort händelse" class="p-2 rounded-full text-[#6b7280] hover:text-red-400 hover:bg-white/5 transition">
-                  ✕
+
+              <p class="text-xs text-white font-medium leading-relaxed">${escHtml(ev.text)}</p>
+
+              <!-- Assigned members badge row -->
+              <div class="flex items-center justify-between pt-1 border-t border-white/5">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] text-[#9ca3af]">Gäller:</span>
+                  ${assignedIds.length > 0 ? assignedIds.map(uid => {
+                    const m = members[uid];
+                    if (!m) return '';
+                    return `
+                      <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background-color: ${escAttr(m.color)}20; color: ${escAttr(m.color)}">
+                        <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(m.color)}"></span>
+                        <span>${escHtml(m.name)}</span>
+                      </span>
+                    `;
+                  }).join('') : `<span class="text-[10px] font-medium text-accent bg-accent/15 px-2 py-0.5 rounded-full">Hela gruppen</span>`}
+                </div>
+                <button type="button" onclick="openAssignCalModal(${ev.id})" class="text-[10px] font-semibold text-accent hover:underline px-1 py-0.5">
+                  + Ändra vem
                 </button>
               </div>
             </div>
