@@ -637,7 +637,7 @@
     </form>
   </div>
 
-  <!-- MODAL: EDIT MEAL WITH SAVED FAVORITES -->
+  <!-- MODAL: EDIT MEAL WITH HORIZONTAL SWIPEABLE FAVORITES -->
   <div id="meal-modal" onclick="if(event.target === this) closeMealModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
     <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center">
@@ -648,10 +648,15 @@
         </div>
       </div>
 
-      <!-- Saved Favorite Dishes Quick-Select -->
-      <div id="saved-meals-section" class="hidden space-y-1.5">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-accent block">Snabbval – sparade favoriträtter</span>
-        <div id="saved-meals-chips" class="flex gap-1.5 flex-wrap max-h-24 overflow-y-auto no-scrollbar"></div>
+      <!-- Saved Favorite Dishes Horizontal Swipeable Row -->
+      <div id="saved-meals-section" class="hidden space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-accent">Snabbval – favoriter</span>
+          <button type="button" id="saved-meals-sort-btn" onclick="toggleSavedMealsSort()" class="px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[10px] font-semibold text-[#9ca3af] hover:text-white transition">
+            Sortera: Populärast
+          </button>
+        </div>
+        <div id="saved-meals-chips" class="flex gap-2 overflow-x-auto no-scrollbar pb-0.5"></div>
       </div>
 
       <div>
@@ -909,6 +914,7 @@
     let currentUserProfile = null;
     let currentGroupId = null;
     let activeListId = localStorage.getItem('familjens_todo_active_list') || 'inkop';
+    let savedMealsSortMode = localStorage.getItem('familjens_todo_saved_meals_sort') || 'popular';
     let groupData = null;
     let unsubscribeGroup = null;
     let filterOnlyMine = false;
@@ -2251,10 +2257,17 @@
       await saveListsToCloud(updatedLists);
     };
 
-    // Meal Modal & Saved Favorite Dishes
+    // Meal Modal & Horizontal Swipeable Favorite Dishes
+    window.toggleSavedMealsSort = function() {
+      savedMealsSortMode = savedMealsSortMode === 'popular' ? 'alpha' : 'popular';
+      localStorage.setItem('familjens_todo_saved_meals_sort', savedMealsSortMode);
+      renderSavedMealsChips();
+    };
+
     function renderSavedMealsChips() {
       const section = document.getElementById('saved-meals-section');
       const chipsContainer = document.getElementById('saved-meals-chips');
+      const sortBtn = document.getElementById('saved-meals-sort-btn');
       const saved = Array.isArray(groupData?.savedMeals) ? groupData.savedMeals : [];
 
       if (saved.length === 0) {
@@ -2263,10 +2276,21 @@
       }
 
       section.classList.remove('hidden');
-      const sorted = [...saved].sort((a, b) => a.dish.localeCompare(b.dish, 'sv'));
+      if (sortBtn) {
+        sortBtn.textContent = savedMealsSortMode === 'popular' ? 'Sortera: Populärast' : 'Sortera: A–Ö';
+      }
+
+      const sorted = [...saved].sort((a, b) => {
+        if (savedMealsSortMode === 'popular') {
+          const diff = (b.count || 0) - (a.count || 0);
+          if (diff !== 0) return diff;
+        }
+        return (a.dish || '').localeCompare(b.dish || '', 'sv');
+      });
+
       chipsContainer.innerHTML = sorted.map(sm => `
-        <div class="inline-flex items-center bg-[#0f1115] border border-white/10 rounded-full overflow-hidden">
-          <button type="button" onclick="applySavedMeal(${sm.id})" class="px-3 py-1.5 text-xs font-medium text-white hover:bg-white/5 transition">
+        <div class="inline-flex items-center flex-shrink-0 bg-[#0f1115] border border-white/10 rounded-full overflow-hidden">
+          <button type="button" onclick="applySavedMeal(${sm.id})" class="px-3.5 py-1.5 text-xs font-medium text-white hover:bg-white/5 transition whitespace-nowrap">
             ${escHtml(sm.dish)}
           </button>
           <button type="button" onclick="removeSavedMeal(event, ${sm.id})" title="Ta bort favorit" class="pr-2.5 pl-1 py-1.5 text-[10px] text-[#6b7280] hover:text-red-400 transition">
@@ -2329,9 +2353,10 @@
       if (dish) {
         const existingIdx = savedMeals.findIndex(s => s.dish.toLowerCase() === dish.toLowerCase());
         if (existingIdx >= 0) {
-          savedMeals[existingIdx] = { ...savedMeals[existingIdx], dish, ingredients };
+          const prevCount = savedMeals[existingIdx].count || 0;
+          savedMeals[existingIdx] = { ...savedMeals[existingIdx], dish, ingredients, count: prevCount + 1 };
         } else {
-          savedMeals.push({ id: Date.now(), dish, ingredients });
+          savedMeals.push({ id: Date.now(), dish, ingredients, count: 1 });
         }
       }
 
@@ -2692,7 +2717,7 @@
         const safeId = escAttr(l.id);
         return `
           <button 
-            type="button"
+            type="button" 
             onclick="handleListPillClick('${safeId}')"
             ontouchstart="startLongPress(event, 'list', '${safeId}')"
             ontouchmove="moveLongPress(event)"
