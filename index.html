@@ -17,6 +17,7 @@
       background-color: #0f1115;
       color: #e4e6eb;
       -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-x: none;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -24,6 +25,11 @@
     .bg-accent { background-color: var(--accent); }
     .text-accent { color: var(--accent); }
     .border-accent { border-color: var(--accent); }
+    .long-press-target {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-28">
@@ -199,7 +205,7 @@
     <main id="view-lists" class="px-5 pt-3 flex-1 space-y-3.5 hidden">
       <!-- New List Quick Button -->
       <div class="flex items-center justify-between">
-        <span class="text-xs font-medium text-[#9ca3af]">Dina listor</span>
+        <span class="text-xs font-medium text-[#9ca3af]">Dina listor <span class="text-[10px] text-[#6b7280]">(håll in för att ta bort)</span></span>
         <button onclick="openNewListModal()" class="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/25 transition flex items-center gap-1">
           <span>+ Ny lista</span>
         </button>
@@ -262,7 +268,7 @@
       </div>
 
       <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-        <!-- List Header: Title + Fullscreen Button on row 1, List Options on row 2 -->
+        <!-- List Header: Title + Fullscreen Button on row 1, Clean Actions on row 2 -->
         <div class="px-2 pb-2 space-y-2 border-b border-white/5">
           <div class="flex items-center justify-between gap-2">
             <h2 id="active-list-name" class="text-base font-bold text-white truncate">Inköpslista</h2>
@@ -272,16 +278,10 @@
             </button>
           </div>
           <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-1.5">
-              <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                <span>Döp om</span>
-              </button>
-              <button onclick="requestDeleteCurrentList()" title="Ta bort hela listan" class="px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[11px] font-medium text-red-400 hover:bg-red-500/20 transition flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                <span>Ta bort</span>
-              </button>
-            </div>
+            <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              <span>Döp om</span>
+            </button>
             <div class="flex items-center gap-2">
               <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
                 Bara mina
@@ -776,6 +776,9 @@
       { key: "sun", label: "Söndag" }
     ];
 
+    const TAB_ORDER = ['today', 'lists', 'meals', 'group'];
+    let currentTab = 'today';
+
     let currentUser = null;
     let currentUserProfile = null;
     let currentGroupId = null;
@@ -791,6 +794,103 @@
     let categoryTarget = null;
     let userManuallySelectedCategory = false;
     let isFullscreenListOpen = false;
+
+    // Long-Press State & Handlers
+    let longPressTimer = null;
+    let longPressStartX = 0;
+    let longPressStartY = 0;
+    let suppressNextClick = false;
+
+    window.startLongPress = function(e, type, listId, itemId = null) {
+      if (!e.touches || e.touches.length !== 1) return;
+      suppressNextClick = false;
+      longPressStartX = e.touches[0].clientX;
+      longPressStartY = e.touches[0].clientY;
+      clearTimeout(longPressTimer);
+
+      longPressTimer = setTimeout(() => {
+        suppressNextClick = true;
+        if (navigator.vibrate) navigator.vibrate(25);
+        if (type === 'list') {
+          window.requestDeleteListById(listId);
+        } else if (type === 'item') {
+          window.requestDeleteItemInList(listId, itemId);
+        }
+      }, 550);
+    };
+
+    window.moveLongPress = function(e) {
+      if (!longPressTimer || !e.touches || e.touches.length !== 1) return;
+      const dx = Math.abs(e.touches[0].clientX - longPressStartX);
+      const dy = Math.abs(e.touches[0].clientY - longPressStartY);
+      if (dx > 10 || dy > 10) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    };
+
+    window.cancelLongPress = function() {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    };
+
+    window.handleListPillClick = function(id) {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        return;
+      }
+      window.selectList(id);
+    };
+
+    window.handleItemRowClick = function(listId, itemId) {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        return;
+      }
+      window.toggleItemInList(listId, itemId);
+    };
+
+    // Swipe Navigation Between Main Tabs
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipeStartTime = 0;
+    let swipeValid = false;
+
+    const appShellEl = document.getElementById('app-shell');
+    appShellEl.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) {
+        swipeValid = false;
+        return;
+      }
+      // Block tab swipe if any modal is open or user is scrolling a horizontal container / typing
+      const anyModalOpen = Array.from(document.querySelectorAll('.fixed.inset-0')).some(el => !el.classList.contains('hidden'));
+      if (anyModalOpen || e.target.closest('.no-scrollbar') || e.target.closest('input, textarea, select')) {
+        swipeValid = false;
+        return;
+      }
+      swipeValid = true;
+      swipeStartX = e.touches[0].clientX;
+      swipeStartY = e.touches[0].clientY;
+      swipeStartTime = Date.now();
+    }, { passive: true });
+
+    appShellEl.addEventListener('touchend', (e) => {
+      if (!swipeValid || !e.changedTouches || e.changedTouches.length !== 1) return;
+      swipeValid = false;
+
+      const dx = e.changedTouches[0].clientX - swipeStartX;
+      const dy = e.changedTouches[0].clientY - swipeStartY;
+      const elapsed = Date.now() - swipeStartTime;
+
+      if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6 && elapsed < 600) {
+        const idx = TAB_ORDER.indexOf(currentTab);
+        if (dx < 0 && idx < TAB_ORDER.length - 1) {
+          window.switchTab(TAB_ORDER[idx + 1]);
+        } else if (dx > 0 && idx > 0) {
+          window.switchTab(TAB_ORDER[idx - 1]);
+        }
+      }
+    }, { passive: true });
 
     function showToast(msg) {
       const el = document.getElementById('toast-banner');
@@ -1454,7 +1554,8 @@
     };
 
     window.switchTab = function(tab) {
-      ['today', 'lists', 'meals', 'group'].forEach(t => {
+      currentTab = tab;
+      TAB_ORDER.forEach(t => {
         document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
         const navBtn = document.getElementById(`nav-${t}`);
         navBtn.className = t === tab
@@ -1611,23 +1712,18 @@
       if (rotatedMessage) showToast(rotatedMessage);
     };
 
-    window.toggleItem = function(itemId) {
-      window.toggleItemInList(activeListId, itemId);
-    };
-
-    window.requestDeleteItem = function(e, itemId) {
-      e.stopPropagation();
+    window.requestDeleteItemInList = function(listId, itemId) {
       if (!groupData) return;
-      const activeList = groupData.lists.find(l => l.id === activeListId);
-      const item = activeList?.items?.find(i => i.id === itemId);
-      const itemName = item ? item.text : 'denna punkt';
+      const targetList = groupData.lists.find(l => l.id === listId);
+      const item = targetList?.items?.find(i => i.id === itemId);
+      if (!item) return;
 
       openConfirmDeleteModal(
         'Ta bort punkt?',
-        `Vill du ta bort "${itemName}" från listan?`,
+        `Vill du ta bort "${item.text}" från listan?`,
         async () => {
-          const updatedLists = groupData.lists.map(l => 
-            l.id === activeListId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l
+          const updatedLists = groupData.lists.map(l =>
+            l.id === listId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l
           );
           await saveListsToCloud(updatedLists);
           showToast('Borttagen');
@@ -1648,24 +1744,26 @@
       showToast('Rensade klara punkter');
     };
 
-    window.requestDeleteCurrentList = function() {
+    window.requestDeleteListById = function(listId) {
       if (!groupData) return;
       if (groupData.lists.length <= 1) {
         showToast('Du måste ha minst en lista kvar');
         return;
       }
-      const activeList = groupData.lists.find(l => l.id === activeListId);
-      if (!activeList) return;
+      const targetList = groupData.lists.find(l => l.id === listId);
+      if (!targetList) return;
 
       openConfirmDeleteModal(
         'Ta bort hela listan?',
-        `Är du säker på att du vill ta bort listan "${activeList.name}" och allt innehåll i den?`,
+        `Är du säker på att du vill ta bort listan "${targetList.name}" och allt innehåll i den?`,
         async () => {
-          const updatedLists = groupData.lists.filter(l => l.id !== activeListId);
-          activeListId = updatedLists[0].id;
-          localStorage.setItem('familjens_todo_active_list', activeListId);
+          const updatedLists = groupData.lists.filter(l => l.id !== listId);
+          if (activeListId === listId) {
+            activeListId = updatedLists[0].id;
+            localStorage.setItem('familjens_todo_active_list', activeListId);
+          }
           await saveListsToCloud(updatedLists);
-          showToast(`Tog bort "${activeList.name}"`);
+          showToast(`Tog bort "${targetList.name}"`);
         }
       );
     };
@@ -1913,12 +2011,19 @@
       `;
     }
 
-    function renderItemRow(item, members, isShopping, targetListId, isDashboard = false) {
+    function renderItemRow(item, members, isShopping, targetListId) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
-      const toggleCall = isDashboard ? `toggleItemInList('${targetListId}', ${item.id})` : `toggleItem(${item.id})`;
       const currentCat = item.category || 'Övrigt';
       return `
-        <div onclick="${toggleCall}" class="flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition">
+        <div 
+          onclick="handleItemRowClick('${targetListId}', ${item.id})"
+          ontouchstart="startLongPress(event, 'item', '${targetListId}', ${item.id})"
+          ontouchmove="moveLongPress(event)"
+          ontouchend="cancelLongPress()"
+          ontouchcancel="cancelLongPress()"
+          oncontextmenu="event.preventDefault(); requestDeleteItemInList('${targetListId}', ${item.id})"
+          class="long-press-target flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition"
+        >
           <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
             item.done ? 'bg-accent border-accent' : 'border-[#4b5563]'
           }">
@@ -1948,12 +2053,6 @@
               + Tilldela
             </button>
           `) : ''}
-
-          ${!isDashboard ? `
-            <button onclick="requestDeleteItem(event, ${item.id})" title="Ta bort" class="p-1.5 text-[#6b7280] hover:text-red-400 transition flex-shrink-0">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          ` : ''}
         </div>
       `;
     }
@@ -1970,19 +2069,19 @@
           const catItems = activeItems.filter(i => (i.category || 'Övrigt') === cat);
           if (catItems.length > 0) {
             html += `<div class="pt-2 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-accent px-2">${cat}</span></div>`;
-            html += catItems.map(i => renderItemRow(i, members, true, listId, false)).join('');
+            html += catItems.map(i => renderItemRow(i, members, true, listId)).join('');
           }
         });
         const unlisted = activeItems.filter(i => !categoryOrder.includes(i.category || 'Övrigt'));
-        if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true, listId, false)).join('');
+        if (unlisted.length > 0) html += unlisted.map(i => renderItemRow(i, members, true, listId)).join('');
         if (doneItems.length > 0) {
           html += `<div class="pt-3 pb-1"><span class="text-[11px] font-semibold uppercase tracking-wider text-[#6b7280] px-2">Avbockade</span></div>`;
-          html += doneItems.map(i => renderItemRow(i, members, true, listId, false)).join('');
+          html += doneItems.map(i => renderItemRow(i, members, true, listId)).join('');
         }
         return html;
       }
       const sorted = [...items].sort((a, b) => a.done - b.done);
-      return sorted.map(i => renderItemRow(i, members, false, listId, false)).join('');
+      return sorted.map(i => renderItemRow(i, members, false, listId)).join('');
     }
 
     function render() {
@@ -2028,7 +2127,7 @@
         }
         if (openItems.length > 0) {
           todayTasksHtml += `<div class="pt-1"><span class="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] px-2">${l.name}</span></div>`;
-          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id, true)).join('');
+          todayTasksHtml += openItems.map(i => renderItemRow(i, members, false, l.id)).join('');
         }
       });
       document.getElementById('today-tasks-container').innerHTML = todayTasksHtml || 
@@ -2054,9 +2153,18 @@
 
       if (!lists.find(l => l.id === activeListId) && lists.length > 0) activeListId = lists[0].id;
       document.getElementById('list-tabs').innerHTML = lists.map(l => `
-        <button onclick="selectList('${l.id}')" class="px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-          l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
-        }">${l.name}</button>
+        <button 
+          type="button"
+          onclick="handleListPillClick('${l.id}')"
+          ontouchstart="startLongPress(event, 'list', '${l.id}')"
+          ontouchmove="moveLongPress(event)"
+          ontouchend="cancelLongPress()"
+          ontouchcancel="cancelLongPress()"
+          oncontextmenu="event.preventDefault(); requestDeleteListById('${l.id}')"
+          class="long-press-target px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+            l.id === activeListId ? 'bg-[#a5b4fc] text-[#0f1115]' : 'bg-[#181b21] text-[#9ca3af] border border-white/5 hover:text-white'
+          }"
+        >${l.name}</button>
       `).join('');
 
       const activeList = lists.find(l => l.id === activeListId);
