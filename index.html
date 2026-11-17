@@ -327,7 +327,7 @@
         <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
           <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
             <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
-            <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sorteras de automatiskt in i rätt butiksavdelning när du skickar dem till vald inköpslista.</p>
+            <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sparas de i era favoriträtter och sorteras automatiskt in i rätt butiksavdelning vid inköp.</p>
           </div>
           <div id="meals-days-container" class="space-y-3"></div>
         </main>
@@ -442,6 +442,41 @@
         Grupp
       </button>
     </nav>
+  </div>
+
+  <!-- MODAL: EDIT EXISTING ITEM (TEXT, QTY, CATEGORY) -->
+  <div id="edit-item-modal" onclick="if(event.target === this) closeEditItemModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveEditedItem(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Redigera punkt</h3>
+        <button type="button" onclick="closeEditItemModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5">Namn / beskrivning</label>
+        <input id="edit-item-text" type="text" required class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+      </div>
+      <div id="edit-item-shopping-fields" class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="text-xs text-[#9ca3af] block mb-1.5">Antal</label>
+          <input id="edit-item-qty" type="text" placeholder="T.ex. 2 st" class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-3.5 py-2.5 rounded-2xl border border-white/10 text-xs focus:outline-none focus:border-accent/50" />
+        </div>
+        <div>
+          <label class="text-xs text-[#9ca3af] block mb-1.5">Avdelning</label>
+          <select id="edit-item-category" class="w-full bg-[#0f1115] text-white px-3.5 py-2.5 rounded-2xl border border-white/10 text-xs focus:outline-none"></select>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="deleteFromEditModal()" class="px-4 py-3 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 font-semibold text-xs hover:bg-red-500/25 transition">
+          Ta bort
+        </button>
+        <button type="button" onclick="closeEditItemModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">
+          Avbryt
+        </button>
+        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">
+          Spara
+        </button>
+      </div>
+    </form>
   </div>
 
   <!-- MODAL: CREATE NEW GROUP -->
@@ -602,13 +637,23 @@
     </form>
   </div>
 
-  <!-- MODAL: EDIT MEAL -->
+  <!-- MODAL: EDIT MEAL WITH SAVED FAVORITES -->
   <div id="meal-modal" onclick="if(event.target === this) closeMealModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
-    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center">
         <h3 id="meal-modal-title" class="text-base font-bold text-white">Planera middag</h3>
-        <button type="button" onclick="closeMealModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="clearMealDay()" class="text-[11px] text-[#9ca3af] hover:text-red-400 px-2 py-1 rounded-full bg-[#0f1115] border border-white/5 transition">Rensa dag</button>
+          <button type="button" onclick="closeMealModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+        </div>
       </div>
+
+      <!-- Saved Favorite Dishes Quick-Select -->
+      <div id="saved-meals-section" class="hidden space-y-1.5">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-accent block">Snabbval – sparade favoriträtter</span>
+        <div id="saved-meals-chips" class="flex gap-1.5 flex-wrap max-h-24 overflow-y-auto no-scrollbar"></div>
+      </div>
+
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1">Maträtt</label>
         <input id="meal-dish-input" type="text" placeholder="T.ex. Tacos eller Lax i ugn" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none focus:border-accent/50" />
@@ -664,7 +709,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Safe HTML & Attribute Escaping
     function escHtml(str) {
       return String(str ?? '')
         .replace(/&/g, '&amp;')
@@ -681,7 +725,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // Whole-word Swedish boundary matching (so "te" doesn't match "kotlett" or "leverpastej")
     function containsWholeWord(haystack, needle) {
       if (!haystack || !needle) return false;
       const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -875,6 +918,7 @@
     let assigningTarget = null;
     let recurrenceTarget = null;
     let categoryTarget = null;
+    let editingItemTarget = null;
     let userManuallySelectedCategory = false;
     let isFullscreenListOpen = false;
     let lastNotifiedShopperAt = Number(localStorage.getItem('familjens_todo_last_shopper_at') || 0);
@@ -1178,6 +1222,92 @@
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
+
+    // Edit Existing Item Modal Controls
+    window.openEditItemModal = function(e, listId, itemId) {
+      e.stopPropagation();
+      window.cancelLongPress();
+      if (!groupData) return;
+      const targetList = groupData.lists.find(l => l.id === listId);
+      const item = targetList?.items?.find(i => i.id === itemId);
+      if (!item) return;
+
+      const isShopping = targetList.type === 'shopping' || targetList.id === 'inkop';
+      editingItemTarget = { listId, itemId, isShopping };
+
+      const textInput = document.getElementById('edit-item-text');
+      textInput.value = item.text || '';
+
+      const shopFields = document.getElementById('edit-item-shopping-fields');
+      shopFields.classList.toggle('hidden', !isShopping);
+
+      if (isShopping) {
+        document.getElementById('edit-item-qty').value = item.qty || '';
+        const catSelect = document.getElementById('edit-item-category');
+        const categoryOrder = getListCategoryOrder(targetList);
+        catSelect.innerHTML = categoryOrder.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
+        catSelect.value = categoryOrder.includes(item.category) ? item.category : 'Övrigt';
+      }
+
+      document.getElementById('edit-item-modal').classList.remove('hidden');
+      setTimeout(() => {
+        textInput.focus();
+        textInput.select();
+      }, 50);
+    };
+
+    window.closeEditItemModal = function() {
+      document.getElementById('edit-item-modal').classList.add('hidden');
+      editingItemTarget = null;
+    };
+
+    window.deleteFromEditModal = function() {
+      if (!editingItemTarget) return;
+      const { listId, itemId } = editingItemTarget;
+      window.closeEditItemModal();
+      window.requestDeleteItemInList(listId, itemId);
+    };
+
+    window.saveEditedItem = async function(e) {
+      e.preventDefault();
+      if (!groupData || !editingItemTarget) return;
+      const { listId, itemId, isShopping } = editingItemTarget;
+      const newText = document.getElementById('edit-item-text').value.trim();
+      if (!newText) return;
+
+      const newQty = isShopping ? document.getElementById('edit-item-qty').value.trim() : '';
+      const newCat = isShopping ? document.getElementById('edit-item-category').value : null;
+
+      window.closeEditItemModal();
+
+      const updatedLists = groupData.lists.map(l => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map(i => {
+            if (i.id !== itemId) return i;
+            if (isShopping) {
+              return { ...i, text: newText, qty: newQty, category: newCat };
+            }
+            return { ...i, text: newText };
+          })
+        };
+      });
+
+      const extraFields = {};
+      if (isShopping && newCat && newCat !== 'Övrigt') {
+        const key = normalizeItemKey(newText);
+        if (key) {
+          extraFields.itemCategories = {
+            ...(groupData.itemCategories || {}),
+            [key]: newCat
+          };
+        }
+      }
+
+      await saveListsToCloud(updatedLists, extraFields);
+      showToast('Ändring sparad');
+    };
 
     // Create New Group Modal Controls
     window.openNewGroupModal = function() {
@@ -1545,11 +1675,19 @@
       const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
       const dayNum = d.getUTCDay() || 7;
       d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const isoYear = d.getUTCFullYear();
+      const yearStart = new Date(Date.UTC(isoYear, 0, 1));
       const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
       const isOdd = weekNo % 2 !== 0;
       const dayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-      return { weekNo, isOdd, parityLabel: isOdd ? "Udda vecka" : "Jämn vecka", dayKey: dayKeys[date.getDay()] };
+      return {
+        isoYear,
+        weekNo,
+        weekKey: `${isoYear}-W${weekNo}`,
+        isOdd,
+        parityLabel: isOdd ? "Udda vecka" : "Jämn vecka",
+        dayKey: dayKeys[date.getDay()]
+      };
     }
 
     function saveRecentAccount(email, name) {
@@ -1626,14 +1764,17 @@
 
       if (!code || !groupSnap || !groupSnap.exists()) {
         code = code || generateGroupCode();
+        const weekInfo = getISOWeekInfo(new Date());
         const initialData = {
           name: customGroupName,
           themeAccent: '#81c784',
           createdAt: Date.now(),
+          lastResetWeek: weekInfo.weekKey,
           categoryOrder: [...DEFAULT_CATEGORIES],
           itemCategories: { "mjölk": "Mejeri & Ost" },
           members: { [user.uid]: { name: displayName, color: MEMBER_COLORS[0] } },
           meals: {},
+          savedMeals: [],
           lists: [
             {
               id: 'inkop',
@@ -1772,6 +1913,31 @@
       unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
         if (snapshot.exists()) {
           groupData = snapshot.data();
+
+          // Automatic Weekly Reset of Recurring Done Tasks on New ISO Week
+          const weekInfo = getISOWeekInfo(new Date());
+          if (groupData.lastResetWeek !== weekInfo.weekKey) {
+            let anyReset = false;
+            const resetLists = (groupData.lists || []).map(l => ({
+              ...l,
+              items: (l.items || []).map(i => {
+                const isRec = i.recurring || (i.recurrence && i.recurrence !== 'none');
+                if (i.done && isRec) {
+                  anyReset = true;
+                  return { ...i, done: false };
+                }
+                return i;
+              })
+            }));
+            const patch = { lastResetWeek: weekInfo.weekKey };
+            if (anyReset) {
+              patch.lists = resetLists;
+              if (groupData.lastResetWeek) {
+                showToast(`Ny vecka (v.${weekInfo.weekNo}) – återkommande punkter nollställda!`);
+              }
+            }
+            updateDoc(doc(db, 'groups', code), patch);
+          }
 
           // Notify device if another family member just activated "Jag handlar nu"
           const shopper = groupData.activeShopper;
@@ -2085,6 +2251,50 @@
       await saveListsToCloud(updatedLists);
     };
 
+    // Meal Modal & Saved Favorite Dishes
+    function renderSavedMealsChips() {
+      const section = document.getElementById('saved-meals-section');
+      const chipsContainer = document.getElementById('saved-meals-chips');
+      const saved = Array.isArray(groupData?.savedMeals) ? groupData.savedMeals : [];
+
+      if (saved.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+
+      section.classList.remove('hidden');
+      const sorted = [...saved].sort((a, b) => a.dish.localeCompare(b.dish, 'sv'));
+      chipsContainer.innerHTML = sorted.map(sm => `
+        <div class="inline-flex items-center bg-[#0f1115] border border-white/10 rounded-full overflow-hidden">
+          <button type="button" onclick="applySavedMeal(${sm.id})" class="px-3 py-1.5 text-xs font-medium text-white hover:bg-white/5 transition">
+            ${escHtml(sm.dish)}
+          </button>
+          <button type="button" onclick="removeSavedMeal(event, ${sm.id})" title="Ta bort favorit" class="pr-2.5 pl-1 py-1.5 text-[10px] text-[#6b7280] hover:text-red-400 transition">
+            ✕
+          </button>
+        </div>
+      `).join('');
+    }
+
+    window.applySavedMeal = function(savedId) {
+      const saved = Array.isArray(groupData?.savedMeals) ? groupData.savedMeals : [];
+      const found = saved.find(s => s.id === savedId);
+      if (!found) return;
+      document.getElementById('meal-dish-input').value = found.dish || '';
+      document.getElementById('meal-ingredients-input').value = found.ingredients || '';
+      showToast(`Valde "${found.dish}"`);
+    };
+
+    window.removeSavedMeal = async function(e, savedId) {
+      e.stopPropagation();
+      if (!groupData || !currentGroupId) return;
+      const saved = Array.isArray(groupData.savedMeals) ? groupData.savedMeals : [];
+      const nextSaved = saved.filter(s => s.id !== savedId);
+      await updateDoc(doc(db, 'groups', currentGroupId), { savedMeals: nextSaved });
+      renderSavedMealsChips();
+      showToast('Tog bort favoriträtt');
+    };
+
     window.openMealModal = function(dayKey) {
       editingMealDay = dayKey;
       const dayObj = WEEKDAYS.find(d => d.key === dayKey);
@@ -2092,6 +2302,7 @@
       document.getElementById('meal-modal-title').textContent = `Middag – ${dayObj.label}`;
       document.getElementById('meal-dish-input').value = existing.dish || '';
       document.getElementById('meal-ingredients-input').value = existing.ingredients || '';
+      renderSavedMealsChips();
       document.getElementById('meal-modal').classList.remove('hidden');
     };
 
@@ -2099,12 +2310,32 @@
       document.getElementById('meal-modal').classList.add('hidden');
     };
 
+    window.clearMealDay = async function() {
+      if (!editingMealDay || !currentGroupId) return;
+      const meals = { ...(groupData.meals || {}) };
+      delete meals[editingMealDay];
+      await updateDoc(doc(db, 'groups', currentGroupId), { meals });
+      window.closeMealModal();
+      showToast('Rensade dagens middag');
+    };
+
     window.saveMeal = async function() {
       if (!editingMealDay || !currentGroupId) return;
       const dish = document.getElementById('meal-dish-input').value.trim();
       const ingredients = document.getElementById('meal-ingredients-input').value.trim();
       const meals = { ...(groupData.meals || {}), [editingMealDay]: { dish, ingredients } };
-      await updateDoc(doc(db, 'groups', currentGroupId), { meals });
+
+      let savedMeals = Array.isArray(groupData.savedMeals) ? [...groupData.savedMeals] : [];
+      if (dish) {
+        const existingIdx = savedMeals.findIndex(s => s.dish.toLowerCase() === dish.toLowerCase());
+        if (existingIdx >= 0) {
+          savedMeals[existingIdx] = { ...savedMeals[existingIdx], dish, ingredients };
+        } else {
+          savedMeals.push({ id: Date.now(), dish, ingredients });
+        }
+      }
+
+      await updateDoc(doc(db, 'groups', currentGroupId), { meals, savedMeals });
       window.closeMealModal();
       showToast('Matsedel sparad');
     };
@@ -2336,16 +2567,28 @@
             </div>
           </div>
 
-          ${!isShopping ? (assignee ? `
-            <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0 hover:opacity-80 transition" style="background-color: ${escAttr(assignee.color)}20; color: ${escAttr(assignee.color)}">
-              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(assignee.color)}"></span>
-              <span>${escHtml(assignee.name)}</span>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            ${!isShopping ? (assignee ? `
+              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Byt ansvarig" class="text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 hover:opacity-80 transition" style="background-color: ${escAttr(assignee.color)}20; color: ${escAttr(assignee.color)}">
+                <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escAttr(assignee.color)}"></span>
+                <span>${escHtml(assignee.name)}</span>
+              </button>
+            ` : `
+              <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition">
+                + Tilldela
+              </button>
+            `) : ''}
+
+            <button 
+              type="button" 
+              onclick="openEditItemModal(event, '${safeListId}', ${item.id})" 
+              ontouchstart="event.stopPropagation()"
+              title="Redigera"
+              class="p-1.5 rounded-full text-[#6b7280] hover:text-white hover:bg-white/10 transition"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
-          ` : `
-            <button type="button" onclick="openAssignModal(event, '${safeListId}', ${item.id})" title="Tilldela uppgift" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:border-white/25 transition flex-shrink-0">
-              + Tilldela
-            </button>
-          `) : ''}
+          </div>
         </div>
       `;
     }
