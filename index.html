@@ -196,8 +196,17 @@
     </main>
 
     <!-- VIEW 2: LISTOR -->
-    <main id="view-lists" class="px-5 pt-4 flex-1 space-y-4 hidden">
-      <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-1"></div>
+    <main id="view-lists" class="px-5 pt-3 flex-1 space-y-3.5 hidden">
+      <!-- New List Quick Button (Between Header/Group Name and List Tabs) -->
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-[#9ca3af]">Dina listor</span>
+        <button onclick="openNewListModal()" class="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/25 transition flex items-center gap-1">
+          <span>+ Ny lista</span>
+        </button>
+      </div>
+
+      <!-- Existing List Selector Pills -->
+      <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
 
       <form onsubmit="addItem(event)" class="bg-[#181b21] rounded-3xl p-3.5 border border-white/5 space-y-2.5 shadow-lg">
         <div class="flex gap-2">
@@ -338,20 +347,6 @@
         <div id="color-picker" class="flex gap-2.5 pt-2"></div>
       </div>
 
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Skapa egen lista</h3>
-        <form onsubmit="createNewList(event)" class="space-y-2.5">
-          <input id="new-list-name" type="text" required placeholder="T.ex. Trädgård eller Styrelsepunkter..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
-          <div class="flex gap-2">
-            <select id="new-list-type" class="flex-1 bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/5 text-xs focus:outline-none">
-              <option value="todo">Sysslor / Punkter (med tilldelning & rullande)</option>
-              <option value="shopping">Inköpslista (med antal & butiksordning)</option>
-            </select>
-            <button type="submit" class="px-5 py-3 rounded-2xl bg-[#a5b4fc] text-[#0f1115] font-semibold text-xs">Skapa</button>
-          </div>
-        </form>
-      </div>
-
       <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
         <h3 class="text-sm font-semibold text-white">Anslut till befintlig grupp</h3>
         <form onsubmit="joinGroup(event)" class="flex gap-2">
@@ -381,6 +376,31 @@
         Grupp
       </button>
     </nav>
+  </div>
+
+  <!-- MODAL: CREATE NEW LIST -->
+  <div id="new-list-modal" onclick="if(event.target === this) closeNewListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="createNewList(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Skapa ny lista</h3>
+        <button type="button" onclick="closeNewListModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5">Namn på listan</label>
+        <input id="new-list-name" type="text" required placeholder="T.ex. Helgstädning, Apotek eller Kiosk..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5">Typ av lista</label>
+        <select id="new-list-type" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-xs focus:outline-none">
+          <option value="todo">Sysslor / Punkter (med tilldelning & rullande)</option>
+          <option value="shopping">Inköpslista (med antal & butiksordning)</option>
+        </select>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="closeNewListModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Skapa lista</button>
+      </div>
+    </form>
   </div>
 
   <!-- MODAL: EDIT MEAL -->
@@ -809,6 +829,34 @@
       render();
     };
 
+    window.openNewListModal = function() {
+      document.getElementById('new-list-name').value = '';
+      document.getElementById('new-list-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('new-list-name').focus(), 50);
+    };
+
+    window.closeNewListModal = function() {
+      document.getElementById('new-list-modal').classList.add('hidden');
+    };
+
+    window.createNewList = async function(e) {
+      e.preventDefault();
+      if (!groupData) return;
+      const nameInput = document.getElementById('new-list-name');
+      const typeSelect = document.getElementById('new-list-type');
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      const id = 'list_' + Date.now();
+      const updatedLists = [...groupData.lists, { id, name, type: typeSelect.value, items: [] }];
+      nameInput.value = '';
+      activeListId = id;
+      localStorage.setItem('familjens_todo_active_list', id);
+      window.closeNewListModal();
+      await saveListsToCloud(updatedLists);
+      showToast(`Skapade "${name}"`);
+    };
+
     window.addItem = async function(e) {
       e.preventDefault();
       if (!groupData) return;
@@ -897,23 +945,6 @@
       });
       await saveListsToCloud(updatedLists);
       showToast('Rensade klara punkter');
-    };
-
-    window.createNewList = async function(e) {
-      e.preventDefault();
-      if (!groupData) return;
-      const nameInput = document.getElementById('new-list-name');
-      const typeSelect = document.getElementById('new-list-type');
-      const name = nameInput.value.trim();
-      if (!name) return;
-
-      const id = 'list_' + Date.now();
-      const updatedLists = [...groupData.lists, { id, name, type: typeSelect.value, items: [] }];
-      nameInput.value = '';
-      activeListId = id;
-      localStorage.setItem('familjens_todo_active_list', id);
-      await saveListsToCloud(updatedLists);
-      window.switchTab('lists');
     };
 
     window.deleteCurrentList = async function() {
