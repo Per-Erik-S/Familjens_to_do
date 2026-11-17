@@ -30,6 +30,22 @@
       user-select: none;
       -webkit-touch-callout: none;
     }
+    #tabs-track {
+      display: flex;
+      align-items: flex-start;
+      width: 400%;
+      will-change: transform;
+    }
+    .tab-pane {
+      width: 25%;
+      flex-shrink: 0;
+    }
+    .tab-pane-collapsed {
+      max-height: 0;
+      overflow: hidden;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col max-w-md mx-auto bg-[#0f1115] relative pb-28">
@@ -163,224 +179,231 @@
       <button onclick="openShoppingList()" class="text-[11px] underline text-white">Öppna listan</button>
     </div>
 
-    <!-- VIEW 1: IDAG (DASHBOARD) -->
-    <main id="view-today" class="px-5 pt-4 flex-1 space-y-4">
-      <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg">
-        <div>
-          <span id="today-date-label" class="text-xs font-medium text-[#9ca3af] capitalize">Måndag</span>
-          <h2 id="today-greeting" class="text-xl font-bold text-white mt-0.5">Hej!</h2>
-        </div>
-        <div class="text-right">
-          <span id="today-week-badge" class="inline-block px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold">Vecka --</span>
-          <span id="today-week-parity" class="block text-[11px] text-[#9ca3af] mt-1">Jämn/Udda</span>
-        </div>
-      </div>
+    <!-- SWIPEABLE HORIZONTAL PAGER VIEWPORT -->
+    <div id="tabs-viewport" class="flex-1 overflow-x-hidden w-full">
+      <div id="tabs-track" style="transform: translate3d(0%, 0, 0);">
 
-      <div class="grid grid-cols-2 gap-3">
-        <button onclick="toggleShoppingLive()" id="btn-shopping-live" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
-          <span class="text-lg block">🛒</span>
-          <span id="shopping-btn-title" class="text-xs font-bold text-white block">Jag handlar nu</span>
-          <span id="shopping-btn-sub" class="text-[11px] text-[#9ca3af] block">Meddela familjen</span>
-        </button>
-
-        <button onclick="switchTab('meals')" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
-          <span class="text-lg block">🍽️</span>
-          <span class="text-xs font-bold text-white block">Dagens middag</span>
-          <span id="today-dinner-preview" class="text-[11px] text-accent font-medium block truncate">Ej planerad</span>
-        </button>
-      </div>
-
-      <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-        <div class="flex items-center justify-between px-2">
-          <h3 class="text-sm font-bold text-white">Att göra i gruppen</h3>
-          <button onclick="toggleOnlyMine()" id="today-filter-mine" class="px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
-            Bara mina
-          </button>
-        </div>
-        <div id="today-tasks-container" class="space-y-2"></div>
-      </div>
-    </main>
-
-    <!-- VIEW 2: LISTOR -->
-    <main id="view-lists" class="px-5 pt-3 flex-1 space-y-3.5 hidden">
-      <!-- New List Quick Button -->
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-medium text-[#9ca3af]">Dina listor <span class="text-[10px] text-[#6b7280]">(håll in för att ta bort)</span></span>
-        <button onclick="openNewListModal()" class="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/25 transition flex items-center gap-1">
-          <span>+ Ny lista</span>
-        </button>
-      </div>
-
-      <!-- Existing List Selector Pills -->
-      <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
-
-      <form onsubmit="addItem(event)" class="bg-[#181b21] rounded-3xl p-3.5 border border-white/5 space-y-2.5 shadow-lg">
-        <div class="flex gap-2">
-          <input 
-            id="new-item-input"
-            type="text" 
-            oninput="handleNewItemTyping(this.value)"
-            placeholder="Vad ska läggas till?" 
-            class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
-          />
-          <input 
-            id="new-item-qty"
-            type="text" 
-            placeholder="Antal" 
-            class="w-20 bg-[#0f1115] text-white placeholder-[#6b7280] px-3 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm text-center"
-          />
-        </div>
-
-        <div class="flex items-center gap-2 flex-wrap">
-          <select id="new-item-category" onchange="handleManualCategoryChange()" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
-
-          <select id="new-item-assignee" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
-
-          <select id="new-item-recurrence" class="bg-[#0f1115] text-[#e4e6eb] px-3 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none">
-            <option value="none">Engångs</option>
-            <option value="weekly">↻ Återkommande</option>
-            <option value="odd">↻ Udda veckor</option>
-            <option value="even">↻ Jämna veckor</option>
-            <option value="rotating">↻👤 Rullande ansvar</option>
-          </select>
-
-          <button type="submit" class="bg-accent text-[#0f1115] font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs ml-auto">
-            Lägg till
-          </button>
-        </div>
-
-        <!-- Live indicator when category was auto-guessed or recalled from memory -->
-        <div id="category-auto-hint" class="hidden px-2 pt-0.5 flex items-center gap-1.5 text-[11px] text-accent">
-          <span id="category-auto-icon">✨</span>
-          <span id="category-auto-text">Valde avdelning automatiskt</span>
-        </div>
-      </form>
-
-      <div id="store-order-wrapper" class="hidden">
-        <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-[#181b21]/70 border border-white/5 text-xs text-[#9ca3af] hover:text-white transition">
-          <span id="store-order-toggle-label">Anpassa butikens avdelningsordning</span>
-          <span id="store-order-arrow">▼</span>
-        </button>
-        <div id="store-order-panel" class="hidden mt-2 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-1.5">
-          <p id="store-order-panel-desc" class="text-[11px] text-[#9ca3af] mb-2 px-1">Flytta avdelningarna så att ordningen matchar just denna butik:</p>
-          <div id="category-order-list" class="space-y-1"></div>
-        </div>
-      </div>
-
-      <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
-        <!-- List Header: Title + Fullscreen Button on row 1, Clean Actions on row 2 -->
-        <div class="px-2 pb-2 space-y-2 border-b border-white/5">
-          <div class="flex items-center justify-between gap-2">
-            <h2 id="active-list-name" class="text-base font-bold text-white truncate">Inköpslista</h2>
-            <button type="button" onclick="openFullscreenList()" title="Visa listan i nästan fullskärm" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1.5 flex-shrink-0">
-              <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-              <span>Fullskärm</span>
-            </button>
-          </div>
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-              <span>Döp om</span>
-            </button>
-            <div class="flex items-center gap-2">
-              <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
-                Bara mina
-              </button>
-              <button onclick="clearCompleted()" class="text-[11px] font-medium text-[#9ca3af] hover:text-white transition px-1.5 py-1">Rensa klara</button>
+        <!-- VIEW 1: IDAG (DASHBOARD) -->
+        <main id="view-today" class="tab-pane px-5 pt-4 space-y-4">
+          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 flex items-center justify-between shadow-lg">
+            <div>
+              <span id="today-date-label" class="text-xs font-medium text-[#9ca3af] capitalize">Måndag</span>
+              <h2 id="today-greeting" class="text-xl font-bold text-white mt-0.5">Hej!</h2>
+            </div>
+            <div class="text-right">
+              <span id="today-week-badge" class="inline-block px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold">Vecka --</span>
+              <span id="today-week-parity" class="block text-[11px] text-[#9ca3af] mt-1">Jämn/Udda</span>
             </div>
           </div>
-        </div>
-        <div id="items-container" class="space-y-2">
-          <p class="text-center text-xs text-[#6b7280] py-6">Laddar listor...</p>
-        </div>
-      </div>
-    </main>
 
-    <!-- VIEW 3: MATSEDEL -->
-    <main id="view-meals" class="px-5 pt-4 flex-1 space-y-4 hidden">
-      <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
-        <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
-        <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sorteras de automatiskt in i rätt butiksavdelning när du skickar dem till vald inköpslista.</p>
-      </div>
-      <div id="meals-days-container" class="space-y-3"></div>
-    </main>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="toggleShoppingLive()" id="btn-shopping-live" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
+              <span class="text-lg block">🛒</span>
+              <span id="shopping-btn-title" class="text-xs font-bold text-white block">Jag handlar nu</span>
+              <span id="shopping-btn-sub" class="text-[11px] text-[#9ca3af] block">Meddela familjen</span>
+            </button>
 
-    <!-- VIEW 4: GRUPP & MALLAR -->
-    <main id="view-group" class="px-5 pt-4 flex-1 space-y-5 hidden">
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-bold text-white">Färdiga mallpaket</h2>
-          <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">1-klick</span>
-        </div>
-        <p class="text-xs text-[#9ca3af]">Fyll på med färdiga listor för vardag, resa eller förening:</p>
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
-            <span class="text-base block mb-1">🧹</span>
-            <span class="text-xs font-semibold text-white block">Veckostädning</span>
-            <span class="text-[10px] text-[#9ca3af]">Rum för rum</span>
-          </button>
-          <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
-            <span class="text-base block mb-1">🥛</span>
-            <span class="text-xs font-semibold text-white block">Basvaror</span>
-            <span class="text-[10px] text-[#9ca3af]">Storhandling</span>
-          </button>
-          <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
-            <span class="text-base block mb-1">🎒</span>
-            <span class="text-xs font-semibold text-white block">Packlista resa</span>
-            <span class="text-[10px] text-[#9ca3af]">Stugan & helg</span>
-          </button>
-          <button onclick="applyTemplate('club')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
-            <span class="text-base block mb-1">🏆</span>
-            <span class="text-xs font-semibold text-white block">Förening & Kiosk</span>
-            <span class="text-[10px] text-[#9ca3af]">Match & städdag</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h3 class="text-sm font-semibold text-white">Gruppens namn & färgprofil</h3>
-        <form onsubmit="renameGroup(event)" class="flex gap-2">
-          <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
-          <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
-        </form>
-        <div>
-          <span class="text-xs text-[#9ca3af] block mb-2">Välj accentfärg för denna grupp (så du ser skillnad på familj & förening):</span>
-          <div id="group-theme-picker" class="flex gap-3"></div>
-        </div>
-      </div>
-
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Bjud in till aktiv grupp</h3>
-        <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
-          <div>
-            <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
-            <span id="invite-code" class="text-lg font-bold text-accent tracking-widest">...</span>
+            <button onclick="switchTab('meals')" class="bg-[#181b21] hover:bg-[#22262f] border border-white/5 rounded-3xl p-4 text-left transition space-y-1">
+              <span class="text-lg block">🍽️</span>
+              <span class="text-xs font-bold text-white block">Dagens middag</span>
+              <span id="today-dinner-preview" class="text-[11px] text-accent font-medium block truncate">Ej planerad</span>
+            </button>
           </div>
-          <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full bg-accent text-xs font-semibold text-[#0f1115] hover:opacity-90 transition">
-            Skicka länk
-          </button>
-        </div>
-      </div>
 
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
-        <h3 class="text-sm font-semibold text-white">Medlemmar & Personlig färg</h3>
-        <div id="members-list" class="space-y-2 pt-1"></div>
-        <div id="color-picker" class="flex gap-2.5 pt-2"></div>
-      </div>
+          <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
+            <div class="flex items-center justify-between px-2">
+              <h3 class="text-sm font-bold text-white">Att göra i gruppen</h3>
+              <button onclick="toggleOnlyMine()" id="today-filter-mine" class="px-3 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
+                Bara mina
+              </button>
+            </div>
+            <div id="today-tasks-container" class="space-y-2"></div>
+          </div>
+        </main>
 
-      <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
-        <h3 class="text-sm font-semibold text-white">Anslut till befintlig grupp</h3>
-        <form onsubmit="joinGroup(event)" class="flex gap-2">
-          <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
-          <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Anslut</button>
-        </form>
-        <p id="join-feedback" class="text-xs hidden"></p>
-        <div class="pt-3 border-t border-white/5 flex justify-between items-center">
-          <span id="logged-in-email" class="text-xs text-[#6b7280] truncate pr-2"></span>
-          <button onclick="handleLogout()" class="text-xs text-red-400 font-semibold hover:underline flex-shrink-0">Logga ut</button>
-        </div>
+        <!-- VIEW 2: LISTOR -->
+        <main id="view-lists" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-3.5">
+          <!-- New List Quick Button -->
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-[#9ca3af]">Dina listor <span class="text-[10px] text-[#6b7280]">(håll in för att ta bort)</span></span>
+            <button onclick="openNewListModal()" class="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-semibold hover:bg-accent/25 transition flex items-center gap-1">
+              <span>+ Ny lista</span>
+            </button>
+          </div>
+
+          <!-- Existing List Selector Pills -->
+          <div id="list-tabs" class="flex gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
+
+          <form onsubmit="addItem(event)" class="bg-[#181b21] rounded-3xl p-3.5 border border-white/5 space-y-2.5 shadow-lg">
+            <div class="flex gap-2">
+              <input 
+                id="new-item-input"
+                type="text" 
+                oninput="handleNewItemTyping(this.value)"
+                placeholder="Vad ska läggas till?" 
+                class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
+              />
+              <input 
+                id="new-item-qty"
+                type="text" 
+                placeholder="Antal" 
+                class="w-20 bg-[#0f1115] text-white placeholder-[#6b7280] px-3 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm text-center"
+              />
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="new-item-category" onchange="handleManualCategoryChange()" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
+
+              <select id="new-item-assignee" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
+
+              <select id="new-item-recurrence" class="bg-[#0f1115] text-[#e4e6eb] px-3 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none">
+                <option value="none">Engångs</option>
+                <option value="weekly">↻ Återkommande</option>
+                <option value="odd">↻ Udda veckor</option>
+                <option value="even">↻ Jämna veckor</option>
+                <option value="rotating">↻👤 Rullande ansvar</option>
+              </select>
+
+              <button type="submit" class="bg-accent text-[#0f1115] font-semibold px-5 py-2.5 rounded-2xl hover:opacity-90 active:scale-95 transition text-xs ml-auto">
+                Lägg till
+              </button>
+            </div>
+
+            <!-- Live indicator when category was auto-guessed or recalled from memory -->
+            <div id="category-auto-hint" class="hidden px-2 pt-0.5 flex items-center gap-1.5 text-[11px] text-accent">
+              <span id="category-auto-icon">✨</span>
+              <span id="category-auto-text">Valde avdelning automatiskt</span>
+            </div>
+          </form>
+
+          <div id="store-order-wrapper" class="hidden">
+            <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-[#181b21]/70 border border-white/5 text-xs text-[#9ca3af] hover:text-white transition">
+              <span id="store-order-toggle-label">Anpassa butikens avdelningsordning</span>
+              <span id="store-order-arrow">▼</span>
+            </button>
+            <div id="store-order-panel" class="hidden mt-2 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-1.5">
+              <p id="store-order-panel-desc" class="text-[11px] text-[#9ca3af] mb-2 px-1">Flytta avdelningarna så att ordningen matchar just denna butik:</p>
+              <div id="category-order-list" class="space-y-1"></div>
+            </div>
+          </div>
+
+          <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2.5 shadow-xl">
+            <!-- List Header: Title + Fullscreen Button on row 1, Clean Actions on row 2 -->
+            <div class="px-2 pb-2 space-y-2 border-b border-white/5">
+              <div class="flex items-center justify-between gap-2">
+                <h2 id="active-list-name" class="text-base font-bold text-white truncate">Inköpslista</h2>
+                <button type="button" onclick="openFullscreenList()" title="Visa listan i nästan fullskärm" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1.5 flex-shrink-0">
+                  <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                  <span>Fullskärm</span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <button onclick="openRenameListModal()" title="Döp om listan" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-[#e4e6eb] hover:bg-white/10 transition flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  <span>Döp om</span>
+                </button>
+                <div class="flex items-center gap-2">
+                  <button id="list-filter-mine" onclick="toggleOnlyMine()" class="hidden px-2.5 py-1 rounded-full bg-[#0f1115] border border-white/10 text-[11px] font-semibold text-[#9ca3af] transition">
+                    Bara mina
+                  </button>
+                  <button onclick="clearCompleted()" class="text-[11px] font-medium text-[#9ca3af] hover:text-white transition px-1.5 py-1">Rensa klara</button>
+                </div>
+              </div>
+            </div>
+            <div id="items-container" class="space-y-2">
+              <p class="text-center text-xs text-[#6b7280] py-6">Laddar listor...</p>
+            </div>
+          </div>
+        </main>
+
+        <!-- VIEW 3: MATSEDEL -->
+        <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
+          <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
+            <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
+            <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sorteras de automatiskt in i rätt butiksavdelning när du skickar dem till vald inköpslista.</p>
+          </div>
+          <div id="meals-days-container" class="space-y-3"></div>
+        </main>
+
+        <!-- VIEW 4: GRUPP & MALLAR -->
+        <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-5">
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-white">Färdiga mallpaket</h2>
+              <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">1-klick</span>
+            </div>
+            <p class="text-xs text-[#9ca3af]">Fyll på med färdiga listor för vardag, resa eller förening:</p>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+                <span class="text-base block mb-1">🧹</span>
+                <span class="text-xs font-semibold text-white block">Veckostädning</span>
+                <span class="text-[10px] text-[#9ca3af]">Rum för rum</span>
+              </button>
+              <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+                <span class="text-base block mb-1">🥛</span>
+                <span class="text-xs font-semibold text-white block">Basvaror</span>
+                <span class="text-[10px] text-[#9ca3af]">Storhandling</span>
+              </button>
+              <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+                <span class="text-base block mb-1">🎒</span>
+                <span class="text-xs font-semibold text-white block">Packlista resa</span>
+                <span class="text-[10px] text-[#9ca3af]">Stugan & helg</span>
+              </button>
+              <button onclick="applyTemplate('club')" class="p-3 rounded-2xl bg-[#0f1115] hover:bg-[#22262f] border border-white/5 text-left transition">
+                <span class="text-base block mb-1">🏆</span>
+                <span class="text-xs font-semibold text-white block">Förening & Kiosk</span>
+                <span class="text-[10px] text-[#9ca3af]">Match & städdag</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
+            <h3 class="text-sm font-semibold text-white">Gruppens namn & färgprofil</h3>
+            <form onsubmit="renameGroup(event)" class="flex gap-2">
+              <input id="rename-group-input" type="text" placeholder="T.ex. Familjen eller Fritidsföreningen..." class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-sm focus:outline-none" />
+              <button type="submit" class="px-5 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs hover:bg-[#2c313d]">Spara</button>
+            </form>
+            <div>
+              <span class="text-xs text-[#9ca3af] block mb-2">Välj accentfärg för denna grupp (så du ser skillnad på familj & förening):</span>
+              <div id="group-theme-picker" class="flex gap-3"></div>
+            </div>
+          </div>
+
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+            <h3 class="text-sm font-semibold text-white">Bjud in till aktiv grupp</h3>
+            <div class="bg-[#0f1115] rounded-2xl p-4 flex items-center justify-between border border-white/5">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-[#9ca3af] block">Inbjudningskod</span>
+                <span id="invite-code" class="text-lg font-bold text-accent tracking-widest">...</span>
+              </div>
+              <button onclick="shareInviteLink()" id="share-btn" class="px-4 py-2.5 rounded-full bg-accent text-xs font-semibold text-[#0f1115] hover:opacity-90 transition">
+                Skicka länk
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-3">
+            <h3 class="text-sm font-semibold text-white">Medlemmar & Personlig färg</h3>
+            <div id="members-list" class="space-y-2 pt-1"></div>
+            <div id="color-picker" class="flex gap-2.5 pt-2"></div>
+          </div>
+
+          <div class="bg-[#181b21] rounded-3xl p-6 border border-white/5 space-y-4">
+            <h3 class="text-sm font-semibold text-white">Anslut till befintlig grupp</h3>
+            <form onsubmit="joinGroup(event)" class="flex gap-2">
+              <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 text-xs uppercase focus:outline-none" />
+              <button type="submit" class="px-4 py-3 rounded-2xl bg-[#22262f] text-white font-semibold text-xs">Anslut</button>
+            </form>
+            <p id="join-feedback" class="text-xs hidden"></p>
+            <div class="pt-3 border-t border-white/5 flex justify-between items-center">
+              <span id="logged-in-email" class="text-xs text-[#6b7280] truncate pr-2"></span>
+              <button onclick="handleLogout()" class="text-xs text-red-400 font-semibold hover:underline flex-shrink-0">Logga ut</button>
+            </div>
+          </div>
+        </main>
+
       </div>
-    </main>
+    </div>
 
     <!-- Bottom 4-Tab Navigation -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-[#181b21]/95 backdrop-blur-lg border border-white/10 rounded-full p-1.5 flex justify-between shadow-2xl z-30">
@@ -721,12 +744,10 @@
       const availableCats = getListCategoryOrder(targetList);
       const learnedMap = (groupData && groupData.itemCategories) || {};
 
-      // 1. Exact match in group's learned memory
       if (learnedMap[key] && availableCats.includes(learnedMap[key])) {
         return { category: learnedMap[key], source: 'learned' };
       }
 
-      // 2. Partial/compound match in group's learned memory (longest learned word first)
       const sortedLearned = Object.entries(learnedMap)
         .filter(([word, cat]) => word.length >= 3 && availableCats.includes(cat))
         .sort((a, b) => b[0].length - a[0].length);
@@ -737,7 +758,6 @@
         }
       }
 
-      // 3. Built-in Swedish grocery knowledge base
       for (const entry of SORTED_KEYWORD_ENTRIES) {
         if (key === entry.word || key.includes(entry.word)) {
           if (availableCats.includes(entry.category)) {
@@ -850,47 +870,165 @@
       window.toggleItemInList(listId, itemId);
     };
 
-    // Swipe Navigation Between Main Tabs
-    let swipeStartX = 0;
-    let swipeStartY = 0;
-    let swipeStartTime = 0;
-    let swipeValid = false;
+    // Seamless Interactive Tab Pager & Swipe Engine
+    const tabsViewport = document.getElementById('tabs-viewport');
+    const tabsTrack = document.getElementById('tabs-track');
+    let pagerState = {
+      active: false,
+      locked: null, // 'horizontal' | 'vertical' | null
+      startX: 0,
+      startY: 0,
+      lastDx: 0,
+      startTime: 0,
+      width: 0
+    };
 
-    const appShellEl = document.getElementById('app-shell');
-    appShellEl.addEventListener('touchstart', (e) => {
+    function updateNavButtons(tab) {
+      TAB_ORDER.forEach(t => {
+        const navBtn = document.getElementById(`nav-${t}`);
+        navBtn.className = t === tab
+          ? 'flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition'
+          : 'flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition';
+      });
+    }
+
+    function expandVisiblePanes(indices) {
+      TAB_ORDER.forEach((t, i) => {
+        const pane = document.getElementById(`view-${t}`);
+        if (indices.includes(i)) {
+          pane.classList.remove('tab-pane-collapsed');
+        } else {
+          pane.classList.add('tab-pane-collapsed');
+        }
+      });
+    }
+
+    tabsTrack.addEventListener('transitionend', (e) => {
+      if (e.target !== tabsTrack || e.propertyName !== 'transform') return;
+      const activeIdx = TAB_ORDER.indexOf(currentTab);
+      expandVisiblePanes([activeIdx]);
+    });
+
+    window.switchTab = function(tab, animate = true) {
+      const prevIdx = TAB_ORDER.indexOf(currentTab);
+      const nextIdx = TAB_ORDER.indexOf(tab);
+      if (nextIdx === -1) return;
+
+      currentTab = tab;
+      updateNavButtons(tab);
+
+      if (prevIdx !== nextIdx) {
+        expandVisiblePanes([prevIdx, nextIdx]);
+        if (window.scrollY > 90) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else {
+        expandVisiblePanes([nextIdx]);
+      }
+
+      tabsTrack.style.transition = animate
+        ? 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
+        : 'none';
+      tabsTrack.style.transform = `translate3d(-${nextIdx * 25}%, 0, 0)`;
+
+      if (!animate) {
+        expandVisiblePanes([nextIdx]);
+      }
+    };
+
+    tabsViewport.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1) {
-        swipeValid = false;
+        pagerState.active = false;
         return;
       }
-      // Block tab swipe if any modal is open or user is scrolling a horizontal container / typing
       const anyModalOpen = Array.from(document.querySelectorAll('.fixed.inset-0')).some(el => !el.classList.contains('hidden'));
       if (anyModalOpen || e.target.closest('.no-scrollbar') || e.target.closest('input, textarea, select')) {
-        swipeValid = false;
+        pagerState.active = false;
         return;
       }
-      swipeValid = true;
-      swipeStartX = e.touches[0].clientX;
-      swipeStartY = e.touches[0].clientY;
-      swipeStartTime = Date.now();
+
+      pagerState.active = true;
+      pagerState.locked = null;
+      pagerState.startX = e.touches[0].clientX;
+      pagerState.startY = e.touches[0].clientY;
+      pagerState.lastDx = 0;
+      pagerState.startTime = Date.now();
+      pagerState.width = tabsViewport.offsetWidth || window.innerWidth;
     }, { passive: true });
 
-    appShellEl.addEventListener('touchend', (e) => {
-      if (!swipeValid || !e.changedTouches || e.changedTouches.length !== 1) return;
-      swipeValid = false;
+    tabsViewport.addEventListener('touchmove', (e) => {
+      if (!pagerState.active || e.touches.length !== 1) return;
 
-      const dx = e.changedTouches[0].clientX - swipeStartX;
-      const dy = e.changedTouches[0].clientY - swipeStartY;
-      const elapsed = Date.now() - swipeStartTime;
+      const dx = e.touches[0].clientX - pagerState.startX;
+      const dy = e.touches[0].clientY - pagerState.startY;
 
-      if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.6 && elapsed < 600) {
-        const idx = TAB_ORDER.indexOf(currentTab);
-        if (dx < 0 && idx < TAB_ORDER.length - 1) {
-          window.switchTab(TAB_ORDER[idx + 1]);
-        } else if (dx > 0 && idx > 0) {
-          window.switchTab(TAB_ORDER[idx - 1]);
+      if (!pagerState.locked) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dx) > Math.abs(dy) * 1.15) {
+          pagerState.locked = 'horizontal';
+          window.cancelLongPress();
+          const currentIdx = TAB_ORDER.indexOf(currentTab);
+          const toExpand = [currentIdx];
+          if (currentIdx > 0) toExpand.push(currentIdx - 1);
+          if (currentIdx < TAB_ORDER.length - 1) toExpand.push(currentIdx + 1);
+          expandVisiblePanes(toExpand);
+          tabsTrack.style.transition = 'none';
+        } else {
+          pagerState.locked = 'vertical';
+          pagerState.active = false;
+          return;
         }
       }
-    }, { passive: true });
+
+      if (pagerState.locked === 'horizontal') {
+        if (e.cancelable) e.preventDefault();
+        pagerState.lastDx = dx;
+        const currentIdx = TAB_ORDER.indexOf(currentTab);
+        let adjustedDx = dx;
+
+        // Rubber-band resistance at first and last tab edges
+        if ((currentIdx === 0 && dx > 0) || (currentIdx === TAB_ORDER.length - 1 && dx < 0)) {
+          adjustedDx = dx * 0.28;
+        }
+
+        const baseOffsetPx = -currentIdx * pagerState.width;
+        tabsTrack.style.transform = `translate3d(${baseOffsetPx + adjustedDx}px, 0, 0)`;
+      }
+    }, { passive: false });
+
+    function finishPagerSwipe() {
+      if (!pagerState.active) return;
+      const wasHorizontal = pagerState.locked === 'horizontal';
+      const dx = pagerState.lastDx;
+      const width = pagerState.width || window.innerWidth;
+      const elapsed = Math.max(1, Date.now() - pagerState.startTime);
+      const velocity = Math.abs(dx) / elapsed;
+
+      pagerState.active = false;
+      pagerState.locked = null;
+
+      if (!wasHorizontal) return;
+
+      if (Math.abs(dx) > 10) {
+        suppressNextClick = true;
+        setTimeout(() => { suppressNextClick = false; }, 120);
+      }
+
+      const currentIdx = TAB_ORDER.indexOf(currentTab);
+      const threshold = width * 0.22;
+      let targetIdx = currentIdx;
+
+      if ((dx < -threshold || (dx < -35 && velocity > 0.35)) && currentIdx < TAB_ORDER.length - 1) {
+        targetIdx = currentIdx + 1;
+      } else if ((dx > threshold || (dx > 35 && velocity > 0.35)) && currentIdx > 0) {
+        targetIdx = currentIdx - 1;
+      }
+
+      window.switchTab(TAB_ORDER[targetIdx], true);
+    }
+
+    tabsViewport.addEventListener('touchend', finishPagerSwipe, { passive: true });
+    tabsViewport.addEventListener('touchcancel', finishPagerSwipe, { passive: true });
 
     function showToast(msg) {
       const el = document.getElementById('toast-banner');
@@ -1471,7 +1609,6 @@
         if (snapshot.exists()) {
           groupData = snapshot.data();
 
-          // Automatically train memory from any existing categorized items in shopping lists
           const existingMem = groupData.itemCategories || {};
           const learnedAdditions = {};
           (groupData.lists || []).forEach(l => {
@@ -1551,17 +1688,6 @@
       if (!currentGroupId) return;
       await updateDoc(doc(db, 'groups', currentGroupId), { themeAccent: hex });
       showToast('Färgprofil uppdaterad');
-    };
-
-    window.switchTab = function(tab) {
-      currentTab = tab;
-      TAB_ORDER.forEach(t => {
-        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tab);
-        const navBtn = document.getElementById(`nav-${t}`);
-        navBtn.className = t === tab
-          ? 'flex-1 py-2.5 rounded-full text-[11px] font-semibold bg-accent text-[#0f1115] transition'
-          : 'flex-1 py-2.5 rounded-full text-[11px] font-semibold text-[#9ca3af] hover:text-white transition';
-      });
     };
 
     window.openShoppingList = function() {
@@ -1661,7 +1787,6 @@
         newItem.category = chosenCategory;
         document.getElementById('new-item-qty').value = '';
 
-        // Save item -> category mapping into group memory for future use
         const key = normalizeItemKey(text);
         if (key && chosenCategory) {
           extraFields.itemCategories = {
@@ -1775,7 +1900,6 @@
       arrow.textContent = isHidden ? '▼' : '▲';
     };
 
-    // Move category specifically for the currently active shopping list
     window.moveCategory = async function(index, direction) {
       if (!groupData) return;
       const activeList = groupData.lists.find(l => l.id === activeListId);
@@ -2213,7 +2337,6 @@
       const listHtml = buildRenderedItemsHtml(items, members, isShopping, activeList.id, categoryOrder);
       document.getElementById('items-container').innerHTML = listHtml;
 
-      // Sync Fullscreen List Modal if currently open
       if (isFullscreenListOpen) {
         const remainingCount = items.filter(i => !i.done).length;
         document.getElementById('fullscreen-list-title').textContent = activeList.name;
