@@ -255,9 +255,12 @@
       </div>
 
       <div class="bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-2 shadow-xl">
-        <div class="flex justify-between items-center px-2 pb-1">
-          <div class="flex items-center gap-2 min-w-0">
+        <div class="flex justify-between items-center px-2 pb-1 gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
             <span id="active-list-name" class="text-sm font-semibold text-white truncate">Inköpslista</span>
+            <button onclick="openRenameListModal()" title="Döp om listan" class="p-1.5 rounded-full bg-white/5 border border-white/10 text-[#9ca3af] hover:text-white hover:bg-white/10 transition flex-shrink-0">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
             <button onclick="requestDeleteCurrentList()" title="Ta bort hela listan" class="px-2 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[11px] font-medium text-red-400 hover:bg-red-500/20 transition flex items-center gap-1 flex-shrink-0">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               <span>Ta bort</span>
@@ -377,6 +380,38 @@
         Grupp
       </button>
     </nav>
+  </div>
+
+  <!-- MODAL: RENAME LIST -->
+  <div id="rename-list-modal" onclick="if(event.target === this) closeRenameListModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <form onsubmit="saveRenamedList(event)" class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white">Döp om listan</h3>
+        <button type="button" onclick="closeRenameListModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div>
+        <label class="text-xs text-[#9ca3af] block mb-1.5">Nytt namn på listan</label>
+        <input id="rename-list-input" type="text" required placeholder="T.ex. Storhandling..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" onclick="closeRenameListModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
+        <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Spara namn</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- MODAL: EDIT RECURRENCE FOR EXISTING ITEM -->
+  <div id="recurrence-modal" onclick="if(event.target === this) closeRecurrenceModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <div class="min-w-0 pr-2">
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Upprepning</span>
+          <h3 id="recurrence-modal-item-title" class="text-sm font-bold text-white truncate mt-0.5">Punkt</h3>
+        </div>
+        <button type="button" onclick="closeRecurrenceModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div id="recurrence-options-list" class="space-y-2"></div>
+    </div>
   </div>
 
   <!-- MODAL: ASSIGN TASK TO MEMBER -->
@@ -505,6 +540,14 @@
       { name: "Korall", hex: "#fb923c" }
     ];
 
+    const RECURRENCE_OPTIONS = [
+      { value: "none", label: "Engångs (tas bort vid rensning)", badgeText: "Engångs", badgeClass: "bg-white/5 text-[#6b7280] hover:text-[#9ca3af]" },
+      { value: "weekly", label: "↻ Återkommande (varje gång)", badgeText: "↻ Varje", badgeClass: "bg-accent/15 text-accent" },
+      { value: "odd", label: "↻ Udda veckor", badgeText: "↻ Udda v.", badgeClass: "bg-[#fbbf24]/15 text-[#fbbf24]" },
+      { value: "even", label: "↻ Jämna veckor", badgeText: "↻ Jämn v.", badgeClass: "bg-[#38bdf8]/15 text-[#38bdf8]" },
+      { value: "rotating", label: "↻👤 Rullande ansvar mellan medlemmar", badgeText: "↻👤 Rullande", badgeClass: "bg-[#f472b6]/15 text-[#f472b6]" }
+    ];
+
     const WEEKDAYS = [
       { key: "mon", label: "Måndag" },
       { key: "tue", label: "Tisdag" },
@@ -525,6 +568,7 @@
     let editingMealDay = null;
     let pendingDeleteCallback = null;
     let assigningTarget = null;
+    let recurrenceTarget = null;
 
     function showToast(msg) {
       const el = document.getElementById('toast-banner');
@@ -533,6 +577,102 @@
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
+
+    // Rename Active List Modal
+    window.openRenameListModal = function() {
+      if (!groupData) return;
+      const activeList = groupData.lists.find(l => l.id === activeListId);
+      if (!activeList) return;
+      const input = document.getElementById('rename-list-input');
+      input.value = activeList.name;
+      document.getElementById('rename-list-modal').classList.remove('hidden');
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 50);
+    };
+
+    window.closeRenameListModal = function() {
+      document.getElementById('rename-list-modal').classList.add('hidden');
+    };
+
+    window.saveRenamedList = async function(e) {
+      e.preventDefault();
+      if (!groupData) return;
+      const newName = document.getElementById('rename-list-input').value.trim();
+      if (!newName) return;
+
+      window.closeRenameListModal();
+      const updatedLists = groupData.lists.map(l => 
+        l.id === activeListId ? { ...l, name: newName } : l
+      );
+      await saveListsToCloud(updatedLists);
+      showToast(`Bytte namn till "${newName}"`);
+    };
+
+    // Edit Recurrence Modal for Existing Item
+    window.openRecurrenceModal = function(e, listId, itemId) {
+      e.stopPropagation();
+      if (!groupData) return;
+      const targetList = groupData.lists.find(l => l.id === listId);
+      const item = targetList?.items?.find(i => i.id === itemId);
+      if (!item) return;
+
+      const isShopping = targetList.type === 'shopping' || targetList.id === 'inkop';
+      const currentRec = item.recurrence || (item.recurring ? 'weekly' : 'none');
+
+      recurrenceTarget = { listId, itemId };
+      document.getElementById('recurrence-modal-item-title').textContent = item.text;
+
+      const optionsEl = document.getElementById('recurrence-options-list');
+      const availableOptions = isShopping
+        ? RECURRENCE_OPTIONS.filter(o => o.value !== 'rotating')
+        : RECURRENCE_OPTIONS;
+
+      optionsEl.innerHTML = availableOptions.map(opt => {
+        const isSelected = currentRec === opt.value;
+        return `
+          <button type="button" onclick="selectItemRecurrence('${opt.value}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+            isSelected ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#e4e6eb] hover:bg-[#22262f]'
+          }">
+            <span>${opt.label}</span>
+            ${isSelected ? '<span class="text-accent">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('recurrence-modal').classList.remove('hidden');
+    };
+
+    window.closeRecurrenceModal = function() {
+      document.getElementById('recurrence-modal').classList.add('hidden');
+      recurrenceTarget = null;
+    };
+
+    window.selectItemRecurrence = async function(recValue) {
+      if (!groupData || !recurrenceTarget) return;
+      const { listId, itemId } = recurrenceTarget;
+      window.closeRecurrenceModal();
+
+      const updatedLists = groupData.lists.map(l => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map(i => {
+            if (i.id !== itemId) return i;
+            return {
+              ...i,
+              recurrence: recValue,
+              recurring: recValue !== 'none'
+            };
+          })
+        };
+      });
+
+      await saveListsToCloud(updatedLists);
+      const chosen = RECURRENCE_OPTIONS.find(o => o.value === recValue);
+      showToast(`Upprepning: ${chosen ? chosen.badgeText : recValue}`);
+    };
 
     // Assign / Re-assign Task Modal
     window.openAssignModal = function(e, listId, itemId) {
@@ -1287,13 +1427,14 @@
       showToast('Gruppnamn sparat');
     };
 
-    function getRecurrenceBadge(item) {
+    function getRecurrenceBadge(item, targetListId) {
       const rec = item.recurrence || (item.recurring ? 'weekly' : 'none');
-      if (rec === 'odd') return `<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#fbbf24]">Udda v.</span>`;
-      if (rec === 'even') return `<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#38bdf8]">Jämn v.</span>`;
-      if (rec === 'rotating') return `<span title="Rullande ansvar" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#f472b6]">↻👤 Rullande</span>`;
-      if (rec === 'weekly') return `<span title="Återkommande" class="text-xs text-accent">↻</span>`;
-      return '';
+      const opt = RECURRENCE_OPTIONS.find(o => o.value === rec) || RECURRENCE_OPTIONS[0];
+      return `
+        <button type="button" onclick="openRecurrenceModal(event, '${targetListId}', ${item.id})" title="Ändra upprepning" class="text-[10px] font-medium px-2 py-0.5 rounded-full transition ${opt.badgeClass}">
+          ${opt.badgeText}
+        </button>
+      `;
     }
 
     function renderItemRow(item, members, isShopping, targetListId, isDashboard = false) {
@@ -1311,7 +1452,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${item.text}</span>
               ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${item.qty}</span>` : ''}
-              ${getRecurrenceBadge(item)}
+              ${getRecurrenceBadge(item, targetListId)}
             </div>
           </div>
 
