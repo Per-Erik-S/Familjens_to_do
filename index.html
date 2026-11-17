@@ -213,6 +213,7 @@
           <input 
             id="new-item-input"
             type="text" 
+            oninput="handleNewItemTyping(this.value)"
             placeholder="Vad ska läggas till?" 
             class="flex-1 bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/5 focus:outline-none focus:border-accent/50 text-sm"
           />
@@ -225,7 +226,7 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <select id="new-item-category" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
+          <select id="new-item-category" onchange="handleManualCategoryChange()" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none"></select>
 
           <select id="new-item-assignee" class="flex-1 min-w-[120px] bg-[#0f1115] text-[#e4e6eb] px-3.5 py-2.5 rounded-2xl border border-white/5 text-xs focus:outline-none hidden"></select>
 
@@ -241,15 +242,21 @@
             Lägg till
           </button>
         </div>
+
+        <!-- Live indicator when category was auto-guessed or recalled from memory -->
+        <div id="category-auto-hint" class="hidden px-2 pt-0.5 flex items-center gap-1.5 text-[11px] text-accent">
+          <span id="category-auto-icon">✨</span>
+          <span id="category-auto-text">Valde avdelning automatiskt</span>
+        </div>
       </form>
 
       <div id="store-order-wrapper" class="hidden">
         <button onclick="toggleStoreOrderPanel()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-[#181b21]/70 border border-white/5 text-xs text-[#9ca3af] hover:text-white transition">
-          <span>Anpassa butikens avdelningsordning</span>
+          <span id="store-order-toggle-label">Anpassa butikens avdelningsordning</span>
           <span id="store-order-arrow">▼</span>
         </button>
         <div id="store-order-panel" class="hidden mt-2 bg-[#181b21] rounded-3xl p-4 border border-white/5 space-y-1.5">
-          <p class="text-[11px] text-[#9ca3af] mb-2 px-1">Flytta avdelningarna så att listan matchar hur du går i din matbutik:</p>
+          <p id="store-order-panel-desc" class="text-[11px] text-[#9ca3af] mb-2 px-1">Flytta avdelningarna så att ordningen matchar just denna butik:</p>
           <div id="category-order-list" class="space-y-1"></div>
         </div>
       </div>
@@ -287,7 +294,7 @@
     <main id="view-meals" class="px-5 pt-4 flex-1 space-y-4 hidden">
       <div class="bg-[#181b21] rounded-3xl p-5 border border-white/5 space-y-1">
         <h2 class="text-base font-bold text-white">Veckans matsedel</h2>
-        <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så kan du skicka hela middagen rakt till inköpslistan.</p>
+        <p class="text-xs text-[#9ca3af]">Lägg in rätter och ingredienser så sorteras de automatiskt in i rätt butiksavdelning när du skickar dem till inköpslistan.</p>
       </div>
       <div id="meals-days-container" class="space-y-3"></div>
     </main>
@@ -395,13 +402,27 @@
       </div>
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1.5">Nytt namn på listan</label>
-        <input id="rename-list-input" type="text" required placeholder="T.ex. Storhandling..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <input id="rename-list-input" type="text" required placeholder="T.ex. Inköpslista - Ica..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
       </div>
       <div class="flex gap-2 pt-1">
         <button type="button" onclick="closeRenameListModal()" class="flex-1 py-3 rounded-full bg-[#0f1115] text-[#9ca3af] font-semibold text-xs hover:text-white transition">Avbryt</button>
         <button type="submit" class="flex-1 py-3 rounded-full bg-accent text-[#0f1115] font-semibold text-xs hover:opacity-90 transition">Spara namn</button>
       </div>
     </form>
+  </div>
+
+  <!-- MODAL: CHANGE CATEGORY FOR EXISTING SHOPPING ITEM -->
+  <div id="category-modal" onclick="if(event.target === this) closeCategoryModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#181b21] border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <div class="min-w-0 pr-2">
+          <span class="text-[11px] uppercase tracking-wider text-[#9ca3af] block">Välj avdelning (sparas till nästa gång)</span>
+          <h3 id="category-modal-item-title" class="text-sm font-bold text-white truncate mt-0.5">Vara</h3>
+        </div>
+        <button type="button" onclick="closeCategoryModal()" class="text-[#9ca3af] hover:text-white text-sm p-1">✕</button>
+      </div>
+      <div id="category-options-list" class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar"></div>
+    </div>
   </div>
 
   <!-- MODAL: EDIT RECURRENCE FOR EXISTING ITEM -->
@@ -462,13 +483,13 @@
       </div>
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1.5">Namn på listan</label>
-        <input id="new-list-name" type="text" required placeholder="T.ex. Helgstädning, Apotek eller Kiosk..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
+        <input id="new-list-name" type="text" required placeholder="T.ex. Inköpslista - Willys..." class="w-full bg-[#0f1115] text-white placeholder-[#6b7280] px-4 py-3 rounded-2xl border border-white/10 text-sm focus:outline-none focus:border-accent/50" />
       </div>
       <div>
         <label class="text-xs text-[#9ca3af] block mb-1.5">Typ av lista</label>
         <select id="new-list-type" class="w-full bg-[#0f1115] text-white px-4 py-3 rounded-2xl border border-white/10 text-xs focus:outline-none">
+          <option value="shopping">Inköpslista (med egen butiksordning & antal)</option>
           <option value="todo">Sysslor / Punkter (med tilldelning & rullande)</option>
-          <option value="shopping">Inköpslista (med antal & butiksordning)</option>
         </select>
       </div>
       <div class="flex gap-2 pt-1">
@@ -535,6 +556,141 @@
       "Övrigt"
     ];
 
+    // Built-in Swedish Grocery & Household Knowledge Base
+    const SWEDISH_GROCERY_MAP = {
+      "Frukt & Grönt": [
+        "äpple", "äpplen", "banan", "bananer", "päron", "apelsin", "apelsiner", "clementin", "clementiner",
+        "satsumas", "mandarin", "citron", "citroner", "lime", "vindruvor", "jordgubbar", "blåbär", "hallon",
+        "melon", "vattenmelon", "honungsmelon", "avokado", "avocado", "mango", "ananas", "kiwi", "plommon",
+        "nektarin", "persika", "tomat", "tomater", "körsbärstomat", "gurka", "paprika", "sallad", "isbergssallad",
+        "ruccola", "spenat", "bladspenat", "grönkål", "lök", "rödlök", "gul lök", "vitlök", "purjolök",
+        "salladslök", "potatis", "färskpotatis", "sötpotatis", "morot", "morötter", "broccoli", "blomkål",
+        "vitkål", "rödkål", "spetskål", "zucchini", "aubergine", "svamp", "champinjoner", "kantareller",
+        "ingefära", "chili", "jalapeno", "basilika", "persilja", "dill", "gräslök", "koriander", "mynta",
+        "rädisor", "selleri", "blekselleri", "rotselleri", "palsternacka", "rödbetor", "sparris", "majskolv"
+      ],
+      "Bröd & Bageri": [
+        "bröd", "limpa", "formfranska", "rostbröd", "polarbröd", "tunnbröd", "knäckebröd", "tekaka",
+        "tekakor", "fralla", "frallor", "ciabatta", "baguette", "tortillabröd", "tortilla", "pitabröd",
+        "korvbröd", "hamburgerbröd", "kanelbulle", "kanelbullar", "bulle", "bullar", "sockerkaka",
+        "kex", "skorpor", "kavring", "surdegsbröd", "rågbröd", "hönökaka", "lingongrova", "pågen"
+      ],
+      "Mejeri & Ost": [
+        "mjölk", "mellanmjölk", "lättmjölk", "standardmjölk", "havredryck", "havremjölk", "sojadryck",
+        "mandeldryck", "oatly", "fil", "filmjölk", "yoghurt", "turkisk yoghurt", "grekisk yoghurt",
+        "kvarg", "keso", "grädde", "vispgrädde", "matlagningsgrädde", "gräddfil", "crème fraiche",
+        "creme fraiche", "smör", "bregott", "margarin", "lätta", "becel", "ost", "hushållsost",
+        "prästost", "herrgårdsost", "grevé", "riven ost", "mozzarella", "fetaost", "halloumi",
+        "parmesan", "färskost", "philadelphia", "brie", "ädelost", "ägg", "jäst", "torrjäst", "risifrutti"
+      ],
+      "Kött, Fisk & Vego": [
+        "köttfärs", "blandfärs", "nötfärs", "fläskfärs", "kycklingfärs", "kyckling", "kycklingfilé",
+        "kycklinglår", "kycklingvingar", "hel kyckling", "korv", "falukorv", "grillkorv", "prinskorv",
+        "chorizo", "bacon", "skinka", "kokt skinka", "rökt skinka", "pålägg", "leverpastej", "salami",
+        "kalkon", "fläskfilé", "fläskkotlett", "kotlett", "karré", "fläskkarré", "entrecote", "ryggbiff",
+        "oxfilé", "högrev", "köttbullar", "hamburgare", "kassler", "revbensspjäll", "blodpudding",
+        "fisk", "lax", "laxfilé", "gravad lax", "rökt lax", "torsk", "torskfilé", "sej", "kolja",
+        "sill", "matjessill", "räkor", "kräftstjärtar", "fiskpinnar", "tonfisk", "makrill", "kaviar",
+        "tofu", "quorn", "oumph", "falafel", "vegofärs", "sojakorv", "vegobullar", "tempeh"
+      ],
+      "Skafferi": [
+        "pasta", "spagetti", "spaghetti", "makaroner", "penne", "fusilli", "tagliatelle", "lasagneplattor",
+        "ris", "jasminris", "basmatiris", "risottoris", "grötris", "couscous", "bulgur", "quinoa",
+        "nudlar", "äggnudlar", "ramen", "mjöl", "vetemjöl", "rågmjöl", "grahamsmjöl", "potatismjöl",
+        "maizena", "socker", "strösocker", "florsocker", "farinsocker", "pärlsocker", "salt", "peppar",
+        "svartpeppar", "krydda", "kryddor", "kanel", "kardemumma", "bakpulver", "vaniljsocker",
+        "havregryn", "müsli", "granola", "flingor", "cornflakes", "kaffe", "bryggkaffe", "snabbkaffe",
+        "kaffefilter", "te", "tepåsar", "kakao", "oboy", "olja", "olivolja", "rapsolja", "solrosolja",
+        "vinäger", "balsamvinäger", "soja", "japansk soja", "krossade tomater", "passerade tomater",
+        "tomatpuré", "bönor", "svarta bönor", "kidneybönor", "vita bönor", "kikärtor", "linser",
+        "röda linser", "majs", "majsburk", "kokosmjölk", "tacosås", "salsa", "tacokrydda", "nachos",
+        "ketchup", "senap", "majonnäs", "remouladsås", "dressing", "sylt", "lingonsylt", "jordgubbssylt",
+        "äppelmos", "marmelad", "honung", "jordnötssmör", "nutella", "buljong", "grönsaksbuljong",
+        "köttbuljong", "hönsbuljong", "fond", "ströpanko", "ströbröd", "russin", "soltorkade tomater", "oliver"
+      ],
+      "Frys": [
+        "fryst", "frysta", "glass", "piggelin", "gb glass", "pyttipanna", "pommes", "pommes frites",
+        "klyftpotatis", "frysta bär", "frysta hallon", "frysta blåbär", "frysta ärtor", "ärtor",
+        "fryst broccoli", "fryst spenat", "fryst pizza", "fryspizza", "våfflor",
+        "pannkakor", "fryst lax", "fryst kyckling", "frysta räkor", "kroketter", "langos"
+      ],
+      "Dryck & Snacks": [
+        "vatten", "mineralvatten", "bubbelvatten", "loka", "ramlösa", "läsk", "cola", "coca-cola",
+        "pepsi", "fanta", "sprite", "7up", "julmust", "påskmust", "trocadero", "pommac", "saft",
+        "blandsaft", "juice", "apelsinjuice", "äppeljuice", "smoothie", "energidryck", "red bull",
+        "nocco", "öl", "folköl", "lättöl", "alkoholfri öl", "cider", "chips", "ostbågar", "popcorn",
+        "nötter", "jordnötter", "cashewnötter", "valnötter", "mandel", "pistagenötter", "godis",
+        "lösgodis", "choklad", "marabou", "kexchoklad", "lakrits", "salta pinnar", "dipmix"
+      ],
+      "Hygien & Hem": [
+        "toapapper", "toalettpapper", "hushållspapper", "tvättmedel", "sköljmedel", "diskmedel",
+        "yes", "maskindisk", "disktabletter", "spolglans", "tvål", "handtvål", "duschcreme",
+        "duschtvål", "schampo", "balsam", "tandkräm", "tandborste", "tandtråd", "munskölj",
+        "deodorant", "deo", "rakhyvel", "raklödder", "hudkräm", "handkräm", "tops", "bomull",
+        "bomullspads", "bindor", "tamponger", "trosskydd", "blöjor", "våtservetter", "näsdukar",
+        "soppåsar", "avfallspåsar", "plastfolie", "aluminiumfolie", "bakplåtspapper", "fryspåsar",
+        "diskborste", "disktrasa", "svamp", "rengöringsmedel", "ajax", "klorin", "fönsterputs",
+        "ljus", "värmeljus", "kronljus", "tändstickor", "batterier", "glödlampa", "kattmat",
+        "hundmat", "kattsand", "hundbajspåsar"
+      ]
+    };
+
+    const SORTED_KEYWORD_ENTRIES = Object.entries(SWEDISH_GROCERY_MAP)
+      .flatMap(([category, words]) => words.map(word => ({ word: word.toLowerCase(), category })))
+      .sort((a, b) => b.word.length - a.word.length);
+
+    function getListCategoryOrder(list) {
+      if (list && Array.isArray(list.categoryOrder) && list.categoryOrder.length > 0) {
+        return list.categoryOrder;
+      }
+      if (groupData && Array.isArray(groupData.categoryOrder) && groupData.categoryOrder.length > 0) {
+        return groupData.categoryOrder;
+      }
+      return [...DEFAULT_CATEGORIES];
+    }
+
+    function normalizeItemKey(rawText) {
+      if (!rawText) return '';
+      let cleaned = rawText.trim().toLowerCase();
+      cleaned = cleaned.replace(/^\d+([.,]\d+)?\s*(g|kg|hg|ml|cl|dl|l|st|förp|pkt|burk|burkar|msk|tsk|krm)?\s+/i, '');
+      return cleaned.replace(/[^a-zåäö0-9\s-]/g, '').trim();
+    }
+
+    function detectCategoryForItem(rawText, targetList = null) {
+      const key = normalizeItemKey(rawText);
+      if (!key) return null;
+
+      const availableCats = getListCategoryOrder(targetList);
+      const learnedMap = (groupData && groupData.itemCategories) || {};
+
+      // 1. Exact match in group's learned memory
+      if (learnedMap[key] && availableCats.includes(learnedMap[key])) {
+        return { category: learnedMap[key], source: 'learned' };
+      }
+
+      // 2. Partial/compound match in group's learned memory (longest learned word first)
+      const sortedLearned = Object.entries(learnedMap)
+        .filter(([word, cat]) => word.length >= 3 && availableCats.includes(cat))
+        .sort((a, b) => b[0].length - a[0].length);
+
+      for (const [word, cat] of sortedLearned) {
+        if (key.includes(word) || (key.length >= 3 && word.includes(key))) {
+          return { category: cat, source: 'learned' };
+        }
+      }
+
+      // 3. Built-in Swedish grocery knowledge base
+      for (const entry of SORTED_KEYWORD_ENTRIES) {
+        if (key === entry.word || key.includes(entry.word)) {
+          if (availableCats.includes(entry.category)) {
+            return { category: entry.category, source: 'smart' };
+          }
+        }
+      }
+
+      return null;
+    }
+
     const MEMBER_COLORS = ["#81c784", "#a5b4fc", "#f472b6", "#fbbf24", "#38bdf8", "#fb923c"];
     const GROUP_ACCENTS = [
       { name: "Salvia (Familj)", hex: "#81c784" },
@@ -573,6 +729,8 @@
     let pendingDeleteCallback = null;
     let assigningTarget = null;
     let recurrenceTarget = null;
+    let categoryTarget = null;
+    let userManuallySelectedCategory = false;
 
     function showToast(msg) {
       const el = document.getElementById('toast-banner');
@@ -581,6 +739,105 @@
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
     }
+
+    // Live Category Prediction while typing in shopping list
+    window.handleNewItemTyping = function(val) {
+      if (!groupData) return;
+      const activeList = groupData.lists.find(l => l.id === activeListId);
+      const isShopping = activeList && (activeList.type === 'shopping' || activeList.id === 'inkop');
+      const hintEl = document.getElementById('category-auto-hint');
+
+      if (!isShopping || !val.trim()) {
+        userManuallySelectedCategory = false;
+        hintEl.classList.add('hidden');
+        return;
+      }
+
+      if (userManuallySelectedCategory) return;
+
+      const detected = detectCategoryForItem(val, activeList);
+      if (detected) {
+        const catSelect = document.getElementById('new-item-category');
+        catSelect.value = detected.category;
+        document.getElementById('category-auto-icon').textContent = detected.source === 'learned' ? '🧠' : '✨';
+        document.getElementById('category-auto-text').textContent = detected.source === 'learned'
+          ? `Hämtat från tidigare val: ${detected.category}`
+          : `Föreslagen avdelning: ${detected.category}`;
+        hintEl.classList.remove('hidden');
+      } else {
+        hintEl.classList.add('hidden');
+      }
+    };
+
+    window.handleManualCategoryChange = function() {
+      userManuallySelectedCategory = true;
+      const hintEl = document.getElementById('category-auto-hint');
+      const catVal = document.getElementById('new-item-category').value;
+      if (document.getElementById('new-item-input').value.trim()) {
+        document.getElementById('category-auto-icon').textContent = '💾';
+        document.getElementById('category-auto-text').textContent = `Sparas under "${catVal}" till nästa gång`;
+        hintEl.classList.remove('hidden');
+      }
+    };
+
+    // Change Category Modal for Existing Shopping Item (also updates memory)
+    window.openCategoryModal = function(e, listId, itemId) {
+      e.stopPropagation();
+      if (!groupData) return;
+      const targetList = groupData.lists.find(l => l.id === listId);
+      const item = targetList?.items?.find(i => i.id === itemId);
+      if (!item) return;
+
+      categoryTarget = { listId, itemId, text: item.text };
+      document.getElementById('category-modal-item-title').textContent = item.text;
+
+      const categoryOrder = getListCategoryOrder(targetList);
+      const currentCat = item.category || 'Övrigt';
+      const optionsEl = document.getElementById('category-options-list');
+
+      optionsEl.innerHTML = categoryOrder.map(cat => {
+        const isSelected = currentCat === cat;
+        return `
+          <button type="button" onclick="selectItemCategory('${cat}')" class="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-xs font-semibold transition ${
+            isSelected ? 'bg-accent/15 border-accent/40 text-white' : 'bg-[#0f1115] border-white/5 text-[#e4e6eb] hover:bg-[#22262f]'
+          }">
+            <span>${cat}</span>
+            ${isSelected ? '<span class="text-accent">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('category-modal').classList.remove('hidden');
+    };
+
+    window.closeCategoryModal = function() {
+      document.getElementById('category-modal').classList.add('hidden');
+      categoryTarget = null;
+    };
+
+    window.selectItemCategory = async function(newCat) {
+      if (!groupData || !categoryTarget || !currentGroupId) return;
+      const { listId, itemId, text } = categoryTarget;
+      window.closeCategoryModal();
+
+      const updatedLists = groupData.lists.map(l => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          items: l.items.map(i => i.id === itemId ? { ...i, category: newCat } : i)
+        };
+      });
+
+      const key = normalizeItemKey(text);
+      const updatedMemory = { ...(groupData.itemCategories || {}) };
+      if (key) updatedMemory[key] = newCat;
+
+      await updateDoc(doc(db, 'groups', currentGroupId), {
+        lists: updatedLists,
+        itemCategories: updatedMemory
+      });
+      showToast(`Flyttad till ${newCat} (sparat!)`);
+    };
 
     // Rename Active List Modal
     window.openRenameListModal = function() {
@@ -859,6 +1116,7 @@
           themeAccent: '#81c784',
           createdAt: Date.now(),
           categoryOrder: [...DEFAULT_CATEGORIES],
+          itemCategories: { "mjölk": "Mejeri & Ost" },
           members: { [user.uid]: { name: displayName, color: MEMBER_COLORS[0] } },
           meals: {},
           lists: [
@@ -866,6 +1124,7 @@
               id: 'inkop',
               name: 'Inköpslista',
               type: 'shopping',
+              categoryOrder: [...DEFAULT_CATEGORIES],
               items: [
                 { id: 1, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurring: true, done: false }
               ]
@@ -996,6 +1255,28 @@
       unsubscribeGroup = onSnapshot(doc(db, 'groups', code), (snapshot) => {
         if (snapshot.exists()) {
           groupData = snapshot.data();
+
+          // Automatically train memory from any existing categorized items in shopping lists
+          const existingMem = groupData.itemCategories || {};
+          const learnedAdditions = {};
+          (groupData.lists || []).forEach(l => {
+            if (l.type === 'shopping' || l.id === 'inkop') {
+              (l.items || []).forEach(item => {
+                if (item.category && item.category !== 'Övrigt') {
+                  const k = normalizeItemKey(item.text);
+                  if (k && !existingMem[k] && !learnedAdditions[k]) {
+                    learnedAdditions[k] = item.category;
+                  }
+                }
+              });
+            }
+          });
+          if (Object.keys(learnedAdditions).length > 0) {
+            updateDoc(doc(db, 'groups', code), {
+              itemCategories: { ...existingMem, ...learnedAdditions }
+            });
+          }
+
           const accent = groupData.themeAccent || '#81c784';
           document.documentElement.style.setProperty('--accent', accent);
           const userName = currentUserProfile ? currentUserProfile.name : '';
@@ -1091,14 +1372,16 @@
       showToast(nextShopper ? 'Familjen ser att du handlar nu!' : 'Avslutade handlingsläge');
     };
 
-    async function saveListsToCloud(updatedLists) {
+    async function saveListsToCloud(updatedLists, extraFields = {}) {
       if (!currentGroupId) return;
-      await updateDoc(doc(db, 'groups', currentGroupId), { lists: updatedLists });
+      await updateDoc(doc(db, 'groups', currentGroupId), { lists: updatedLists, ...extraFields });
     }
 
     window.selectList = function(id) {
       activeListId = id;
       localStorage.setItem('familjens_todo_active_list', id);
+      userManuallySelectedCategory = false;
+      document.getElementById('category-auto-hint').classList.add('hidden');
       render();
     };
 
@@ -1121,7 +1404,12 @@
       if (!name) return;
 
       const id = 'list_' + Date.now();
-      const updatedLists = [...groupData.lists, { id, name, type: typeSelect.value, items: [] }];
+      const newListObj = { id, name, type: typeSelect.value, items: [] };
+      if (typeSelect.value === 'shopping') {
+        newListObj.categoryOrder = [...(groupData.categoryOrder || DEFAULT_CATEGORIES)];
+      }
+
+      const updatedLists = [...groupData.lists, newListObj];
       nameInput.value = '';
       activeListId = id;
       localStorage.setItem('familjens_todo_active_list', id);
@@ -1149,22 +1437,36 @@
         done: false
       };
 
+      const extraFields = {};
+
       if (isShopping) {
+        const chosenCategory = document.getElementById('new-item-category').value;
         newItem.qty = document.getElementById('new-item-qty').value.trim();
-        newItem.category = document.getElementById('new-item-category').value;
+        newItem.category = chosenCategory;
         document.getElementById('new-item-qty').value = '';
+
+        // Save item -> category mapping into group memory for future use
+        const key = normalizeItemKey(text);
+        if (key && chosenCategory) {
+          extraFields.itemCategories = {
+            ...(groupData.itemCategories || {}),
+            [key]: chosenCategory
+          };
+        }
       } else {
         const assigneeVal = document.getElementById('new-item-assignee').value;
         if (assigneeVal) newItem.assignee = assigneeVal;
       }
 
       input.value = '';
+      userManuallySelectedCategory = false;
+      document.getElementById('category-auto-hint').classList.add('hidden');
       document.getElementById('new-item-recurrence').value = 'none';
 
       const updatedLists = groupData.lists.map(l => 
         l.id === activeListId ? { ...l, items: [newItem, ...(l.items || [])] } : l
       );
-      await saveListsToCloud(updatedLists);
+      await saveListsToCloud(updatedLists, extraFields);
     };
 
     window.toggleItemInList = async function(listId, itemId) {
@@ -1260,13 +1562,21 @@
       arrow.textContent = isHidden ? '▼' : '▲';
     };
 
+    // Move category specifically for the currently active shopping list
     window.moveCategory = async function(index, direction) {
       if (!groupData) return;
-      const order = [...(groupData.categoryOrder || DEFAULT_CATEGORIES)];
+      const activeList = groupData.lists.find(l => l.id === activeListId);
+      if (!activeList) return;
+
+      const order = [...getListCategoryOrder(activeList)];
       const newIndex = index + direction;
       if (newIndex < 0 || newIndex >= order.length) return;
       [order[index], order[newIndex]] = [order[newIndex], order[index]];
-      await updateDoc(doc(db, 'groups', currentGroupId), { categoryOrder: order });
+
+      const updatedLists = groupData.lists.map(l =>
+        l.id === activeListId ? { ...l, categoryOrder: order } : l
+      );
+      await saveListsToCloud(updatedLists);
     };
 
     window.openMealModal = function(dayKey) {
@@ -1299,24 +1609,29 @@
       if (!ingredientsText || !groupData) return;
 
       const lines = ingredientsText.split('\n').map(l => l.trim()).filter(Boolean);
-      const shopList = groupData.lists.find(l => l.type === 'shopping' || l.id === 'inkop') || groupData.lists[0];
+      const shopList = groupData.lists.find(l => l.id === activeListId && (l.type === 'shopping' || l.id === 'inkop'))
+        || groupData.lists.find(l => l.type === 'shopping' || l.id === 'inkop')
+        || groupData.lists[0];
       if (!shopList) return;
 
-      const newItems = lines.map((line, idx) => ({
-        id: Date.now() + idx,
-        text: line,
-        qty: '',
-        category: 'Övrigt',
-        recurrence: 'none',
-        recurring: false,
-        done: false
-      }));
+      const newItems = lines.map((line, idx) => {
+        const detected = detectCategoryForItem(line, shopList);
+        return {
+          id: Date.now() + idx,
+          text: line,
+          qty: '',
+          category: detected ? detected.category : 'Övrigt',
+          recurrence: 'none',
+          recurring: false,
+          done: false
+        };
+      });
 
       const updatedLists = groupData.lists.map(l => 
         l.id === shopList.id ? { ...l, items: [...newItems, ...(l.items || [])] } : l
       );
       await saveListsToCloud(updatedLists);
-      showToast(`La till ${lines.length} varor i ${shopList.name}!`);
+      showToast(`La till & sorterade ${lines.length} varor i ${shopList.name}!`);
     };
 
     window.applyTemplate = async function(tplKey) {
@@ -1335,6 +1650,7 @@
         groceries: {
           name: 'Basvaror (Mall)',
           type: 'shopping',
+          categoryOrder: [...(groupData.categoryOrder || DEFAULT_CATEGORIES)],
           items: [
             { id: Date.now() + 11, text: 'Mjölk', qty: '2 st', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
             { id: Date.now() + 12, text: 'Ägg', qty: '12-pack', category: 'Mejeri & Ost', recurrence: 'weekly', recurring: true, done: false },
@@ -1365,7 +1681,10 @@
       const chosen = templates[tplKey];
       if (!chosen) return;
       const newId = 'tpl_' + Date.now();
-      const updatedLists = [...groupData.lists, { id: newId, name: chosen.name, type: chosen.type, items: chosen.items }];
+      const newList = { id: newId, name: chosen.name, type: chosen.type, items: chosen.items };
+      if (chosen.categoryOrder) newList.categoryOrder = chosen.categoryOrder;
+
+      const updatedLists = [...groupData.lists, newList];
       activeListId = newId;
       await saveListsToCloud(updatedLists);
       window.switchTab('lists');
@@ -1444,6 +1763,7 @@
     function renderItemRow(item, members, isShopping, targetListId, isDashboard = false) {
       const assignee = (!isShopping && item.assignee && members[item.assignee]) ? members[item.assignee] : null;
       const toggleCall = isDashboard ? `toggleItemInList('${targetListId}', ${item.id})` : `toggleItem(${item.id})`;
+      const currentCat = item.category || 'Övrigt';
       return `
         <div onclick="${toggleCall}" class="flex items-center gap-3 p-3.5 rounded-2xl bg-[#0f1115]/75 hover:bg-[#0f1115] cursor-pointer transition">
           <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border transition ${
@@ -1453,9 +1773,14 @@
           </div>
           
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5 flex-wrap">
               <span class="text-sm transition ${item.done ? 'line-through text-[#6b7280]' : 'text-[#e4e6eb]'}">${item.text}</span>
               ${item.qty ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white/5 text-[#a5b4fc]">${item.qty}</span>` : ''}
+              ${isShopping ? `
+                <button type="button" onclick="openCategoryModal(event, '${targetListId}', ${item.id})" title="Byt avdelning (sparas till nästa gång)" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 transition">
+                  ${currentCat}
+                </button>
+              ` : ''}
               ${getRecurrenceBadge(item, targetListId)}
             </div>
           </div>
@@ -1559,13 +1884,17 @@
       document.getElementById('active-list-name').textContent = activeList.name;
 
       const isShopping = activeList.type === 'shopping' || activeList.id === 'inkop';
-      const categoryOrder = groupData.categoryOrder || DEFAULT_CATEGORIES;
+      const categoryOrder = getListCategoryOrder(activeList);
 
       document.getElementById('new-item-qty').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-category').classList.toggle('hidden', !isShopping);
       document.getElementById('new-item-assignee').classList.toggle('hidden', isShopping);
       document.getElementById('store-order-wrapper').classList.toggle('hidden', !isShopping);
       document.getElementById('list-filter-mine').classList.toggle('hidden', isShopping);
+      if (!isShopping) document.getElementById('category-auto-hint').classList.add('hidden');
+
+      document.getElementById('store-order-toggle-label').textContent = `Anpassa avdelningsordning (${activeList.name})`;
+      document.getElementById('store-order-panel-desc').textContent = `Flytta avdelningarna så att ordningen matchar "${activeList.name}":`;
 
       const catSelect = document.getElementById('new-item-category');
       const prevCat = catSelect.value;
