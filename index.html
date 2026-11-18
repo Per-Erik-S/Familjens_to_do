@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta id="meta-theme-color" name="theme-color" content="#072225" />
+  <meta id="meta-theme-color" name="theme-color" content="#082427" />
   <title>Familjens Todo</title>
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,26 +25,36 @@
     :root {
       --accent: #7ce3db;
       --accent-contrast: #072225;
-      --bg-page: #072225;
-      --bg-card: #0d3236;
-      --bg-card-hover: #113d42;
-      --bg-inner: #08272a;
-      --bg-nav: rgba(13, 50, 54, 0.92);
+      --bg-page: #082427;
+      --bg-card: #0e3539;
+      --bg-card-hover: #134146;
+      --bg-inner: #09292c;
+      --bg-nav: rgba(14, 53, 57, 0.92);
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --txt-main: #f0fdfa;
-      --txt-muted: #8ab4b0;
+      --card-highlight: rgba(255, 255, 255, 0.12);
+      --card-shadow: 0 12px 28px -8px rgba(2, 14, 16, 0.55);
+      --txt-main: #f4fdfa;
+      --txt-muted: #93bcb8;
+      --pattern-color: #8ee5dd;
+      --pattern-opacity: 0.12;
+      --glow-color: rgba(124, 227, 219, 0.12);
     }
 
     html.light {
       --accent-contrast: #06282b;
-      --bg-page: #eaf3f2;
+      --bg-page: #ebf3f1;
       --bg-card: #ffffff;
-      --bg-card-hover: #f5fafa;
-      --bg-inner: #f0f7f6;
+      --bg-card-hover: #f7fbfa;
+      --bg-inner: #f2f8f6;
       --bg-nav: rgba(255, 255, 255, 0.92);
-      --border-subtle: rgba(7, 34, 37, 0.08);
-      --txt-main: #072225;
+      --border-subtle: rgba(7, 34, 37, 0.07);
+      --card-highlight: rgba(255, 255, 255, 0.9);
+      --card-shadow: 0 10px 26px -8px rgba(7, 34, 37, 0.10);
+      --txt-main: #082629;
       --txt-muted: #4b706d;
+      --pattern-color: #2c6e69;
+      --pattern-opacity: 0.11;
+      --glow-color: rgba(124, 227, 219, 0.28);
     }
 
     body {
@@ -55,9 +65,39 @@
       overscroll-behavior-y: contain;
     }
 
+    .warm-top-glow {
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 540px;
+      height: 440px;
+      background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .botanical-bg-pattern {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-color: var(--pattern-color);
+      opacity: var(--pattern-opacity);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='520' viewBox='0 0 390 520' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke-width='1.8'%3E%3Cpath d='M36 0 C42 90, 26 175, 38 265 C50 355, 28 435, 36 520'/%3E%3Cpath d='M33 48 C18 38, 10 24, 16 14 C25 18, 32 32, 33 48 Z'/%3E%3Cpath d='M39 76 C56 64, 66 50, 60 40 C50 44, 42 60, 39 76 Z'/%3E%3Cpath d='M34 114 C16 104, 8 90, 14 80 C24 84, 32 98, 34 114 Z'/%3E%3Cpath d='M36 148 C54 136, 64 122, 58 112 C48 116, 40 132, 36 148 Z'/%3E%3Cpath d='M34 186 C16 176, 8 162, 14 152 C24 156, 32 170, 34 186 Z'/%3E%3Cpath d='M38 224 C56 212, 66 198, 60 188 C50 192, 42 208, 38 224 Z'/%3E%3Cpath d='M40 264 C22 254, 14 240, 20 230 C30 234, 38 248, 40 264 Z'/%3E%3Cpath d='M42 304 C60 292, 70 278, 64 268 C54 272, 46 288, 42 304 Z'/%3E%3Cpath d='M38 344 C20 334, 12 320, 18 310 C28 314, 36 328, 38 344 Z'/%3E%3Cpath d='M36 384 C54 372, 64 358, 58 348 C48 352, 40 368, 36 384 Z'/%3E%3Cpath d='M34 426 C16 416, 8 402, 14 392 C24 396, 32 410, 34 426 Z'/%3E%3Cpath d='M36 468 C54 456, 64 442, 58 432 C48 436, 40 452, 36 468 Z'/%3E%3C/g%3E%3Cg stroke-width='1.7'%3E%3Cpath d='M346 0 C338 85, 354 170, 344 260 C334 350, 354 435, 346 520'/%3E%3Cpath d='M342 0 L342 520' stroke-dasharray='6 8'/%3E%3Cg transform='translate(322, 44) rotate(-18)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(344, 102) rotate(16)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(320, 168) rotate(-14)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(342, 232) rotate(20)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(318, 304) rotate(-16)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(342, 372) rotate(14)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(322, 442) rotate(-18)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3C/g%3E%3Cg stroke-width='1.5'%3E%3Cpath d='M130 22 C175 46, 225 42, 268 18'/%3E%3Cpath d='M168 38 C162 24, 170 12, 180 14 C182 24, 176 34, 168 38 Z'/%3E%3Cpath d='M208 42 C214 56, 226 60, 232 52 C226 42, 216 38, 208 42 Z'/%3E%3Cpath d='M242 30 C238 16, 246 6, 256 8 C256 18, 250 26, 242 30 Z'/%3E%3Cpath d='M118 258 C168 238, 224 242, 274 264'/%3E%3Cpath d='M156 246 C150 232, 158 220, 168 222 C170 232, 164 242, 156 246 Z'/%3E%3Cpath d='M196 242 C202 256, 214 260, 220 252 C214 242, 204 238, 196 242 Z'/%3E%3Cpath d='M236 250 C232 236, 240 226, 250 228 C250 238, 244 246, 236 250 Z'/%3E%3C/g%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='520' viewBox='0 0 390 520' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke-width='1.8'%3E%3Cpath d='M36 0 C42 90, 26 175, 38 265 C50 355, 28 435, 36 520'/%3E%3Cpath d='M33 48 C18 38, 10 24, 16 14 C25 18, 32 32, 33 48 Z'/%3E%3Cpath d='M39 76 C56 64, 66 50, 60 40 C50 44, 42 60, 39 76 Z'/%3E%3Cpath d='M34 114 C16 104, 8 90, 14 80 C24 84, 32 98, 34 114 Z'/%3E%3Cpath d='M36 148 C54 136, 64 122, 58 112 C48 116, 40 132, 36 148 Z'/%3E%3Cpath d='M34 186 C16 176, 8 162, 14 152 C24 156, 32 170, 34 186 Z'/%3E%3Cpath d='M38 224 C56 212, 66 198, 60 188 C50 192, 42 208, 38 224 Z'/%3E%3Cpath d='M40 264 C22 254, 14 240, 20 230 C30 234, 38 248, 40 264 Z'/%3E%3Cpath d='M42 304 C60 292, 70 278, 64 268 C54 272, 46 288, 42 304 Z'/%3E%3Cpath d='M38 344 C20 334, 12 320, 18 310 C28 314, 36 328, 38 344 Z'/%3E%3Cpath d='M36 384 C54 372, 64 358, 58 348 C48 352, 40 368, 36 384 Z'/%3E%3Cpath d='M34 426 C16 416, 8 402, 14 392 C24 396, 32 410, 34 426 Z'/%3E%3Cpath d='M36 468 C54 456, 64 442, 58 432 C48 436, 40 452, 36 468 Z'/%3E%3C/g%3E%3Cg stroke-width='1.7'%3E%3Cpath d='M346 0 C338 85, 354 170, 344 260 C334 350, 354 435, 346 520'/%3E%3Cpath d='M342 0 L342 520' stroke-dasharray='6 8'/%3E%3Cg transform='translate(322, 44) rotate(-18)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(344, 102) rotate(16)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(320, 168) rotate(-14)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(342, 232) rotate(20)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(318, 304) rotate(-16)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(342, 372) rotate(14)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3Cg transform='translate(322, 442) rotate(-18)'%3E%3Cpath d='M16 4 C14 10, 4 14, 4 24 C4 31, 10 35, 16 35 C22 35, 28 31, 28 24 C28 14, 18 10, 16 4 Z'/%3E%3Cpath d='M12 12 C10 18, 10 27, 13 34'/%3E%3Cpath d='M20 12 C22 18, 22 27, 19 34'/%3E%3C/g%3E%3C/g%3E%3Cg stroke-width='1.5'%3E%3Cpath d='M130 22 C175 46, 225 42, 268 18'/%3E%3Cpath d='M168 38 C162 24, 170 12, 180 14 C182 24, 176 34, 168 38 Z'/%3E%3Cpath d='M208 42 C214 56, 226 60, 232 52 C226 42, 216 38, 208 42 Z'/%3E%3Cpath d='M242 30 C238 16, 246 6, 256 8 C256 18, 250 26, 242 30 Z'/%3E%3Cpath d='M118 258 C168 238, 224 242, 274 264'/%3E%3Cpath d='M156 246 C150 232, 158 220, 168 222 C170 232, 164 242, 156 246 Z'/%3E%3Cpath d='M196 242 C202 256, 214 260, 220 252 C214 242, 204 238, 196 242 Z'/%3E%3Cpath d='M236 250 C232 236, 240 226, 250 228 C250 238, 244 246, 236 250 Z'/%3E%3C/g%3E%3C/svg%3E");
+      -webkit-mask-size: 390px 520px;
+      mask-size: 390px 520px;
+      -webkit-mask-repeat: repeat;
+      mask-repeat: repeat;
+      -webkit-mask-position: center top;
+      mask-position: center top;
+    }
+
     .theme-card {
       background-color: var(--bg-card);
       border: 1px solid var(--border-subtle);
+      box-shadow: inset 0 1px 0 var(--card-highlight), var(--card-shadow);
     }
 
     .theme-card-hover:hover {
@@ -72,6 +112,7 @@
     .theme-nav {
       background-color: var(--bg-nav);
       border: 1px solid var(--border-subtle);
+      box-shadow: inset 0 1px 0 var(--card-highlight), 0 14px 32px -6px rgba(2, 14, 16, 0.55);
     }
 
     .theme-nav-active {
@@ -111,14 +152,18 @@
 </head>
 <body class="min-h-screen pb-28">
 
+  <!-- WARM TOP GLOW & BOTANICAL VINE / GARLIC BRAID BACKGROUND -->
+  <div class="warm-top-glow" aria-hidden="true"></div>
+  <div class="botanical-bg-pattern" aria-hidden="true"></div>
+
   <!-- TOAST NOTIFICATION -->
-  <div id="toast-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden max-w-xs w-[90%] theme-card px-4 py-2.5 rounded-full shadow-2xl flex items-center justify-center gap-2 border border-accent/40">
+  <div id="toast-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden max-w-xs w-[90%] theme-card px-4 py-2.5 rounded-full flex items-center justify-center gap-2 border border-accent/40">
     <span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span>
     <span id="toast-text" class="text-xs font-semibold text-txtmain truncate">Sparat</span>
   </div>
 
   <!-- AUTH VIEW -->
-  <div id="view-auth" class="min-h-screen flex items-center justify-center p-5">
+  <div id="view-auth" class="relative z-10 min-h-screen flex items-center justify-center p-5">
     <div class="w-full max-w-sm space-y-5">
       <div class="text-center space-y-1.5">
         <div class="w-14 h-14 rounded-3xl btn-accent flex items-center justify-center mx-auto shadow-lg mb-3">
@@ -130,16 +175,16 @@
         <p class="text-xs text-txtmuted">Synkade listor, matsedel och vardag i realtid</p>
       </div>
 
-      <div id="invite-detected-banner" class="hidden theme-card rounded-2xl p-3.5 text-center border border-accent/40">
+      <div id="invite-detected-banner" class="hidden theme-card rounded-[28px] p-3.5 text-center border border-accent/40">
         <p class="text-xs font-semibold text-accent">Inbjudningskod hittad! Skapa ett konto nedan för att gå med i gruppen direkt.</p>
       </div>
 
-      <div id="recent-accounts-box" class="hidden theme-card rounded-3xl p-4 space-y-2.5 shadow-md">
+      <div id="recent-accounts-box" class="hidden theme-card rounded-[30px] p-4 space-y-2.5">
         <span class="text-[10px] font-bold uppercase tracking-wider text-txtmuted px-1 block">Snabbval – tidigare konton</span>
         <div id="recent-accounts-list" class="space-y-1.5"></div>
       </div>
 
-      <div class="theme-card rounded-3xl p-6 space-y-4 shadow-xl">
+      <div class="theme-card rounded-[32px] p-6 space-y-4">
         <div class="flex p-1 rounded-full theme-inner">
           <button type="button" id="tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2.5 rounded-full text-xs font-semibold btn-accent transition">Logga in</button>
           <button type="button" id="tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2.5 rounded-full text-xs font-semibold text-txtmuted hover:text-txtmain transition">Skapa konto</button>
@@ -187,9 +232,9 @@
   </div>
 
   <!-- MAIN APP SHELL -->
-  <div id="app-shell" class="hidden max-w-md mx-auto">
+  <div id="app-shell" class="relative z-10 hidden max-w-md mx-auto">
     <!-- Top Header: Compact Group Name & Action Icons -->
-    <header class="sticky top-0 z-20 px-5 pt-2.5 pb-2 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-3">
+    <header class="sticky top-0 z-20 px-5 pt-2.5 pb-2 backdrop-blur-md bg-[var(--bg-page)]/80 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
         <span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span>
         <h1 id="group-title" class="text-base font-bold text-txtmain tracking-tight truncate">Familjen</h1>
@@ -198,13 +243,13 @@
       <!-- Right Action Buttons: Groups Switcher & Theme Toggle -->
       <div class="flex items-center gap-2 flex-shrink-0">
         <div id="header-group-wrapper" class="relative">
-          <button type="button" onclick="toggleHeaderGroupDropdown()" title="Byt eller skapa grupp" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+          <button type="button" onclick="toggleHeaderGroupDropdown()" title="Byt eller skapa grupp" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain transition active:scale-95">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </button>
 
-          <div id="header-group-dropdown" class="hidden absolute right-0 mt-2 w-64 theme-card rounded-3xl p-3 shadow-2xl z-40 space-y-2 border border-accent/20">
+          <div id="header-group-dropdown" class="hidden absolute right-0 mt-2 w-64 theme-card rounded-[30px] p-3 z-40 space-y-2 border border-accent/20">
             <div class="px-2.5 pt-1 pb-1 border-b border-black/10 dark:border-white/10">
               <span class="text-[10px] font-bold uppercase tracking-wider text-accent block">Dina grupper</span>
               <span id="header-user-badge" class="text-[11px] text-txtmuted block truncate mt-0.5">Synkad</span>
@@ -219,7 +264,7 @@
           </div>
         </div>
 
-        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain transition active:scale-95">
           <svg id="theme-icon-sun" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
@@ -235,9 +280,9 @@
       <div id="tabs-track" class="flex w-[500%]">
 
         <!-- VIEW 1: HEM -->
-        <main id="view-today" class="tab-pane px-5 pt-1.5 space-y-4">
+        <main id="view-today" class="tab-pane px-5 pt-2 space-y-4">
           <!-- Live Shopping Banner (visas när någon handlar) -->
-          <div id="shopping-live-banner" onclick="openShoppingList()" class="hidden theme-card rounded-3xl p-4 border border-accent/50 bg-accent/10 flex items-center justify-between gap-3 cursor-pointer shadow-md transition">
+          <div id="shopping-live-banner" onclick="openShoppingList()" class="hidden theme-card rounded-[30px] p-4 border border-accent/50 bg-accent/10 flex items-center justify-between gap-3 cursor-pointer transition">
             <div class="flex items-center gap-3 min-w-0">
               <span class="w-2.5 h-2.5 rounded-full bg-accent animate-ping flex-shrink-0"></span>
               <div class="min-w-0">
@@ -249,9 +294,9 @@
           </div>
 
           <!-- Greeting, Date & Week directly on background -->
-          <div class="px-1 pt-0.5 pb-0.5">
-            <h2 id="today-greeting" class="text-[26px] font-bold text-txtmain tracking-tight leading-tight truncate">Hej!</h2>
-            <p class="text-base font-medium text-txtmuted mt-1 flex items-center flex-wrap gap-x-2">
+          <div class="px-1 pt-1 pb-0.5">
+            <h2 id="today-greeting" class="text-[28px] font-bold text-txtmain tracking-tight leading-tight truncate">Hej!</h2>
+            <p class="text-[15px] font-medium text-txtmuted mt-1 flex items-center flex-wrap gap-x-2">
               <span id="today-date-label" class="capitalize">--</span>
               <span class="opacity-40">•</span>
               <span id="today-week-badge" class="font-semibold text-txtmain">Vecka --</span>
@@ -260,11 +305,11 @@
           </div>
 
           <!-- Unified Two-Card Grid: Dagens middag & Jag handlar nu -->
-          <div class="grid grid-cols-2 gap-3 items-stretch">
+          <div class="grid grid-cols-2 gap-3.5 items-stretch">
             <!-- Dagens middag -->
-            <button type="button" onclick="switchTab('meals')" class="theme-card theme-card-hover rounded-3xl p-4 text-left flex flex-col justify-between h-full transition shadow-md">
+            <button type="button" onclick="switchTab('meals')" class="theme-card theme-card-hover rounded-[30px] p-4 text-left flex flex-col justify-between h-full transition">
               <div>
-                <div class="w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3 shadow-sm">
+                <div class="w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6a7 7 0 00-7 7h14a7 7 0 00-7-7zm0 0V4m-9 12h18M5 19h14" />
                   </svg>
@@ -278,9 +323,9 @@
             </button>
 
             <!-- Jag handlar nu -->
-            <button id="btn-shopping-live" type="button" onclick="toggleShoppingLive()" class="theme-card theme-card-hover rounded-3xl p-4 text-left flex flex-col justify-between h-full transition shadow-md">
+            <button id="btn-shopping-live" type="button" onclick="toggleShoppingLive()" class="theme-card theme-card-hover rounded-[30px] p-4 text-left flex flex-col justify-between h-full transition">
               <div>
-                <div id="shopping-icon-badge" class="w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3 transition shadow-sm">
+                <div id="shopping-icon-badge" class="w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3 transition">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
@@ -295,13 +340,13 @@
           </div>
 
           <!-- Att göra i familjen -->
-          <div class="theme-card rounded-3xl p-5 space-y-3 shadow-md">
+          <div class="theme-card rounded-[32px] p-5 space-y-3">
             <div class="flex items-center justify-between gap-2">
               <div>
                 <h3 class="text-base font-bold text-txtmain">Att göra i familjen</h3>
                 <p id="today-tasks-progress-text" class="text-xs text-txtmuted">0 av 0 uppgifter klara</p>
               </div>
-              <button id="today-filter-mine" type="button" onclick="toggleOnlyMine()" class="px-2.5 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition">
+              <button id="today-filter-mine" type="button" onclick="toggleOnlyMine()" class="px-3 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition">
                 Bara mina
               </button>
             </div>
@@ -314,8 +359,8 @@
           </div>
 
           <!-- Snabbgenvägar: Extra lista & Kalender -->
-          <div class="grid grid-cols-2 gap-3">
-            <button type="button" onclick="openSecondaryList()" class="theme-card theme-card-hover rounded-3xl p-4 text-left space-y-2 transition shadow-sm">
+          <div class="grid grid-cols-2 gap-3.5">
+            <button type="button" onclick="openSecondaryList()" class="theme-card theme-card-hover rounded-[28px] p-4 text-left space-y-2 transition">
               <span id="secondary-list-title" class="text-xs font-bold text-txtmain block truncate">Lista</span>
               <span id="secondary-list-progress-text" class="text-[11px] text-txtmuted block">0 av 0</span>
               <div class="w-full h-1.5 rounded-full theme-inner overflow-hidden">
@@ -323,7 +368,7 @@
               </div>
             </button>
 
-            <button type="button" onclick="switchTab('calendar')" class="theme-card theme-card-hover rounded-3xl p-4 text-left space-y-2 transition shadow-sm">
+            <button type="button" onclick="switchTab('calendar')" class="theme-card theme-card-hover rounded-[28px] p-4 text-left space-y-2 transition">
               <span class="text-xs font-bold text-txtmain block">Kalender</span>
               <span id="secondary-week-events-count" class="text-[11px] text-accent font-semibold block">0 händelser</span>
               <span class="text-[10px] text-txtmuted block">Visa schema →</span>
@@ -340,7 +385,7 @@
             </button>
           </div>
 
-          <div class="theme-card rounded-3xl p-5 space-y-4 shadow-md">
+          <div class="theme-card rounded-[32px] p-5 space-y-4">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2 min-w-0">
                 <h2 id="active-list-name" class="text-lg font-bold text-txtmain truncate">Inköpslista</h2>
@@ -420,7 +465,7 @@
 
         <!-- VIEW 3: KALENDER -->
         <main id="view-calendar" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-4">
-          <div class="theme-card rounded-3xl p-5 flex items-center justify-between gap-3 shadow-md">
+          <div class="theme-card rounded-[30px] p-5 flex items-center justify-between gap-3">
             <div>
               <h2 class="text-lg font-bold text-txtmain">Familjekalender</h2>
               <p class="text-xs text-txtmuted">Gemensamma aktiviteter, tider och ansvar</p>
@@ -430,7 +475,7 @@
             </button>
           </div>
 
-          <div class="theme-card rounded-3xl p-5 space-y-2.5 shadow-xl">
+          <div class="theme-card rounded-[32px] p-5 space-y-2.5">
             <div class="flex items-center justify-between px-2 pb-1">
               <h3 class="text-xs font-bold uppercase tracking-wider text-txtmuted">Kommande händelser</h3>
             </div>
@@ -442,7 +487,7 @@
 
         <!-- VIEW 4: MATSEDEL -->
         <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-4">
-          <div class="theme-card rounded-3xl p-5 space-y-1 shadow-md">
+          <div class="theme-card rounded-[30px] p-5 space-y-1">
             <h2 class="font-serif text-lg font-bold text-txtmain">Veckans matsedel</h2>
             <p class="text-xs text-txtmuted">Lägg in rätter och ingredienser så sparas de i era favoriträtter och sorteras automatiskt in i rätt butiksavdelning vid inköp.</p>
           </div>
@@ -452,7 +497,7 @@
         <!-- VIEW 5: GRUPP & MALLAR -->
         <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-5">
           <!-- Push Notifications Card -->
-          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-base">🔔</span>
@@ -466,29 +511,29 @@
             </button>
           </div>
 
-          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-3">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-bold text-txtmain">Färdiga mallpaket</h2>
               <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">1-klick</span>
             </div>
             <p class="text-xs text-txtmuted">Fyll på med färdiga listor för vardag, resa eller förening:</p>
             <div class="grid grid-cols-2 gap-2 pt-1">
-              <button onclick="applyTemplate('cleaning')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
+              <button onclick="applyTemplate('cleaning')" class="p-3.5 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🧹</span>
                 <span class="text-xs font-semibold text-txtmain block">Veckostädning</span>
                 <span class="text-[10px] text-txtmuted">Rum för rum</span>
               </button>
-              <button onclick="applyTemplate('groceries')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
+              <button onclick="applyTemplate('groceries')" class="p-3.5 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🥛</span>
                 <span class="text-xs font-semibold text-txtmain block">Basvaror</span>
                 <span class="text-[10px] text-txtmuted">Storhandling</span>
               </button>
-              <button onclick="applyTemplate('cabin')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
+              <button onclick="applyTemplate('cabin')" class="p-3.5 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🎒</span>
                 <span class="text-xs font-semibold text-txtmain block">Packlista resa</span>
                 <span class="text-[10px] text-txtmuted">Stugan & helg</span>
               </button>
-              <button onclick="applyTemplate('club')" class="p-3 rounded-2xl theme-inner hover:opacity-85 text-left transition">
+              <button onclick="applyTemplate('club')" class="p-3.5 rounded-2xl theme-inner hover:opacity-85 text-left transition">
                 <span class="text-base block mb-1">🏆</span>
                 <span class="text-xs font-semibold text-txtmain block">Förening & Kiosk</span>
                 <span class="text-[10px] text-txtmuted">Match & städdag</span>
@@ -496,7 +541,7 @@
             </div>
           </div>
 
-          <div class="theme-card rounded-3xl p-6 space-y-4 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-4">
             <h3 class="text-sm font-semibold text-txtmain">Gruppens namn & färgprofil</h3>
             <form onsubmit="renameGroup(event)" class="flex gap-2">
               <input id="rename-group-input" type="text" placeholder="T.ex. Familjen Goossens..." class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-sm focus:outline-none" />
@@ -508,7 +553,7 @@
             </div>
           </div>
 
-          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-3">
             <h3 class="text-sm font-semibold text-txtmain">Bjud in till aktiv grupp</h3>
             <div class="theme-inner rounded-2xl p-4 flex items-center justify-between">
               <div>
@@ -521,13 +566,13 @@
             </div>
           </div>
 
-          <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-3">
             <h3 class="text-sm font-semibold text-txtmain">Medlemmar & Personlig färg</h3>
             <div id="members-list" class="space-y-2 pt-1"></div>
             <div id="color-picker" class="flex gap-2.5 pt-2"></div>
           </div>
 
-          <div class="theme-card rounded-3xl p-6 space-y-4 shadow-md">
+          <div class="theme-card rounded-[30px] p-6 space-y-4">
             <h3 class="text-sm font-semibold text-txtmain">Anslut till befintlig grupp</h3>
             <form onsubmit="joinGroup(event)" class="flex gap-2">
               <input id="join-code-input" type="text" placeholder="Gruppkod (t.ex. FAM-1234)" class="flex-1 theme-inner text-txtmain placeholder-txtmuted/60 px-4 py-3 rounded-2xl text-xs uppercase focus:outline-none" />
@@ -545,24 +590,24 @@
     </div>
 
     <!-- Bottom Navigation Bar ("Hem" as first tab) -->
-    <nav class="fixed bottom-3.5 left-1/2 -translate-x-1/2 w-[calc(100%-1.75rem)] max-w-sm theme-nav backdrop-blur-lg rounded-[30px] p-1.5 flex justify-between shadow-2xl z-30">
-      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition">
+    <nav class="fixed bottom-3.5 left-1/2 -translate-x-1/2 w-[calc(100%-1.75rem)] max-w-sm theme-nav backdrop-blur-lg rounded-full p-1.5 flex justify-between z-30">
+      <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         <span>Hem</span>
       </button>
-      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+      <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         <span>Listor</span>
       </button>
-      <button onclick="switchTab('calendar')" id="nav-calendar" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <span>Kalender</span>
       </button>
-      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+      <button onclick="switchTab('meals')" id="nav-meals" class="flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v7a3 3 0 003 3v8m0-18v7m3-7v7a3 3 0 01-3 3m11-10v18m0-18c2.21 0 4 1.79 4 4v4h-4"/></svg>
         <span>Matsedel</span>
       </button>
-      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
+      <button onclick="switchTab('group')" id="nav-group" class="flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         <span>Grupp</span>
       </button>
@@ -571,7 +616,7 @@
 
   <!-- MODAL: ADD / EDIT CALENDAR EVENT -->
   <div id="calendar-event-modal" onclick="if(event.target === this) closeCalendarEventModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveCalendarEvent(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="saveCalendarEvent(event)" class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <h3 id="calendar-modal-title" class="text-base font-bold text-txtmain">Ny händelse</h3>
         <button type="button" onclick="closeCalendarEventModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
@@ -603,7 +648,7 @@
 
   <!-- MODAL: EDIT EXISTING ITEM (TEXT, QTY, CATEGORY) -->
   <div id="edit-item-modal" onclick="if(event.target === this) closeEditItemModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveEditedItem(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="saveEditedItem(event)" class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-txtmain">Redigera punkt</h3>
         <button type="button" onclick="closeEditItemModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
@@ -638,7 +683,7 @@
 
   <!-- MODAL: CREATE NEW GROUP -->
   <div id="new-group-modal" onclick="if(event.target === this) closeNewGroupModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="submitNewGroup(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="submitNewGroup(event)" class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-txtmain">Skapa ny grupp</h3>
         <button type="button" onclick="closeNewGroupModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
@@ -656,7 +701,7 @@
 
   <!-- MODAL: FULLSCREEN FLOATING LIST VIEW -->
   <div id="fullscreen-list-modal" onclick="if(event.target === this) closeFullscreenList()" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex items-center justify-center p-2.5 sm:p-4">
-    <div class="theme-card rounded-3xl w-full max-w-md h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <div class="theme-card rounded-[32px] w-full max-w-md h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 pt-4 pb-3 border-b border-black/10 dark:border-white/10 flex items-center justify-between gap-3 flex-shrink-0">
         <div class="min-w-0">
           <span id="fullscreen-list-subtitle" class="text-[10px] font-semibold uppercase tracking-wider text-accent block">Helskärmsläge</span>
@@ -690,7 +735,7 @@
 
   <!-- MODAL: RENAME LIST -->
   <div id="rename-list-modal" onclick="if(event.target === this) closeRenameListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="saveRenamedList(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="saveRenamedList(event)" class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-txtmain">Döp om listan</h3>
         <button type="button" onclick="closeRenameListModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
@@ -708,7 +753,7 @@
 
   <!-- MODAL: CHANGE CATEGORY FOR EXISTING SHOPPING ITEM -->
   <div id="category-modal" onclick="if(event.target === this) closeCategoryModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
           <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Välj avdelning (sparas till nästa gång)</span>
@@ -722,7 +767,7 @@
 
   <!-- MODAL: EDIT RECURRENCE FOR EXISTING ITEM -->
   <div id="recurrence-modal" onclick="if(event.target === this) closeRecurrenceModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
           <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Upprepning</span>
@@ -736,7 +781,7 @@
 
   <!-- MODAL: ASSIGN TASK TO MEMBER -->
   <div id="assign-modal" onclick="if(event.target === this) closeAssignModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
           <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Tilldela uppgift</span>
@@ -750,7 +795,7 @@
 
   <!-- MODAL: CONFIRM DELETE (JA / NEJ) -->
   <div id="confirm-delete-modal" onclick="if(event.target === this) closeConfirmDeleteModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl text-center">
+    <div class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-5 text-center">
       <div class="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </div>
@@ -771,7 +816,7 @@
 
   <!-- MODAL: CREATE NEW LIST -->
   <div id="new-list-modal" onclick="if(event.target === this) closeNewListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <form onsubmit="createNewList(event)" class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <form onsubmit="createNewList(event)" class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-base font-bold text-txtmain">Skapa ny lista</h3>
         <button type="button" onclick="closeNewListModal()" class="text-txtmuted hover:text-txtmain text-sm p-1">✕</button>
@@ -796,7 +841,7 @@
 
   <!-- MODAL: EDIT MEAL WITH HORIZONTAL SWIPEABLE FAVORITES & INGREDIENT SUGGESTIONS -->
   <div id="meal-modal" onclick="if(event.target === this) closeMealModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div class="theme-card rounded-[32px] w-full max-w-sm p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center">
         <h3 id="meal-modal-title" class="text-base font-bold text-txtmain">Planera middag</h3>
         <div class="flex items-center gap-2">
@@ -858,7 +903,7 @@
 
   <!-- MODAL: CHOOSE SHOPPING LIST FOR MEAL INGREDIENTS -->
   <div id="choose-shopping-list-modal" onclick="if(event.target === this) closeChooseShoppingListModal()" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="theme-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="theme-card rounded-[30px] w-full max-w-sm p-6 space-y-4">
       <div class="flex justify-between items-center">
         <div class="min-w-0 pr-2">
           <span class="text-[11px] uppercase tracking-wider text-txtmuted block">Ingredienser från matsedeln</span>
@@ -914,13 +959,13 @@
       if (mode === 'light') {
         htmlEl.classList.remove('dark');
         htmlEl.classList.add('light');
-        if (metaTheme) metaTheme.setAttribute('content', '#eaf3f2');
+        if (metaTheme) metaTheme.setAttribute('content', '#ebf3f1');
         if (sunIcon) sunIcon.classList.add('hidden');
         if (moonIcon) moonIcon.classList.remove('hidden');
       } else {
         htmlEl.classList.remove('light');
         htmlEl.classList.add('dark');
-        if (metaTheme) metaTheme.setAttribute('content', '#072225');
+        if (metaTheme) metaTheme.setAttribute('content', '#082427');
         if (sunIcon) sunIcon.classList.remove('hidden');
         if (moonIcon) moonIcon.classList.add('hidden');
       }
@@ -1343,8 +1388,8 @@
       TAB_ORDER.forEach(t => {
         const navBtn = document.getElementById(`nav-${t}`);
         navBtn.className = t === tab
-          ? 'flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition'
-          : 'flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition';
+          ? 'flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition'
+          : 'flex-1 py-1.5 rounded-full flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition';
       });
     }
 
@@ -3168,14 +3213,14 @@
         document.getElementById('shopping-live-text').textContent = `${shopper.name} handlar just nu!`;
 
         shoppingCardBtn.classList.add('ring-2', 'ring-accent');
-        shoppingIconBadge.className = 'w-11 h-11 rounded-2xl btn-accent flex items-center justify-center mb-3 transition shadow-sm';
+        shoppingIconBadge.className = 'w-11 h-11 rounded-2xl btn-accent flex items-center justify-center mb-3 transition';
         shoppingStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-accent animate-pulse flex-shrink-0';
         shoppingStatusText.className = 'text-[13px] font-bold text-accent truncate';
         shoppingStatusText.textContent = 'Avsluta';
       } else {
         liveBanner.classList.add('hidden');
         shoppingCardBtn.classList.remove('ring-2', 'ring-accent');
-        shoppingIconBadge.className = 'w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3 transition shadow-sm';
+        shoppingIconBadge.className = 'w-11 h-11 rounded-2xl bg-accent/15 border border-accent/25 text-accent flex items-center justify-center mb-3 transition';
         shoppingStatusDot.className = 'w-2 h-2 rounded-full bg-txtmuted/40 flex-shrink-0';
         shoppingStatusText.className = 'text-[13px] font-bold text-txtmuted truncate';
         shoppingStatusText.textContent = 'Aktivera';
@@ -3195,8 +3240,8 @@
       document.getElementById('today-dinner-preview').textContent = (todayMeal && todayMeal.dish) ? todayMeal.dish : 'Ej planerad';
 
       const mineBtnClass = filterOnlyMine
-        ? 'px-2.5 py-1 rounded-full btn-accent text-[11px] font-bold transition'
-        : 'px-2.5 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition';
+        ? 'px-3 py-1 rounded-full btn-accent text-[11px] font-bold transition'
+        : 'px-3 py-1 rounded-full theme-inner text-[11px] font-semibold text-txtmuted transition';
       document.getElementById('today-filter-mine').className = mineBtnClass;
       document.getElementById('list-filter-mine').className = mineBtnClass;
 
@@ -3283,7 +3328,7 @@
         const m = mealsData[d.key];
         const isToday = d.key === weekInfo.dayKey;
         return `
-          <div onclick="openMealModal('${d.key}')" class="theme-card theme-card-hover rounded-3xl p-4 ${isToday ? 'ring-2 ring-accent/50' : ''} flex items-center justify-between cursor-pointer transition shadow-sm">
+          <div onclick="openMealModal('${d.key}')" class="theme-card theme-card-hover rounded-[28px] p-4 ${isToday ? 'ring-2 ring-accent/50' : ''} flex items-center justify-between cursor-pointer transition">
             <div class="min-w-0 pr-3">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold ${isToday ? 'text-accent' : 'text-txtmuted'}">${d.label}</span>
@@ -3309,7 +3354,7 @@
             ontouchcancel="cancelLongPress()"
             oncontextmenu="event.preventDefault(); requestDeleteListById('${safeId}')"
             class="long-press-target px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-              l.id === activeListId ? 'btn-accent shadow-sm' : 'theme-card text-txtmuted hover:text-txtmain'
+              l.id === activeListId ? 'btn-accent' : 'theme-card text-txtmuted hover:text-txtmain'
             }"
           >${escHtml(l.name)}</button>
         `;
