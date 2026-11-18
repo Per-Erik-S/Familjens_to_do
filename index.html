@@ -36,7 +36,8 @@
     }
 
     html.light {
-      --accent-contrast: #06282b;
+      --accent: #0d736e;
+      --accent-contrast: #ffffff;
       --bg-page: #eaf3f2;
       --bg-card: #ffffff;
       --bg-card-hover: #f5fafa;
@@ -254,8 +255,8 @@
             <p class="text-base font-medium text-txtmuted mt-1 flex items-center flex-wrap gap-x-2">
               <span id="today-date-label" class="capitalize">--</span>
               <span class="opacity-40">•</span>
-              <span id="today-week-badge" class="font-semibold text-txtmain">Vecka --</span>
-              <span id="today-week-parity" class="text-xs font-semibold text-accent">(--)</span>
+              <span id="today-week-badge" class="font-semibold">Vecka --</span>
+              <span id="today-week-parity" class="text-xs font-semibold">(--)</span>
             </p>
           </div>
 
@@ -903,6 +904,17 @@
       return (Date.now() - shopper.at) >= SHOPPING_TIMEOUT_MS;
     }
 
+    function applyAccentColor() {
+      const mode = localStorage.getItem('familjens_todo_color_mode') || 'dark';
+      const rawAccent = (groupData && groupData.themeAccent && groupData.themeAccent !== '#81c784')
+        ? groupData.themeAccent
+        : '#7ce3db';
+      const finalAccent = (mode === 'light' && rawAccent.toLowerCase() === '#7ce3db')
+        ? '#0d736e'
+        : rawAccent;
+      document.documentElement.style.setProperty('--accent', finalAccent);
+    }
+
     // Light / Dark Theme Persistence
     function applySavedTheme() {
       const mode = localStorage.getItem('familjens_todo_color_mode') || 'dark';
@@ -924,6 +936,7 @@
         if (sunIcon) sunIcon.classList.remove('hidden');
         if (moonIcon) moonIcon.classList.add('hidden');
       }
+      applyAccentColor();
     }
 
     window.toggleColorTheme = function() {
@@ -2316,9 +2329,7 @@
             });
           }
 
-          if (groupData.themeAccent && groupData.themeAccent !== '#81c784') {
-            document.documentElement.style.setProperty('--accent', groupData.themeAccent);
-          }
+          applyAccentColor();
           const userName = currentUserProfile ? currentUserProfile.name : '';
           document.getElementById('header-user-badge').textContent = userName ? `${userName} • Synkad` : 'Synkad';
           render();
@@ -2364,7 +2375,8 @@
     window.setGroupAccent = async function(hex) {
       if (!currentGroupId) return;
       await updateDoc(doc(db, 'groups', currentGroupId), { themeAccent: hex });
-      document.documentElement.style.setProperty('--accent', hex);
+      if (groupData) groupData.themeAccent = hex;
+      applyAccentColor();
       showToast('Färgprofil uppdaterad');
     };
 
