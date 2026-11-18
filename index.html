@@ -238,7 +238,7 @@
       <path d="M76 28C72 16 80 6 92 10C92 20 84 26 76 28Z" fill="currentColor" fill-opacity="0.85"/>
     </svg>
     
-    <!-- Top Header matching screenshot -->
+    <!-- Top Header -->
     <header class="px-5 pt-5 pb-2.5 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md" style="background-color: color-mix(in srgb, var(--bg-app) 84%, transparent);">
       <div id="header-group-wrapper" class="relative min-w-0 pl-8 pr-2">
         <button onclick="toggleHeaderGroupDropdown()" class="flex items-center gap-2 text-left group py-1">
@@ -263,7 +263,7 @@
       </div>
 
       <div class="flex items-center gap-2 flex-shrink-0">
-        <!-- Theme Toggle Button (Light / Dark mode like the two phones in the image) -->
+        <!-- Theme Toggle Button -->
         <button type="button" onclick="toggleColorTheme()" id="theme-toggle-btn" title="Växla mellan ljust och mörkt läge" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain transition shadow-sm">
           <svg id="theme-icon-sun" class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           <svg id="theme-icon-moon" class="w-4 h-4 text-[#0f6e6e] hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
@@ -297,7 +297,7 @@
     <div id="tabs-viewport" class="flex-1 overflow-x-hidden w-full">
       <div id="tabs-track" style="transform: translate3d(0%, 0, 0);">
 
-        <!-- VIEW 1: IDAG (REDESIGNED DASHBOARD MATCHING IMAGE) -->
+        <!-- VIEW 1: HEM -->
         <main id="view-today" class="tab-pane px-5 pt-2 space-y-3.5 relative">
           
           <!-- Greeting Hero with Botanical Branch on Right -->
@@ -320,7 +320,7 @@
             </svg>
           </div>
 
-          <!-- Top 2 Cards: Dagens middag & Handla nu -->
+          <!-- Top 2 Cards: Dagens middag & Jag handlar nu -->
           <div class="grid grid-cols-2 gap-3">
             <!-- Dagens middag card -->
             <button onclick="switchTab('meals')" class="theme-dinner-card rounded-3xl p-4 text-left transition hover:scale-[1.01] active:scale-[0.99] shadow-md flex items-center gap-3 relative overflow-hidden">
@@ -338,34 +338,38 @@
                   <path d="M24 14C26 10 31 10 32 13C29 14 26 14 24 14Z" fill="#16a34a"/>
                 </svg>
               </div>
-              <div class="min-w-0 flex-1 pr-3">
+              <div class="min-w-0 flex-1 pr-1">
                 <span class="text-[13px] font-bold text-txtmain leading-tight block">Dagens<br/>middag</span>
                 <span id="today-dinner-preview" class="text-[11px] text-txtmuted font-medium block mt-1 line-clamp-2 leading-snug">Ej planerad</span>
               </div>
               <svg class="w-4 h-4 text-txtmuted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
 
-            <!-- Handla nu card -->
-            <div class="theme-card rounded-3xl p-4 shadow-md flex flex-col justify-between relative">
-              <button onclick="openShoppingList()" class="text-left w-full flex items-start justify-between">
-                <div>
-                  <svg class="w-6 h-6 text-accent mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- Jag handlar nu toggle button card (no arrow, no link to shopping list) -->
+            <button
+              type="button"
+              onclick="toggleShoppingLive()"
+              id="btn-shopping-live"
+              class="theme-card theme-card-hover rounded-3xl p-4 text-left transition hover:scale-[1.01] active:scale-[0.99] shadow-md flex flex-col justify-between min-h-[112px]"
+            >
+              <div>
+                <div id="shopping-icon-badge" class="w-9 h-9 rounded-2xl bg-accent/15 text-accent flex items-center justify-center mb-2 transition">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                   </svg>
-                  <span class="text-[14px] font-bold text-txtmain block leading-tight">Handla nu</span>
-                  <span id="shopping-items-count" class="text-[11px] text-txtmuted font-medium block mt-0.5">0 varor kvar</span>
                 </div>
-                <svg class="w-4 h-4 text-txtmuted mt-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </button>
-              <button type="button" onclick="toggleShoppingLive()" id="btn-shopping-live" class="mt-2.5 w-full py-1.5 px-2.5 rounded-full bg-accent/15 hover:bg-accent/25 text-accent text-[10px] font-bold transition text-center truncate">
-                <span id="shopping-btn-title">Meddela: Jag handlar nu</span>
-              </button>
-              <span id="shopping-btn-sub" class="sr-only">Meddela familjen</span>
-            </div>
+                <span class="text-[14px] font-bold text-txtmain block leading-tight">Jag handlar nu</span>
+              </div>
+
+              <div class="pt-2 mt-2 border-t border-black/10 dark:border-white/10 flex items-center gap-1.5 w-full">
+                <span id="shopping-status-dot" class="w-2 h-2 rounded-full bg-txtmuted/40 flex-shrink-0"></span>
+                <span id="shopping-status-text" class="text-[11px] font-semibold text-txtmuted truncate">Inte aktiv</span>
+              </div>
+            </button>
           </div>
 
           <!-- Main Family Tasks Card ("Att göra i familjen") -->
-          <div class="theme-card rounded-3xl p-4.5 p-5 space-y-3 shadow-lg">
+          <div class="theme-card rounded-3xl p-5 space-y-3 shadow-lg">
             <div class="flex items-start justify-between gap-2">
               <div onclick="switchTab('lists')" class="flex items-center gap-3 cursor-pointer min-w-0">
                 <div class="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center text-accent flex-shrink-0">
@@ -398,7 +402,7 @@
             <div id="today-tasks-container" class="divide-y divide-black/5 dark:divide-white/5"></div>
           </div>
 
-          <!-- Secondary 2-Column Summary Cards (Packlista / Lista & Denna vecka) -->
+          <!-- Secondary 2-Column Summary Cards -->
           <div class="grid grid-cols-2 gap-3">
             <!-- Secondary List Progress Card -->
             <button onclick="openSecondaryList()" class="theme-card theme-card-hover rounded-3xl p-4 text-left transition shadow-md flex flex-col justify-between space-y-2.5">
@@ -437,7 +441,6 @@
           <!-- Bottom Quote & Scenic Mountain/Forest Card -->
           <div class="theme-card rounded-3xl px-4 py-3.5 shadow-md relative overflow-hidden flex items-center justify-between min-h-[76px]">
             <div class="flex items-center gap-2.5 z-10 max-w-[66%]">
-              <!-- Small Botanical Sprig -->
               <svg class="w-8 h-10 flex-shrink-0" style="color: var(--leaf-color);" viewBox="0 0 36 44" fill="none">
                 <path d="M6 40C12 28 18 18 28 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                 <path d="M12 30C6 26 6 20 12 18C16 22 16 26 12 30Z" fill="currentColor" fill-opacity="0.8"/>
@@ -449,12 +452,10 @@
               </p>
             </div>
 
-            <!-- Scenic Mountains, Pine Trees & Moon SVG -->
             <svg class="absolute right-0 bottom-0 h-full w-44 pointer-events-none" viewBox="0 0 180 80" fill="none" preserveAspectRatio="none">
               <circle cx="145" cy="18" r="7" fill="#fef3c7" fill-opacity="0.85" class="hidden dark:block"/>
               <path d="M40 80L92 34L138 80H40Z" fill="#0f6e6e" fill-opacity="0.22"/>
               <path d="M88 80L136 26L180 72V80H88Z" fill="#0f6e6e" fill-opacity="0.35"/>
-              <!-- Pine Trees Silhouette -->
               <path d="M132 80L140 50L148 80H132Z" fill="#0b4f4f" fill-opacity="0.75"/>
               <path d="M146 80L156 42L166 80H146Z" fill="#083b3b" fill-opacity="0.85"/>
               <path d="M162 80L171 48L180 80H162Z" fill="#0b4f4f" fill-opacity="0.8"/>
@@ -681,11 +682,11 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation Bar with Icons + Pill Active State (matching screenshot) -->
+    <!-- Bottom Navigation Bar ("Hem" as first tab) -->
     <nav class="fixed bottom-3.5 left-1/2 -translate-x-1/2 w-[calc(100%-1.75rem)] max-w-sm theme-nav backdrop-blur-lg rounded-[30px] p-1.5 flex justify-between shadow-2xl z-30">
       <button onclick="switchTab('today')" id="nav-today" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold theme-nav-active transition">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-        <span>Idag</span>
+        <span>Hem</span>
       </button>
       <button onclick="switchTab('lists')" id="nav-lists" class="flex-1 py-1.5 rounded-3xl flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-txtmuted hover:text-txtmain transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -3147,7 +3148,6 @@
       `;
     }
 
-    // Compact row for Idag Dashboard ("Att göra i familjen" matching screenshot)
     function renderDashboardTaskRow(item, members, targetListId) {
       const assignee = (item.assignee && members[item.assignee]) ? members[item.assignee] : null;
       const initial = assignee ? assignee.name.trim().charAt(0).toUpperCase() : '+';
@@ -3278,19 +3278,31 @@
 
       const shopper = groupData.activeShopper;
       const liveBanner = document.getElementById('shopping-live-banner');
+      const shoppingCardBtn = document.getElementById('btn-shopping-live');
+      const shoppingStatusDot = document.getElementById('shopping-status-dot');
+      const shoppingStatusText = document.getElementById('shopping-status-text');
+      const shoppingIconBadge = document.getElementById('shopping-icon-badge');
+
       if (shopper) {
         liveBanner.classList.remove('hidden');
         document.getElementById('shopping-live-text').textContent = `${shopper.name} handlar just nu!`;
+
+        const isMeShopping = currentUser && shopper.uid === currentUser.uid;
+        shoppingCardBtn.classList.add('ring-2', 'ring-accent');
+        shoppingIconBadge.className = 'w-9 h-9 rounded-2xl btn-accent flex items-center justify-center mb-2 transition shadow-sm';
+        shoppingStatusDot.className = 'w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0';
+        shoppingStatusText.className = 'text-[11px] font-bold text-accent truncate';
+        shoppingStatusText.textContent = isMeShopping ? 'Aktiv (du handlar)' : `Aktiv (${shopper.name})`;
       } else {
         liveBanner.classList.add('hidden');
+        shoppingCardBtn.classList.remove('ring-2', 'ring-accent');
+        shoppingIconBadge.className = 'w-9 h-9 rounded-2xl bg-accent/15 text-accent flex items-center justify-center mb-2 transition';
+        shoppingStatusDot.className = 'w-2 h-2 rounded-full bg-txtmuted/40 flex-shrink-0';
+        shoppingStatusText.className = 'text-[11px] font-semibold text-txtmuted truncate';
+        shoppingStatusText.textContent = 'Inte aktiv';
       }
-      const isMeShopping = shopper && currentUser && shopper.uid === currentUser.uid;
-      document.getElementById('shopping-btn-title').textContent = isMeShopping ? '✓ Handlar nu (Avsluta)' : 'Meddela: Jag handlar nu';
 
-      // Shopping count for "Handla nu" card
       const shoppingLists = lists.filter(l => l.type === 'shopping' || l.id === 'inkop');
-      const remainingGroceries = shoppingLists.reduce((sum, l) => sum + (l.items || []).filter(i => !i.done).length, 0);
-      document.getElementById('shopping-items-count').textContent = `${remainingGroceries} ${remainingGroceries === 1 ? 'vara' : 'varor'} kvar`;
 
       const now = new Date();
       const weekInfo = getISOWeekInfo(now);
@@ -3330,13 +3342,11 @@
       document.getElementById('today-tasks-progress-text').textContent = `${doneTodos} av ${totalTodos} uppgifter klara`;
       document.getElementById('today-tasks-progress-bar').style.width = `${pctTodos}%`;
 
-      // Show undone first, then completed (just like screenshot)
       const sortedDashboardTasks = [...allTodoItems].sort((a, b) => Number(a.item.done) - Number(b.item.done));
       document.getElementById('today-tasks-container').innerHTML = sortedDashboardTasks.length > 0
         ? sortedDashboardTasks.map(x => renderDashboardTaskRow(x.item, members, x.listId)).join('')
         : `<p class="text-center text-xs text-txtmuted py-4">${filterOnlyMine ? 'Inga egna sysslor i listorna!' : 'Inga uppgifter tillagda ännu.'}</p>`;
 
-      // Secondary list progress card ("Packlista: Resa" or second list)
       if (secondaryTodoList) {
         secondaryListId = secondaryTodoList.id;
         const secItems = secondaryTodoList.items || [];
