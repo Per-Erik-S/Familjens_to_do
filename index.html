@@ -189,42 +189,45 @@
   <!-- MAIN APP SHELL -->
   <div id="app-shell" class="hidden max-w-md mx-auto">
     <!-- Top Header -->
-    <header class="sticky top-0 z-20 px-5 pt-4 pb-2.5 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-2">
-      <div id="header-group-wrapper" class="relative min-w-0">
-        <button type="button" onclick="toggleHeaderGroupDropdown()" class="flex items-center gap-2 text-left group">
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h1 id="group-title" class="text-lg font-bold text-txtmain truncate">Familjen</h1>
-              <span class="text-[10px] text-txtmuted">▼</span>
-            </div>
-            <span id="header-user-badge" class="text-[11px] text-txtmuted block truncate">Synkad</span>
-          </div>
-        </button>
-
-        <div id="header-group-dropdown" class="hidden absolute left-0 mt-2 w-60 theme-card rounded-3xl p-2.5 shadow-2xl z-40 space-y-1.5">
-          <span class="text-[10px] font-bold uppercase tracking-wider text-txtmuted px-2.5 pt-1 block">Dina grupper</span>
-          <div id="header-groups-list" class="space-y-1"></div>
-          <div class="pt-1 border-t border-black/10 dark:border-white/10">
-            <button type="button" onclick="openNewGroupModal()" class="w-full px-3 py-2 rounded-2xl text-left text-xs font-semibold text-accent hover:bg-accent/10 transition">
-              + Skapa ny grupp
-            </button>
-          </div>
+    <header class="sticky top-0 z-20 px-5 pt-4 pb-3 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-3">
+      <!-- Greeting & Active Group Subtitle -->
+      <div class="min-w-0">
+        <h1 id="today-greeting" class="text-xl font-bold text-txtmain tracking-tight truncate">Hej!</h1>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0"></span>
+          <span id="group-title" class="text-xs font-medium text-txtmuted truncate">Familjen</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <button type="button" onclick="handleBellClick()" title="Aviseringar" class="relative w-9 h-9 rounded-full theme-card flex items-center justify-center text-txtmain hover:opacity-85 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span id="bell-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent"></span>
-        </button>
+      <!-- Right Action Buttons: Groups Switcher & Theme Toggle -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div id="header-group-wrapper" class="relative">
+          <button type="button" onclick="toggleHeaderGroupDropdown()" title="Byt eller skapa grupp" class="w-11 h-11 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
 
-        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-9 h-9 rounded-full theme-card flex items-center justify-center text-txtmain hover:opacity-85 transition">
-          <svg id="theme-icon-sun" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <div id="header-group-dropdown" class="hidden absolute right-0 mt-2.5 w-64 theme-card rounded-3xl p-3 shadow-2xl z-40 space-y-2 border border-accent/20">
+            <div class="px-2.5 pt-1 pb-1 border-b border-black/10 dark:border-white/10">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-accent block">Dina grupper</span>
+              <span id="header-user-badge" class="text-[11px] text-txtmuted block truncate mt-0.5">Synkad</span>
+            </div>
+            <div id="header-groups-list" class="space-y-1 max-h-56 overflow-y-auto no-scrollbar"></div>
+            <div class="pt-1 border-t border-black/10 dark:border-white/10">
+              <button type="button" onclick="openNewGroupModal()" class="w-full px-3 py-2.5 rounded-2xl text-left text-xs font-bold text-accent hover:bg-accent/10 transition flex items-center gap-2">
+                <span>+</span>
+                <span>Skapa ny grupp</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-11 h-11 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+          <svg id="theme-icon-sun" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
-          <svg id="theme-icon-moon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         </button>
@@ -236,7 +239,7 @@
       <div id="tabs-track" class="flex w-[500%]">
 
         <!-- VIEW 1: HEM -->
-        <main id="view-today" class="tab-pane px-5 pt-3 space-y-4">
+        <main id="view-today" class="tab-pane px-5 pt-2 space-y-4">
           <!-- Live Shopping Banner (visas när någon handlar) -->
           <div id="shopping-live-banner" onclick="openShoppingList()" class="hidden theme-card rounded-3xl p-4 border border-accent/50 bg-accent/10 flex items-center justify-between gap-3 cursor-pointer shadow-md transition">
             <div class="flex items-center gap-3 min-w-0">
@@ -249,11 +252,11 @@
             <span class="text-xs font-bold text-accent flex-shrink-0">Öppna →</span>
           </div>
 
-          <!-- Greeting & Week Card -->
+          <!-- Date & Week Card -->
           <div class="theme-card rounded-3xl p-5 flex items-center justify-between shadow-md">
             <div>
-              <span id="today-date-label" class="text-[11px] font-semibold uppercase tracking-wider text-accent capitalize block">Idag</span>
-              <h2 id="today-greeting" class="text-xl font-bold text-txtmain mt-0.5">Hej!</h2>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-accent block">Idag</span>
+              <h2 id="today-date-label" class="text-lg font-bold text-txtmain capitalize mt-0.5">--</h2>
             </div>
             <div class="text-right theme-inner px-3.5 py-2 rounded-2xl">
               <span id="today-week-badge" class="text-xs font-bold text-txtmain block">Vecka --</span>
@@ -938,14 +941,6 @@
 
     applySavedTheme();
 
-    window.handleBellClick = function() {
-      if ('Notification' in window && Notification.permission === 'default') {
-        window.requestNotificationPermission();
-      } else {
-        window.switchTab('group');
-      }
-    };
-
     function escHtml(str) {
       return String(str ?? '')
         .replace(/&/g, '&amp;')
@@ -1210,7 +1205,6 @@
     function updateNotificationUI() {
       const badge = document.getElementById('notif-status-badge');
       const btn = document.getElementById('btn-enable-notifications');
-      const bellDot = document.getElementById('bell-dot');
       if (!badge || !btn) return;
 
       if (!('Notification' in window)) {
@@ -1220,13 +1214,10 @@
         return;
       }
 
-      const activeShopper = (groupData?.activeShopper && !isShopperExpired(groupData.activeShopper)) ? groupData.activeShopper : null;
-
       if (Notification.permission === 'granted') {
         badge.textContent = 'På';
         badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold';
         btn.textContent = '✓ Aviseringar är aktiverade på den här mobilen';
-        if (bellDot && !activeShopper) bellDot.classList.add('hidden');
       } else if (Notification.permission === 'denied') {
         badge.textContent = 'Blockerad';
         badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-semibold';
@@ -1235,7 +1226,6 @@
         badge.textContent = 'Av';
         badge.className = 'text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full theme-inner text-txtmuted font-semibold';
         btn.textContent = 'Aktivera aviseringar på den här enheten';
-        if (bellDot) bellDot.classList.remove('hidden');
       }
     }
 
@@ -2355,12 +2345,12 @@
         const gColor = (snap.exists() && snap.data().themeAccent) ? snap.data().themeAccent : '#7ce3db';
         const isActive = c === currentGroupId;
         return `
-          <button onclick="switchActiveGroup('${escAttr(c)}')" class="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-left transition ${isActive ? 'bg-accent/15' : 'hover:bg-accent/10'}">
-            <div class="flex items-center gap-2 min-w-0">
+          <button onclick="switchActiveGroup('${escAttr(c)}')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-left transition ${isActive ? 'bg-accent/15' : 'hover:bg-accent/10'}">
+            <div class="flex items-center gap-2.5 min-w-0">
               <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${escAttr(gColor)}"></span>
               <span class="text-xs font-semibold text-txtmain truncate">${escHtml(gName)}</span>
             </div>
-            <span class="text-[10px] text-txtmuted">${isActive ? '✓' : escHtml(c)}</span>
+            <span class="text-[10px] font-semibold ${isActive ? 'text-accent' : 'text-txtmuted'}">${isActive ? '✓' : escHtml(c)}</span>
           </button>
         `;
       }));
