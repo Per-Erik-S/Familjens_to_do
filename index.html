@@ -188,23 +188,23 @@
 
   <!-- MAIN APP SHELL -->
   <div id="app-shell" class="hidden max-w-md mx-auto">
-    <!-- Top Header: Group Name & Action Icons -->
-    <header class="sticky top-0 z-20 px-5 pt-4 pb-3 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <span class="w-2.5 h-2.5 rounded-full bg-accent flex-shrink-0"></span>
-        <h1 id="group-title" class="text-lg font-bold text-txtmain tracking-tight truncate">Familjen</h1>
+    <!-- Top Header: Compact Group Name & Action Icons -->
+    <header class="sticky top-0 z-20 px-5 pt-2.5 pb-2 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span>
+        <h1 id="group-title" class="text-base font-bold text-txtmain tracking-tight truncate">Familjen</h1>
       </div>
 
       <!-- Right Action Buttons: Groups Switcher & Theme Toggle -->
-      <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="flex items-center gap-2 flex-shrink-0">
         <div id="header-group-wrapper" class="relative">
-          <button type="button" onclick="toggleHeaderGroupDropdown()" title="Byt eller skapa grupp" class="w-11 h-11 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <button type="button" onclick="toggleHeaderGroupDropdown()" title="Byt eller skapa grupp" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </button>
 
-          <div id="header-group-dropdown" class="hidden absolute right-0 mt-2.5 w-64 theme-card rounded-3xl p-3 shadow-2xl z-40 space-y-2 border border-accent/20">
+          <div id="header-group-dropdown" class="hidden absolute right-0 mt-2 w-64 theme-card rounded-3xl p-3 shadow-2xl z-40 space-y-2 border border-accent/20">
             <div class="px-2.5 pt-1 pb-1 border-b border-black/10 dark:border-white/10">
               <span class="text-[10px] font-bold uppercase tracking-wider text-accent block">Dina grupper</span>
               <span id="header-user-badge" class="text-[11px] text-txtmuted block truncate mt-0.5">Synkad</span>
@@ -219,11 +219,11 @@
           </div>
         </div>
 
-        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-11 h-11 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
-          <svg id="theme-icon-sun" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button type="button" onclick="toggleColorTheme()" title="Byt ljust/mörkt tema" class="w-9 h-9 rounded-full theme-card theme-card-hover flex items-center justify-center text-txtmain shadow-sm transition active:scale-95">
+          <svg id="theme-icon-sun" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
-          <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg id="theme-icon-moon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
           </svg>
         </button>
@@ -235,7 +235,7 @@
       <div id="tabs-track" class="flex w-[500%]">
 
         <!-- VIEW 1: HEM -->
-        <main id="view-today" class="tab-pane px-5 pt-2 space-y-4">
+        <main id="view-today" class="tab-pane px-5 pt-1.5 space-y-4">
           <!-- Live Shopping Banner (visas när någon handlar) -->
           <div id="shopping-live-banner" onclick="openShoppingList()" class="hidden theme-card rounded-3xl p-4 border border-accent/50 bg-accent/10 flex items-center justify-between gap-3 cursor-pointer shadow-md transition">
             <div class="flex items-center gap-3 min-w-0">
@@ -248,16 +248,15 @@
             <span class="text-xs font-bold text-accent flex-shrink-0">Öppna →</span>
           </div>
 
-          <!-- Greeting & Date directly on background -->
-          <div class="px-1 pt-1 pb-0.5 flex items-end justify-between gap-3">
-            <div class="min-w-0">
-              <h2 id="today-greeting" class="text-2xl font-bold text-txtmain tracking-tight leading-tight truncate">Hej!</h2>
-              <p id="today-date-label" class="text-sm font-medium text-txtmuted capitalize mt-1">--</p>
-            </div>
-            <div class="text-right theme-card px-3.5 py-2 rounded-2xl flex-shrink-0 shadow-sm">
-              <span id="today-week-badge" class="text-xs font-bold text-txtmain block">Vecka --</span>
-              <span id="today-week-parity" class="text-[10px] font-semibold text-accent uppercase tracking-wider block">--</span>
-            </div>
+          <!-- Greeting, Date & Week directly on background -->
+          <div class="px-1 pt-0.5 pb-0.5">
+            <h2 id="today-greeting" class="text-[26px] font-bold text-txtmain tracking-tight leading-tight truncate">Hej!</h2>
+            <p class="text-base font-medium text-txtmuted mt-1 flex items-center flex-wrap gap-x-2">
+              <span id="today-date-label" class="capitalize">--</span>
+              <span class="opacity-40">•</span>
+              <span id="today-week-badge" class="font-semibold text-txtmain">Vecka --</span>
+              <span id="today-week-parity" class="text-xs font-semibold text-accent">(--)</span>
+            </p>
           </div>
 
           <!-- Unified Two-Card Grid: Dagens middag & Jag handlar nu -->
@@ -333,7 +332,7 @@
         </main>
 
         <!-- VIEW 2: LISTOR -->
-        <main id="view-lists" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
+        <main id="view-lists" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-4">
           <div class="flex items-center gap-2">
             <div id="list-tabs" class="flex-1 flex gap-2 overflow-x-auto no-scrollbar py-0.5"></div>
             <button type="button" onclick="openNewListModal()" class="px-3.5 py-2 rounded-full theme-card text-accent font-bold text-xs flex-shrink-0 hover:opacity-85 transition">
@@ -420,7 +419,7 @@
         </main>
 
         <!-- VIEW 3: KALENDER -->
-        <main id="view-calendar" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
+        <main id="view-calendar" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-4">
           <div class="theme-card rounded-3xl p-5 flex items-center justify-between gap-3 shadow-md">
             <div>
               <h2 class="text-lg font-bold text-txtmain">Familjekalender</h2>
@@ -442,7 +441,7 @@
         </main>
 
         <!-- VIEW 4: MATSEDEL -->
-        <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-4">
+        <main id="view-meals" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-4">
           <div class="theme-card rounded-3xl p-5 space-y-1 shadow-md">
             <h2 class="font-serif text-lg font-bold text-txtmain">Veckans matsedel</h2>
             <p class="text-xs text-txtmuted">Lägg in rätter och ingredienser så sparas de i era favoriträtter och sorteras automatiskt in i rätt butiksavdelning vid inköp.</p>
@@ -451,7 +450,7 @@
         </main>
 
         <!-- VIEW 5: GRUPP & MALLAR -->
-        <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-4 space-y-5">
+        <main id="view-group" class="tab-pane tab-pane-collapsed px-5 pt-3 space-y-5">
           <!-- Push Notifications Card -->
           <div class="theme-card rounded-3xl p-6 space-y-3 shadow-md">
             <div class="flex items-center justify-between">
@@ -3190,7 +3189,7 @@
       document.getElementById('today-greeting').textContent = `Hej ${currentUserProfile?.name || ''}!`;
       document.getElementById('today-date-label').textContent = dateStr;
       document.getElementById('today-week-badge').textContent = `Vecka ${weekInfo.weekNo}`;
-      document.getElementById('today-week-parity').textContent = weekInfo.isOdd ? 'Udda' : 'Jämn';
+      document.getElementById('today-week-parity').textContent = `(${weekInfo.isOdd ? 'Udda' : 'Jämn'})`;
 
       const todayMeal = groupData.meals && groupData.meals[weekInfo.dayKey];
       document.getElementById('today-dinner-preview').textContent = (todayMeal && todayMeal.dish) ? todayMeal.dish : 'Ej planerad';
