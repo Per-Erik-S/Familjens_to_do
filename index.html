@@ -188,15 +188,11 @@
 
   <!-- MAIN APP SHELL -->
   <div id="app-shell" class="hidden max-w-md mx-auto">
-    <!-- Top Header -->
+    <!-- Top Header: Group Name & Action Icons -->
     <header class="sticky top-0 z-20 px-5 pt-4 pb-3 backdrop-blur-md bg-[var(--bg-page)]/85 flex items-center justify-between gap-3">
-      <!-- Greeting & Active Group Subtitle -->
-      <div class="min-w-0">
-        <h1 id="today-greeting" class="text-xl font-bold text-txtmain tracking-tight truncate">Hej!</h1>
-        <div class="flex items-center gap-1.5 mt-0.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0"></span>
-          <span id="group-title" class="text-xs font-medium text-txtmuted truncate">Familjen</span>
-        </div>
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-2.5 h-2.5 rounded-full bg-accent flex-shrink-0"></span>
+        <h1 id="group-title" class="text-lg font-bold text-txtmain tracking-tight truncate">Familjen</h1>
       </div>
 
       <!-- Right Action Buttons: Groups Switcher & Theme Toggle -->
@@ -252,13 +248,13 @@
             <span class="text-xs font-bold text-accent flex-shrink-0">Öppna →</span>
           </div>
 
-          <!-- Date & Week Card -->
-          <div class="theme-card rounded-3xl p-5 flex items-center justify-between shadow-md">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-accent block">Idag</span>
-              <h2 id="today-date-label" class="text-lg font-bold text-txtmain capitalize mt-0.5">--</h2>
+          <!-- Greeting & Date directly on background -->
+          <div class="px-1 pt-1 pb-0.5 flex items-end justify-between gap-3">
+            <div class="min-w-0">
+              <h2 id="today-greeting" class="text-2xl font-bold text-txtmain tracking-tight leading-tight truncate">Hej!</h2>
+              <p id="today-date-label" class="text-sm font-medium text-txtmuted capitalize mt-1">--</p>
             </div>
-            <div class="text-right theme-inner px-3.5 py-2 rounded-2xl">
+            <div class="text-right theme-card px-3.5 py-2 rounded-2xl flex-shrink-0 shadow-sm">
               <span id="today-week-badge" class="text-xs font-bold text-txtmain block">Vecka --</span>
               <span id="today-week-parity" class="text-[10px] font-semibold text-accent uppercase tracking-wider block">--</span>
             </div>
@@ -3191,8 +3187,8 @@
       const now = new Date();
       const weekInfo = getISOWeekInfo(now);
       const dateStr = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' });
-      document.getElementById('today-date-label').textContent = dateStr;
       document.getElementById('today-greeting').textContent = `Hej ${currentUserProfile?.name || ''}!`;
+      document.getElementById('today-date-label').textContent = dateStr;
       document.getElementById('today-week-badge').textContent = `Vecka ${weekInfo.weekNo}`;
       document.getElementById('today-week-parity').textContent = weekInfo.isOdd ? 'Udda' : 'Jämn';
 
